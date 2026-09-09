@@ -10,12 +10,29 @@ import type {
 
 import { getCheckoutQuote } from '../database/checkout-quotes'
 import {
+  getOrder,
   getOrderByIdempotencyKey,
   saveOrder,
 } from '../database/orders'
 
 function createOrderId() {
   return `order_${crypto.randomUUID()}`
+}
+
+function createTransactionHash() {
+  const bytes = new Uint8Array(32)
+
+  crypto.getRandomValues(bytes)
+
+  const hash = Array.from(
+    bytes,
+    (byte) =>
+      byte
+        .toString(16)
+        .padStart(2, '0'),
+  ).join('')
+
+  return `0x${hash}`
 }
 
 function isCreateOrderRequest(
@@ -78,6 +95,38 @@ function isCreateOrderRequest(
 }
 
 export const orderHandlers = [
+  http.get(
+    '/api/orders/:orderId',
+    ({ params }) => {
+      const orderId = String(
+        params.orderId,
+      )
+
+      const order =
+        getOrder(orderId)
+
+      if (!order) {
+        return HttpResponse.json(
+          {
+            code: 'ORDER_NOT_FOUND',
+            message:
+              'Pedido não encontrado.',
+          },
+          {
+            status: 404,
+          },
+        )
+      }
+
+      return HttpResponse.json(
+        order,
+        {
+          status: 200,
+        },
+      )
+    },
+  ),
+
   http.post(
     '/api/orders',
     async ({ request }) => {
@@ -195,11 +244,17 @@ export const orderHandlers = [
 
         quoteId: quote.quoteId,
 
+        transactionHash:
+          createTransactionHash(),
+
         status: 'confirmed',
 
         items: quote.items,
 
         network: quote.network,
+
+        walletProvider:
+          body.walletProvider,
 
         subtotalEth:
           quote.subtotalEth,

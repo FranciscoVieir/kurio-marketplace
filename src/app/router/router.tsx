@@ -9,6 +9,7 @@ import { CartPage } from '@/routes/cart'
 import { CheckoutPage } from '@/routes/checkout'
 import { HomePage } from '@/routes/home'
 import { NftDetailPage } from '@/routes/nft-detail'
+import { OrderConfirmationPage } from '@/routes/order-confirmation'
 
 import type {
   CatalogParams,
@@ -130,11 +131,19 @@ const checkoutRoute = createRoute({
   component: CheckoutPage,
 })
 
+const orderConfirmationRoute =
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/orders/$orderId',
+    component: OrderConfirmationPage,
+  })
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   nftDetailRoute,
   cartRoute,
   checkoutRoute,
+  orderConfirmationRoute,
 ])
 
 export const router = createRouter({

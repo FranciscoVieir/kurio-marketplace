@@ -67,9 +67,11 @@ export type OrderStatus =
 export type Order = {
   id: string
   quoteId: string
+  transactionHash: string
   status: OrderStatus
   items: CheckoutQuoteItem[]
   network: NftNetwork
+  walletProvider: CheckoutWalletProvider
   subtotalEth: string
   discountEth: string
   networkFeeEth: string

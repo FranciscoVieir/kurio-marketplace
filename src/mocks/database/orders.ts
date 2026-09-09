@@ -1,9 +1,99 @@
 import type { Order } from '@/features/checkout/types/checkout'
 
-const orders = new Map<string, Order>()
+const ORDERS_STORAGE_KEY =
+  'kurio:mock:orders'
+
+const IDEMPOTENCY_STORAGE_KEY =
+  'kurio:mock:orders:idempotency'
+
+function loadOrders() {
+  if (
+    typeof window === 'undefined'
+  ) {
+    return new Map<string, Order>()
+  }
+
+  try {
+    const storedOrders =
+      window.localStorage.getItem(
+        ORDERS_STORAGE_KEY,
+      )
+
+    if (!storedOrders) {
+      return new Map<string, Order>()
+    }
+
+    const parsed = JSON.parse(
+      storedOrders,
+    ) as Array<[string, Order]>
+
+    return new Map<string, Order>(
+      parsed,
+    )
+  } catch {
+    return new Map<string, Order>()
+  }
+}
+
+function loadOrdersByIdempotencyKey() {
+  if (
+    typeof window === 'undefined'
+  ) {
+    return new Map<string, Order>()
+  }
+
+  try {
+    const storedEntries =
+      window.localStorage.getItem(
+        IDEMPOTENCY_STORAGE_KEY,
+      )
+
+    if (!storedEntries) {
+      return new Map<string, Order>()
+    }
+
+    const parsed = JSON.parse(
+      storedEntries,
+    ) as Array<[string, Order]>
+
+    return new Map<string, Order>(
+      parsed,
+    )
+  } catch {
+    return new Map<string, Order>()
+  }
+}
+
+const orders = loadOrders()
 
 const ordersByIdempotencyKey =
-  new Map<string, Order>()
+  loadOrdersByIdempotencyKey()
+
+function persistOrders() {
+  if (
+    typeof window === 'undefined'
+  ) {
+    return
+  }
+
+  window.localStorage.setItem(
+    ORDERS_STORAGE_KEY,
+    JSON.stringify(
+      Array.from(
+        orders.entries(),
+      ),
+    ),
+  )
+
+  window.localStorage.setItem(
+    IDEMPOTENCY_STORAGE_KEY,
+    JSON.stringify(
+      Array.from(
+        ordersByIdempotencyKey.entries(),
+      ),
+    ),
+  )
+}
 
 export function saveOrder(
   order: Order,
@@ -18,6 +108,8 @@ export function saveOrder(
     idempotencyKey,
     order,
   )
+
+  persistOrders()
 }
 
 export function getOrder(
@@ -61,7 +153,9 @@ export function updateOrder(
       order,
     ] of ordersByIdempotencyKey
   ) {
-    if (order.id === orderId) {
+    if (
+      order.id === orderId
+    ) {
       ordersByIdempotencyKey.set(
         idempotencyKey,
         updatedOrder,
@@ -71,10 +165,26 @@ export function updateOrder(
     }
   }
 
+  persistOrders()
+
   return updatedOrder
 }
 
 export function clearOrders() {
   orders.clear()
   ordersByIdempotencyKey.clear()
+
+  if (
+    typeof window === 'undefined'
+  ) {
+    return
+  }
+
+  window.localStorage.removeItem(
+    ORDERS_STORAGE_KEY,
+  )
+
+  window.localStorage.removeItem(
+    IDEMPOTENCY_STORAGE_KEY,
+  )
 }

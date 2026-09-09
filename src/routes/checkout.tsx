@@ -3,7 +3,10 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Link } from '@tanstack/react-router'
+import {
+  Link,
+  useNavigate,
+} from '@tanstack/react-router'
 
 import { Header } from '@/components/layout/header'
 import { PageContainer } from '@/components/layout/page-container'
@@ -52,9 +55,12 @@ function createIdempotencyKey() {
 }
 
 export function CheckoutPage() {
+  const navigate = useNavigate()
+
   const {
     items,
     isEmpty,
+    clearCart,
   } = useCart()
 
   const {
@@ -66,7 +72,6 @@ export function CheckoutPage() {
   } = useCheckoutQuote()
 
   const {
-    data: order,
     isPending: isOrderPending,
     isError: isOrderError,
     mutate: submitOrder,
@@ -157,6 +162,7 @@ export function CheckoutPage() {
       setSubmitError(
         'Preencha todos os campos obrigatórios antes de confirmar a compra.',
       )
+
       return
     }
 
@@ -166,6 +172,7 @@ export function CheckoutPage() {
       setSubmitError(
         `A rede selecionada deve ser ${quote.network}.`,
       )
+
       return
     }
 
@@ -176,15 +183,29 @@ export function CheckoutPage() {
         createIdempotencyKey()
     }
 
-    submitOrder({
-      payload: {
-        quoteId: quote.quoteId,
-        profile,
-        walletProvider,
+    submitOrder(
+      {
+        payload: {
+          quoteId: quote.quoteId,
+          profile,
+          walletProvider,
+        },
+        idempotencyKey:
+          idempotencyKeyRef.current,
       },
-      idempotencyKey:
-        idempotencyKeyRef.current,
-    })
+      {
+        onSuccess: (order) => {
+          clearCart()
+
+          void navigate({
+            to: '/orders/$orderId',
+            params: {
+              orderId: order.id,
+            },
+          })
+        },
+      },
+    )
   }
 
   return (
@@ -342,41 +363,39 @@ export function CheckoutPage() {
                   </h2>
 
                   <div className="mt-5 space-y-4">
-                    {quote.items.map(
-                      (item) => (
-                        <div
-                          key={item.nftId}
-                          className="
-                            flex items-center
-                            gap-3
-                            border-b
-                            border-[var(--color-border-kurio)]
-                            pb-4
-                          "
-                        >
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="size-14 rounded-[6px] object-cover"
-                          />
+                    {quote.items.map((item) => (
+                      <div
+                        key={item.nftId}
+                        className="
+                          flex items-center
+                          gap-3
+                          border-b
+                          border-[var(--color-border-kurio)]
+                          pb-4
+                        "
+                      >
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="size-14 rounded-[6px] object-cover"
+                        />
 
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-bold text-foreground">
-                              {item.name}
-                            </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[11px] font-bold text-foreground">
+                            {item.name}
+                          </p>
 
-                            <p className="mt-1 text-[9px] text-[var(--color-text-secondary)]">
-                              {item.tokenId} · Qtd.{' '}
-                              {item.quantity}
-                            </p>
-                          </div>
-
-                          <span className="text-[10px] font-bold text-foreground">
-                            {item.subtotalEth} ETH
-                          </span>
+                          <p className="mt-1 text-[9px] text-[var(--color-text-secondary)]">
+                            {item.tokenId} · Qtd.{' '}
+                            {item.quantity}
+                          </p>
                         </div>
-                      ),
-                    )}
+
+                        <span className="text-[10px] font-bold text-foreground">
+                          {item.subtotalEth} ETH
+                        </span>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="mt-5 space-y-2.5 text-[10px]">
@@ -458,53 +477,27 @@ export function CheckoutPage() {
                     </p>
                   )}
 
-                  {!order && (
-                    <button
-                      type="button"
-                      onClick={
-                        handleConfirmPurchase
-                      }
-                      disabled={isOrderPending}
-                      className="
-                        mt-5
-                        h-10 w-full
-                        bg-[var(--color-primary-kurio)]
-                        text-[11px] font-bold
-                        text-[var(--color-ink)]
-                        transition-opacity
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                      "
-                    >
-                      {isOrderPending
-                        ? 'Confirmando compra...'
-                        : 'Confirmar compra'}
-                    </button>
-                  )}
-
-                  {order && (
-                    <div
-                      role="status"
-                      className="
-                        mt-5
-                        border
-                        border-[var(--color-primary-kurio)]
-                        p-4
-                      "
-                    >
-                      <p className="text-[11px] font-bold text-[var(--color-text-accent)]">
-                        Compra confirmada
-                      </p>
-
-                      <p className="mt-2 text-[9px] text-[var(--color-text-secondary)]">
-                        Pedido {order.id}
-                      </p>
-
-                      <p className="mt-1 text-[9px] text-[var(--color-text-secondary)]">
-                        Status: {order.status}
-                      </p>
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={
+                      handleConfirmPurchase
+                    }
+                    disabled={isOrderPending}
+                    className="
+                      mt-5
+                      h-10 w-full
+                      bg-[var(--color-primary-kurio)]
+                      text-[11px] font-bold
+                      text-[var(--color-ink)]
+                      transition-opacity
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+                    {isOrderPending
+                      ? 'Confirmando compra...'
+                      : 'Confirmar compra'}
+                  </button>
                 </aside>
               </div>
             </section>
