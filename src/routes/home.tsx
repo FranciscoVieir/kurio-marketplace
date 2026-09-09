@@ -1,7 +1,12 @@
 import { useNfts } from '@/features/catalog/hooks/use-nfts'
+import { useSearch } from '@tanstack/react-router'
 
 export function HomePage() {
-  const { data, isLoading, isError } = useNfts()
+  const searchParams = useSearch({
+    from: '/',
+  })
+
+  const { data, isLoading, isError } = useNfts(searchParams)
 
   if (isLoading) {
     return (
@@ -25,6 +30,10 @@ export function HomePage() {
         <h1 className="mb-8 text-3xl font-semibold">
           Kurio Marketplace
         </h1>
+
+        <pre className="mb-8 rounded-lg border p-4 text-sm">
+          {JSON.stringify(searchParams, null, 2)}
+        </pre>
 
         <div className="grid gap-4 md:grid-cols-3">
           {data?.items.map((nft) => (
