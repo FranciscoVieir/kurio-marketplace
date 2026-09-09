@@ -1,15 +1,18 @@
 import { api } from '@/services/api/client'
-import type { Nft } from '@/mocks/fixtures/nfts'
+import type { Nft } from '@/features/nft/types/nft'
+import type { CatalogParams } from '../types/catalog'
 
-type GetNftsResponse = {
+export type GetNftsResponse = {
   items: Nft[]
   total: number
   page: number
   pageSize: number
 }
 
-export async function getNfts() {
-  const response = await api.get<GetNftsResponse>('/nfts')
+export async function getNfts(params: CatalogParams) {
+  const response = await api.get<GetNftsResponse>('/nfts', {
+    params,
+  })
 
   return response.data
 }

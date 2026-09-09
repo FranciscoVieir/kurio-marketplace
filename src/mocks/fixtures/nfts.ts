@@ -1,15 +1,4 @@
-export type Nft = {
-  id: string
-  name: string
-  tokenId: string
-  priceEth: string
-  imageUrl: string
-  collection: string
-  network: 'ethereum' | 'polygon' | 'solana'
-  category: string
-  availableQuantity: number
-  version: number
-}
+import type { Nft } from '@/features/nft/types/nft'
 
 export const nftFixtures: Nft[] = [
   {
