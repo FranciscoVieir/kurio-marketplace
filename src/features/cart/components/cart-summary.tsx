@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import Decimal from 'decimal.js'
 
 import { useCart } from '@/features/cart/hooks/use-cart'
@@ -97,7 +98,7 @@ export function CartSummary() {
         className="
           border-b
           border-[var(--color-border-kurio)]
-          pb-[8px]
+          pb-2
           text-[12px] font-bold
           text-foreground
         "
@@ -105,7 +106,7 @@ export function CartSummary() {
         Resumo da carteira
       </h2>
 
-      <div className="mt-[14px]">
+      <div className="mt-3.5">
         <label
           htmlFor="coupon-code"
           className="
@@ -117,7 +118,7 @@ export function CartSummary() {
           Código promocional
         </label>
 
-        <div className="mt-[6px] flex">
+        <div className="mt-1.5 flex">
           <input
             id="coupon-code"
             type="text"
@@ -138,7 +139,7 @@ export function CartSummary() {
             }}
             placeholder="Digite o código promocional..."
             className="
-              h-[32px] min-w-0 flex-1
+              h-8 min-w-0 flex-1
               border
               border-[var(--color-border-kurio)]
               bg-transparent
@@ -156,9 +157,9 @@ export function CartSummary() {
             onClick={handleApplyCoupon}
             disabled={isEmpty}
             className="
-              h-[32px]
+              h-8
               bg-[var(--color-primary-kurio)]
-              px-[14px]
+              px-3.5
               text-[10px] font-bold
               text-[var(--color-ink)]
               transition-opacity
@@ -199,11 +200,11 @@ export function CartSummary() {
 
       <div
         className="
-          mt-[18px] space-y-[10px]
+          mt-4.5 space-y-2.5
           text-[10px]
         "
       >
-        <div className="flex items-center justify-between gap-[20px]">
+        <div className="flex items-center justify-between gap-5">
           <span className="text-foreground">
             Subtotal
           </span>
@@ -213,7 +214,7 @@ export function CartSummary() {
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-[20px]">
+        <div className="flex items-center justify-between gap-5">
           <span className="text-foreground">
             Desconto do lançamento
           </span>
@@ -223,7 +224,7 @@ export function CartSummary() {
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-[20px]">
+        <div className="flex items-center justify-between gap-5">
           <span className="text-foreground">
             Taxa de rede
           </span>
@@ -246,11 +247,11 @@ export function CartSummary() {
 
       <div
         className="
-          mt-[16px]
+          mt-4
           flex items-center justify-between
           border-t
           border-[var(--color-border-kurio)]
-          pt-[12px]
+          pt-3
         "
       >
         <span className="text-[11px] font-bold text-foreground">
@@ -267,36 +268,52 @@ export function CartSummary() {
         </span>
       </div>
 
-      <button
-        type="button"
-        disabled={isEmpty}
-        className="
-          mt-[16px]
-          h-[36px] w-full
-          rounded-[2px]
-          bg-[var(--color-primary-kurio)]
-          text-[11px] font-bold
-          text-[var(--color-ink)]
-          transition-opacity
-          disabled:cursor-not-allowed
-          disabled:opacity-40
-        "
-      >
-        Conectar e finalizar
-      </button>
+      {isEmpty ? (
+        <button
+          type="button"
+          disabled
+          className="
+            mt-4
+            h-9 w-full
+            rounded-[2px]
+            bg-[var(--color-primary-kurio)]
+            text-[11px] font-bold
+            text-[var(--color-ink)]
+            opacity-40
+            disabled:cursor-not-allowed
+          "
+        >
+          Conectar e finalizar
+        </button>
+      ) : (
+        <Link
+          to="/checkout"
+          className="
+            mt-4
+            flex h-9 w-full
+            items-center justify-center
+            rounded-[2px]
+            bg-[var(--color-primary-kurio)]
+            text-[11px] font-bold
+            text-[var(--color-ink)]
+          "
+        >
+          Conectar e finalizar
+        </Link>
+      )}
 
-      <button
-        type="button"
+      <Link
+        to="/"
         className="
-          mt-[10px]
-          w-full
+          mt-2.5
+          block w-full
           text-center
           text-[10px]
           text-[var(--color-text-accent)]
         "
       >
         Continuar explorando
-      </button>
+      </Link>
     </aside>
   )
 }
