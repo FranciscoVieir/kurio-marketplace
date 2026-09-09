@@ -8,6 +8,8 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 
+import { useCart } from '@/features/cart/hooks/use-cart'
+
 import { PageContainer } from './page-container'
 
 type NavigationItem = {
@@ -37,6 +39,10 @@ export function Header() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+
+  const {
+    totalItems,
+  } = useCart()
 
   const isHome = pathname === '/'
 
@@ -158,9 +164,17 @@ export function Header() {
               />
             </button>
 
-            <button
-              type="button"
-              aria-label="Carrinho"
+            <Link
+              to="/cart"
+              aria-label={
+                totalItems === 0
+                  ? 'Carrinho vazio'
+                  : `Carrinho com ${totalItems} ${
+                      totalItems === 1
+                        ? 'item'
+                        : 'itens'
+                    }`
+              }
               className="
                 relative flex h-7 w-7
                 items-center justify-center
@@ -172,21 +186,27 @@ export function Header() {
                 strokeWidth={1.8}
               />
 
-              <span
-                className="
-                  absolute -right-1 -top-1
-                  flex h-4 w-4
-                  items-center justify-center
-                  rounded-full
-                  border-2 border-[var(--color-ink)]
-                  bg-[var(--color-primary-kurio)]
-                  text-[9px] font-bold
-                  text-[var(--color-ink)]
-                "
-              >
-                6
-              </span>
-            </button>
+              {totalItems > 0 && (
+                <span
+                  className="
+                    absolute -right-1 -top-1
+                    flex h-4 min-w-4
+                    items-center justify-center
+                    rounded-full
+                    border-2 border-[var(--color-ink)]
+                    bg-[var(--color-primary-kurio)]
+                    px-[2px]
+                    text-[9px] font-bold
+                    leading-none
+                    text-[var(--color-ink)]
+                  "
+                >
+                  {totalItems > 99
+                    ? '99+'
+                    : totalItems}
+                </span>
+              )}
+            </Link>
 
             <button
               type="button"

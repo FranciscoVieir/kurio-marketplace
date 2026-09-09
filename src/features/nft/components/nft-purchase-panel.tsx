@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Heart, Minus, Plus } from 'lucide-react'
 
+import { useCart } from '@/features/cart/hooks/use-cart'
 import { useFavorites } from '@/features/favorites/hooks/use-favorites'
 import type { Nft } from '@/features/nft/types/nft'
 
@@ -12,35 +13,75 @@ export function NftPurchasePanel({
   nft,
 }: NftPurchasePanelProps) {
   const [quantity, setQuantity] = useState(1)
+  const [wasAddedToCart, setWasAddedToCart] = useState(false)
 
   const {
     isFavorite,
     toggleFavorite,
   } = useFavorites()
 
+  const {
+    addItem,
+    getItemQuantity,
+  } = useCart()
+
   const favorite = isFavorite(nft.id)
+  const quantityInCart = getItemQuantity(nft.id)
 
   const isMinimumQuantity = quantity <= 1
+
+  const remainingQuantity = Math.max(
+    0,
+    nft.availableQuantity - quantityInCart,
+  )
+
   const isMaximumQuantity =
-    quantity >= nft.availableQuantity
+    quantity >= remainingQuantity
+
+  const isSoldOut = nft.availableQuantity <= 0
+
+  const cannotAddMore =
+    remainingQuantity <= 0
 
   function handleDecreaseQuantity() {
     setQuantity((currentQuantity) =>
       Math.max(1, currentQuantity - 1),
     )
+
+    setWasAddedToCart(false)
   }
 
   function handleIncreaseQuantity() {
     setQuantity((currentQuantity) =>
       Math.min(
-        nft.availableQuantity,
+        remainingQuantity,
         currentQuantity + 1,
       ),
     )
+
+    setWasAddedToCart(false)
   }
 
   function handleToggleFavorite() {
     toggleFavorite(nft.id)
+  }
+
+  function handleAddToCart() {
+    if (
+      isSoldOut ||
+      cannotAddMore ||
+      quantity <= 0
+    ) {
+      return
+    }
+
+    addItem({
+      nft,
+      quantity,
+    })
+
+    setWasAddedToCart(true)
+    setQuantity(1)
   }
 
   return (
@@ -116,7 +157,11 @@ export function NftPurchasePanel({
         <button
           type="button"
           onClick={handleDecreaseQuantity}
-          disabled={isMinimumQuantity}
+          disabled={
+            isMinimumQuantity ||
+            isSoldOut ||
+            cannotAddMore
+          }
           aria-label="Diminuir quantidade"
           className="
             flex h-[36px] w-[36px]
@@ -144,13 +189,17 @@ export function NftPurchasePanel({
             text-foreground
           "
         >
-          {quantity}
+          {cannotAddMore ? 0 : quantity}
         </span>
 
         <button
           type="button"
           onClick={handleIncreaseQuantity}
-          disabled={isMaximumQuantity}
+          disabled={
+            isMaximumQuantity ||
+            isSoldOut ||
+            cannotAddMore
+          }
           aria-label="Aumentar quantidade"
           className="
             flex h-[36px] w-[36px]
@@ -172,6 +221,11 @@ export function NftPurchasePanel({
         <div className="ml-auto flex gap-[12px]">
           <button
             type="button"
+            onClick={handleAddToCart}
+            disabled={
+              isSoldOut ||
+              cannotAddMore
+            }
             className="
               h-[36px] min-w-[110px]
               rounded-[6px]
@@ -179,9 +233,16 @@ export function NftPurchasePanel({
               px-[20px]
               text-[13px] font-bold
               text-[var(--color-ink)]
+              transition-opacity
+              disabled:cursor-not-allowed
+              disabled:opacity-40
             "
           >
-            COMPRAR
+            {isSoldOut
+              ? 'ESGOTADO'
+              : cannotAddMore
+                ? 'NO CARRINHO'
+                : 'COMPRAR'}
           </button>
 
           <button
@@ -216,6 +277,35 @@ export function NftPurchasePanel({
           </button>
         </div>
       </div>
+
+      {quantityInCart > 0 && (
+        <p
+          className="
+            mt-[8px]
+            text-[11px]
+            text-[var(--color-text-secondary)]
+          "
+        >
+          {quantityInCart}{' '}
+          {quantityInCart === 1
+            ? 'item está'
+            : 'itens estão'}{' '}
+          no carrinho.
+        </p>
+      )}
+
+      {wasAddedToCart && !cannotAddMore && (
+        <p
+          role="status"
+          className="
+            mt-[6px]
+            text-[11px]
+            text-[var(--color-text-accent)]
+          "
+        >
+          Item adicionado ao carrinho.
+        </p>
+      )}
 
       <div
         className="
