@@ -1,12 +1,18 @@
-import { useNfts } from '@/features/catalog/hooks/use-nfts'
 import { useSearch } from '@tanstack/react-router'
+import { CatalogControls } from '@/features/catalog/components/catalog-controls'
+import { CatalogPagination } from '@/features/catalog/components/catalog-pagination'
+import { useNfts } from '@/features/catalog/hooks/use-nfts'
 
 export function HomePage() {
   const searchParams = useSearch({
     from: '/',
   })
 
-  const { data, isLoading, isError } = useNfts(searchParams)
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useNfts(searchParams)
 
   if (isLoading) {
     return (
@@ -31,21 +37,38 @@ export function HomePage() {
           Kurio Marketplace
         </h1>
 
-        <pre className="mb-8 rounded-lg border p-4 text-sm">
-          {JSON.stringify(searchParams, null, 2)}
-        </pre>
+        <CatalogControls params={searchParams} />
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {data?.items.map((nft) => (
-            <article
-              key={nft.id}
-              className="rounded-lg border p-4"
-            >
-              <strong>{nft.name}</strong>
-              <p>{nft.priceEth} ETH</p>
-            </article>
-          ))}
-        </div>
+        {data?.items.length === 0 ? (
+          <div className="rounded-lg border p-8">
+            Nenhum NFT encontrado.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {data?.items.map((nft) => (
+              <article
+                key={nft.id}
+                className="rounded-lg border p-4"
+              >
+                <strong>{nft.name}</strong>
+
+                <p>{nft.priceEth} ETH</p>
+
+                <small>
+                  {nft.availableQuantity} disponíveis
+                </small>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {data && (
+          <CatalogPagination
+            params={searchParams}
+            total={data.total}
+            pageSize={data.pageSize}
+          />
+        )}
       </div>
     </main>
   )
