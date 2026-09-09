@@ -9,12 +9,14 @@ import type {
   CheckoutQuoteRequest,
 } from '@/features/checkout/types/checkout'
 import type { Nft } from '@/features/nft/types/nft'
-import { nftFixtures } from '@/mocks/fixtures/nfts'
 
+import { getNftById } from '@/mocks/database/nft-database'
 import { saveCheckoutQuote } from '../database/checkout-quotes'
 
 const NETWORK_FEE_ETH = '0.016'
-const QUOTE_DURATION_MS = 5 * 60 * 1000
+
+const QUOTE_DURATION_MS =
+  5 * 60 * 1000
 
 const PROMOTIONAL_CODES: Record<
   string,
@@ -55,45 +57,65 @@ function isCheckoutQuoteRequest(
     return false
   }
 
-  return request.items.every((item) => {
-    if (
-      typeof item !== 'object' ||
-      item === null
-    ) {
-      return false
-    }
+  return request.items.every(
+    (item) => {
+      if (
+        typeof item !== 'object' ||
+        item === null
+      ) {
+        return false
+      }
 
-    const quoteItem =
-      item as Record<string, unknown>
+      const quoteItem =
+        item as Record<
+          string,
+          unknown
+        >
 
-    return (
-      typeof quoteItem.nftId === 'string' &&
-      typeof quoteItem.quantity === 'number' &&
-      Number.isInteger(
-        quoteItem.quantity,
-      ) &&
-      quoteItem.quantity > 0 &&
-      typeof quoteItem.version === 'number' &&
-      Number.isInteger(
-        quoteItem.version,
-      ) &&
-      quoteItem.version >= 0
-    )
-  })
-}
-
-function findNft(
-  nftId: string,
-) {
-  return nftFixtures.find(
-    (nft) => nft.id === nftId,
+      return (
+        typeof quoteItem.nftId ===
+          'string' &&
+        Boolean(
+          quoteItem.nftId.trim(),
+        ) &&
+        typeof quoteItem.quantity ===
+          'number' &&
+        Number.isInteger(
+          quoteItem.quantity,
+        ) &&
+        quoteItem.quantity > 0 &&
+        typeof quoteItem.version ===
+          'number' &&
+        Number.isInteger(
+          quoteItem.version,
+        ) &&
+        quoteItem.version >= 0
+      )
+    },
   )
 }
 
-function getNetwork(
-  quoteNfts: Nft[],
+function getQuoteNetwork(
+  nfts: Nft[],
 ) {
-  return quoteNfts[0].network
+  return nfts[0].network
+}
+
+function hasMixedNetworks(
+  nfts: Nft[],
+) {
+  if (nfts.length === 0) {
+    return false
+  }
+
+  const firstNetwork =
+    nfts[0].network
+
+  return nfts.some(
+    (nft) =>
+      nft.network !==
+      firstNetwork,
+  )
 }
 
 export const checkoutHandlers = [
@@ -103,10 +125,15 @@ export const checkoutHandlers = [
       const body: unknown =
         await request.json()
 
-      if (!isCheckoutQuoteRequest(body)) {
+      if (
+        !isCheckoutQuoteRequest(
+          body,
+        )
+      ) {
         return HttpResponse.json(
           {
-            code: 'INVALID_CHECKOUT_REQUEST',
+            code:
+              'INVALID_CHECKOUT_REQUEST',
             message:
               'Os itens enviados para o checkout são inválidos.',
           },
@@ -119,17 +146,23 @@ export const checkoutHandlers = [
       const validatedItems: CheckoutQuote['items'] =
         []
 
-      const quoteNfts: Nft[] = []
+      const quoteNfts: Nft[] =
+        []
 
-      for (const requestedItem of body.items) {
-        const nft = findNft(
-          requestedItem.nftId,
-        )
+      for (
+        const requestedItem of
+          body.items
+      ) {
+        const nft =
+          getNftById(
+            requestedItem.nftId,
+          )
 
         if (!nft) {
           return HttpResponse.json(
             {
-              code: 'NFT_NOT_FOUND',
+              code:
+                'NFT_NOT_FOUND',
               message:
                 'Um dos NFTs não está mais disponível.',
               nftId:
@@ -147,7 +180,8 @@ export const checkoutHandlers = [
         ) {
           return HttpResponse.json(
             {
-              code: 'INSUFFICIENT_STOCK',
+              code:
+                'INSUFFICIENT_STOCK',
               message:
                 'A quantidade disponível de um dos NFTs foi alterada.',
               nftId: nft.id,
@@ -168,7 +202,8 @@ export const checkoutHandlers = [
         ) {
           return HttpResponse.json(
             {
-              code: 'NFT_CHANGED',
+              code:
+                'NFT_CHANGED',
               message:
                 'Um dos NFTs foi atualizado desde que foi adicionado ao carrinho.',
               nftId: nft.id,
@@ -181,9 +216,12 @@ export const checkoutHandlers = [
           )
         }
 
-        const subtotal = new Decimal(
-          nft.priceEth,
-        ).mul(requestedItem.quantity)
+        const subtotal =
+          new Decimal(
+            nft.priceEth,
+          ).mul(
+            requestedItem.quantity,
+          )
 
         validatedItems.push({
           nftId: nft.id,
@@ -198,10 +236,29 @@ export const checkoutHandlers = [
             subtotal.toFixed(2),
           availableQuantity:
             nft.availableQuantity,
-          version: nft.version,
+          version:
+            nft.version,
         })
 
         quoteNfts.push(nft)
+      }
+
+      if (
+        hasMixedNetworks(
+          quoteNfts,
+        )
+      ) {
+        return HttpResponse.json(
+          {
+            code:
+              'MIXED_NETWORKS_NOT_ALLOWED',
+            message:
+              'Todos os NFTs do checkout precisam pertencer à mesma rede.',
+          },
+          {
+            status: 409,
+          },
+        )
       }
 
       const subtotal =
@@ -231,44 +288,58 @@ export const checkoutHandlers = [
           : new Decimal(0)
 
       const discount =
-        subtotal.mul(discountRate)
+        subtotal.mul(
+          discountRate,
+        )
 
       const networkFee =
-        new Decimal(NETWORK_FEE_ETH)
+        new Decimal(
+          NETWORK_FEE_ETH,
+        )
 
-      const total = subtotal
-        .minus(discount)
-        .plus(networkFee)
+      const total =
+        subtotal
+          .minus(discount)
+          .plus(networkFee)
 
-      const now = Date.now()
+      const now =
+        Date.now()
 
-      const quote: CheckoutQuote = {
-        quoteId: createQuoteId(),
+      const quote: CheckoutQuote =
+        {
+          quoteId:
+            createQuoteId(),
 
-        items: validatedItems,
+          items:
+            validatedItems,
 
-        network: getNetwork(
-          quoteNfts,
-        ),
+          network:
+            getQuoteNetwork(
+              quoteNfts,
+            ),
 
-        subtotalEth:
-          subtotal.toFixed(2),
+          subtotalEth:
+            subtotal.toFixed(2),
 
-        discountEth:
-          discount.toFixed(2),
+          discountEth:
+            discount.toFixed(2),
 
-        networkFeeEth:
-          networkFee.toFixed(3),
+          networkFeeEth:
+            networkFee.toFixed(3),
 
-        totalEth:
-          total.toFixed(3),
+          totalEth:
+            total.toFixed(3),
 
-        expiresAt: new Date(
-          now + QUOTE_DURATION_MS,
-        ).toISOString(),
-      }
+          expiresAt:
+            new Date(
+              now +
+                QUOTE_DURATION_MS,
+            ).toISOString(),
+        }
 
-      saveCheckoutQuote(quote)
+      saveCheckoutQuote(
+        quote,
+      )
 
       return HttpResponse.json(
         quote,

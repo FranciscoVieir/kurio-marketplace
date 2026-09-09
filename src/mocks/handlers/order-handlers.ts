@@ -8,6 +8,10 @@ import type {
   Order,
 } from '@/features/checkout/types/checkout'
 
+import {
+  commitNftPurchase,
+} from '@/mocks/database/nft-database'
+
 import { getCheckoutQuote } from '../database/checkout-quotes'
 import {
   getOrder,
@@ -70,37 +74,143 @@ function isCreateOrderRequest(
   }
 
   const profile =
-    request.profile as Record<string, unknown>
+    request.profile as Record<
+      string,
+      unknown
+    >
 
   return (
-    typeof profile.displayName === 'string' &&
-    Boolean(profile.displayName.trim()) &&
-    typeof profile.username === 'string' &&
-    Boolean(profile.username.trim()) &&
+    typeof profile.displayName ===
+      'string' &&
+    Boolean(
+      profile.displayName.trim(),
+    ) &&
+    typeof profile.username ===
+      'string' &&
+    Boolean(
+      profile.username.trim(),
+    ) &&
     (
       profile.network === 'ethereum' ||
       profile.network === 'polygon' ||
       profile.network === 'solana'
     ) &&
-    typeof profile.profileName === 'string' &&
-    Boolean(profile.profileName.trim()) &&
-    typeof profile.walletAddress === 'string' &&
-    Boolean(profile.walletAddress.trim()) &&
-    typeof profile.walletType === 'string' &&
-    Boolean(profile.walletType.trim()) &&
-    typeof profile.email === 'string' &&
-    Boolean(profile.email.trim()) &&
-    typeof profile.useAnotherWallet === 'boolean'
+    typeof profile.profileName ===
+      'string' &&
+    Boolean(
+      profile.profileName.trim(),
+    ) &&
+    typeof profile.walletAddress ===
+      'string' &&
+    Boolean(
+      profile.walletAddress.trim(),
+    ) &&
+    typeof profile.walletType ===
+      'string' &&
+    Boolean(
+      profile.walletType.trim(),
+    ) &&
+    typeof profile.email ===
+      'string' &&
+    Boolean(
+      profile.email.trim(),
+    ) &&
+    typeof profile.useAnotherWallet ===
+      'boolean'
   )
+}
+
+function createPurchaseErrorResponse(
+  result: Exclude<
+    ReturnType<
+      typeof commitNftPurchase
+    >,
+    { ok: true }
+  >,
+) {
+  switch (result.code) {
+    case 'NFT_NOT_FOUND':
+      return HttpResponse.json(
+        {
+          code:
+            'NFT_NOT_FOUND',
+          message:
+            'Um dos NFTs da cotação não está mais disponível.',
+          nftId:
+            result.nftId,
+        },
+        {
+          status: 404,
+        },
+      )
+
+    case 'INSUFFICIENT_STOCK':
+      return HttpResponse.json(
+        {
+          code:
+            'INSUFFICIENT_STOCK',
+          message:
+            'A quantidade disponível de um dos NFTs foi alterada antes da confirmação da compra.',
+          nftId:
+            result.nftId,
+          requestedQuantity:
+            result.requestedQuantity,
+          availableQuantity:
+            result.availableQuantity,
+        },
+        {
+          status: 409,
+        },
+      )
+
+    case 'NFT_CHANGED':
+      return HttpResponse.json(
+        {
+          code:
+            'NFT_CHANGED',
+          message:
+            'Um dos NFTs foi atualizado após a criação da cotação.',
+          nftId:
+            result.nftId,
+          quotedVersion:
+            result.expectedVersion,
+          currentVersion:
+            result.currentVersion,
+        },
+        {
+          status: 409,
+        },
+      )
+
+    case 'NFT_PRICE_CHANGED':
+      return HttpResponse.json(
+        {
+          code:
+            'NFT_PRICE_CHANGED',
+          message:
+            'O preço de um dos NFTs foi alterado após a criação da cotação.',
+          nftId:
+            result.nftId,
+          quotedPrice:
+            result.expectedPriceEth,
+          currentPrice:
+            result.currentPriceEth,
+        },
+        {
+          status: 409,
+        },
+      )
+  }
 }
 
 export const orderHandlers = [
   http.get(
     '/api/orders/:orderId',
     ({ params }) => {
-      const orderId = String(
-        params.orderId,
-      )
+      const orderId =
+        String(
+          params.orderId,
+        )
 
       const order =
         getOrder(orderId)
@@ -108,7 +218,8 @@ export const orderHandlers = [
       if (!order) {
         return HttpResponse.json(
           {
-            code: 'ORDER_NOT_FOUND',
+            code:
+              'ORDER_NOT_FOUND',
             message:
               'Pedido não encontrado.',
           },
@@ -135,10 +246,13 @@ export const orderHandlers = [
           'Idempotency-Key',
         )
 
-      if (!idempotencyKey?.trim()) {
+      if (
+        !idempotencyKey?.trim()
+      ) {
         return HttpResponse.json(
           {
-            code: 'IDEMPOTENCY_KEY_REQUIRED',
+            code:
+              'IDEMPOTENCY_KEY_REQUIRED',
             message:
               'A chave de idempotência é obrigatória.',
           },
@@ -148,6 +262,14 @@ export const orderHandlers = [
         )
       }
 
+      /*
+       * IDEMPOTENCY
+       *
+       * Se a mesma requisição já criou
+       * um pedido, retornamos o pedido
+       * existente e não mexemos novamente
+       * no estoque.
+       */
       const existingOrder =
         getOrderByIdempotencyKey(
           idempotencyKey,
@@ -165,10 +287,15 @@ export const orderHandlers = [
       const body: unknown =
         await request.json()
 
-      if (!isCreateOrderRequest(body)) {
+      if (
+        !isCreateOrderRequest(
+          body,
+        )
+      ) {
         return HttpResponse.json(
           {
-            code: 'INVALID_ORDER_REQUEST',
+            code:
+              'INVALID_ORDER_REQUEST',
             message:
               'Os dados enviados para a compra são inválidos.',
           },
@@ -178,6 +305,9 @@ export const orderHandlers = [
         )
       }
 
+      /*
+       * QUOTE
+       */
       const quote =
         getCheckoutQuote(
           body.quoteId,
@@ -186,7 +316,8 @@ export const orderHandlers = [
       if (!quote) {
         return HttpResponse.json(
           {
-            code: 'QUOTE_NOT_FOUND',
+            code:
+              'QUOTE_NOT_FOUND',
             message:
               'A cotação informada não existe.',
           },
@@ -196,6 +327,9 @@ export const orderHandlers = [
         )
       }
 
+      /*
+       * QUOTE EXPIRATION
+       */
       const quoteExpiresAt =
         new Date(
           quote.expiresAt,
@@ -205,11 +339,13 @@ export const orderHandlers = [
         !Number.isFinite(
           quoteExpiresAt,
         ) ||
-        quoteExpiresAt <= Date.now()
+        quoteExpiresAt <=
+          Date.now()
       ) {
         return HttpResponse.json(
           {
-            code: 'QUOTE_EXPIRED',
+            code:
+              'QUOTE_EXPIRED',
             message:
               'A cotação expirou. Gere uma nova cotação antes de finalizar a compra.',
           },
@@ -219,13 +355,17 @@ export const orderHandlers = [
         )
       }
 
+      /*
+       * NETWORK
+       */
       if (
         body.profile.network !==
         quote.network
       ) {
         return HttpResponse.json(
           {
-            code: 'NETWORK_MISMATCH',
+            code:
+              'NETWORK_MISMATCH',
             message:
               'A rede selecionada não corresponde à rede da cotação.',
             expectedNetwork:
@@ -239,19 +379,63 @@ export const orderHandlers = [
         )
       }
 
-      const order: Order = {
-        id: createOrderId(),
+      /*
+       * ATOMIC NFT PURCHASE
+       *
+       * O quote é um snapshot.
+       * commitNftPurchase valida todos os
+       * NFTs contra o estado atual e só
+       * altera o banco se todos passarem.
+       */
+      const purchaseResult =
+        commitNftPurchase(
+          quote.items.map(
+            (item) => ({
+              nftId:
+                item.nftId,
 
-        quoteId: quote.quoteId,
+              quantity:
+                item.quantity,
+
+              expectedVersion:
+                item.version,
+
+              expectedPriceEth:
+                item.unitPriceEth,
+            }),
+          ),
+        )
+
+      if (!purchaseResult.ok) {
+        return createPurchaseErrorResponse(
+          purchaseResult,
+        )
+      }
+
+      /*
+       * ORDER
+       *
+       * Só criamos o pedido depois que
+       * a baixa de estoque foi concluída.
+       */
+      const order: Order = {
+        id:
+          createOrderId(),
+
+        quoteId:
+          quote.quoteId,
 
         transactionHash:
           createTransactionHash(),
 
-        status: 'confirmed',
+        status:
+          'confirmed',
 
-        items: quote.items,
+        items:
+          quote.items,
 
-        network: quote.network,
+        network:
+          quote.network,
 
         walletProvider:
           body.walletProvider,
