@@ -66,6 +66,16 @@ export type OrderStatus =
 
 export type Order = {
   id: string
+
+  /*
+   * Dono do pedido.
+   *
+   * Nunca vem do formulário do cliente.
+   * É definido pela sessão autenticada
+   * no handler do backend mock.
+   */
+  userId: string
+
   quoteId: string
   transactionHash: string
   status: OrderStatus

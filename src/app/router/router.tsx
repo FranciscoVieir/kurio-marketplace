@@ -10,6 +10,7 @@ import { CheckoutPage } from '@/routes/checkout'
 import { HomePage } from '@/routes/home'
 import { NftDetailPage } from '@/routes/nft-detail'
 import { OrderConfirmationPage } from '@/routes/order-confirmation'
+import { ProfilePage } from '@/routes/profile'
 
 import type {
   CatalogParams,
@@ -131,6 +132,12 @@ const checkoutRoute = createRoute({
   component: CheckoutPage,
 })
 
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile',
+  component: ProfilePage,
+})
+
 const orderConfirmationRoute =
   createRoute({
     getParentRoute: () => rootRoute,
@@ -143,6 +150,7 @@ const routeTree = rootRoute.addChildren([
   nftDetailRoute,
   cartRoute,
   checkoutRoute,
+  profileRoute,
   orderConfirmationRoute,
 ])
 

@@ -6,11 +6,22 @@ const ORDERS_STORAGE_KEY =
 const IDEMPOTENCY_STORAGE_KEY =
   'kurio:mock:orders:idempotency'
 
+function createIdempotencyStorageKey(
+  userId: string,
+  idempotencyKey: string,
+) {
+  return `${userId}:${idempotencyKey}`
+}
+
 function loadOrders() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
-    return new Map<string, Order>()
+    return new Map<
+      string,
+      Order
+    >()
   }
 
   try {
@@ -20,26 +31,45 @@ function loadOrders() {
       )
 
     if (!storedOrders) {
-      return new Map<string, Order>()
+      return new Map<
+        string,
+        Order
+      >()
     }
 
-    const parsed = JSON.parse(
-      storedOrders,
-    ) as Array<[string, Order]>
+    const parsed =
+      JSON.parse(
+        storedOrders,
+      ) as Array<
+        [
+          string,
+          Order,
+        ]
+      >
 
-    return new Map<string, Order>(
+    return new Map<
+      string,
+      Order
+    >(
       parsed,
     )
   } catch {
-    return new Map<string, Order>()
+    return new Map<
+      string,
+      Order
+    >()
   }
 }
 
 function loadOrdersByIdempotencyKey() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
-    return new Map<string, Order>()
+    return new Map<
+      string,
+      Order
+    >()
   }
 
   try {
@@ -49,29 +79,46 @@ function loadOrdersByIdempotencyKey() {
       )
 
     if (!storedEntries) {
-      return new Map<string, Order>()
+      return new Map<
+        string,
+        Order
+      >()
     }
 
-    const parsed = JSON.parse(
-      storedEntries,
-    ) as Array<[string, Order]>
+    const parsed =
+      JSON.parse(
+        storedEntries,
+      ) as Array<
+        [
+          string,
+          Order,
+        ]
+      >
 
-    return new Map<string, Order>(
+    return new Map<
+      string,
+      Order
+    >(
       parsed,
     )
   } catch {
-    return new Map<string, Order>()
+    return new Map<
+      string,
+      Order
+    >()
   }
 }
 
-const orders = loadOrders()
+const orders =
+  loadOrders()
 
 const ordersByIdempotencyKey =
   loadOrdersByIdempotencyKey()
 
 function persistOrders() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return
   }
@@ -104,8 +151,14 @@ export function saveOrder(
     order,
   )
 
+  const storageKey =
+    createIdempotencyStorageKey(
+      order.userId,
+      idempotencyKey,
+    )
+
   ordersByIdempotencyKey.set(
-    idempotencyKey,
+    storageKey,
     order,
   )
 
@@ -115,14 +168,68 @@ export function saveOrder(
 export function getOrder(
   orderId: string,
 ) {
-  return orders.get(orderId)
+  return orders.get(
+    orderId,
+  )
+}
+
+export function getOrderForUser(
+  orderId: string,
+  userId: string,
+) {
+  const order =
+    orders.get(
+      orderId,
+    )
+
+  if (
+    !order ||
+    order.userId !==
+      userId
+  ) {
+    return undefined
+  }
+
+  return order
+}
+
+export function getOrdersByUserId(
+  userId: string,
+) {
+  return Array.from(
+    orders.values(),
+  )
+    .filter(
+      (order) =>
+        order.userId ===
+        userId,
+    )
+    .sort(
+      (
+        firstOrder,
+        secondOrder,
+      ) =>
+        new Date(
+          secondOrder.createdAt,
+        ).getTime() -
+        new Date(
+          firstOrder.createdAt,
+        ).getTime(),
+    )
 }
 
 export function getOrderByIdempotencyKey(
+  userId: string,
   idempotencyKey: string,
 ) {
+  const storageKey =
+    createIdempotencyStorageKey(
+      userId,
+      idempotencyKey,
+    )
+
   return ordersByIdempotencyKey.get(
-    idempotencyKey,
+    storageKey,
   )
 }
 
@@ -131,15 +238,24 @@ export function updateOrder(
   updates: Partial<Order>,
 ) {
   const currentOrder =
-    orders.get(orderId)
+    orders.get(
+      orderId,
+    )
 
   if (!currentOrder) {
     return undefined
   }
 
+  /*
+   * O owner de um pedido não deve
+   * ser transferido por update.
+   */
   const updatedOrder: Order = {
     ...currentOrder,
     ...updates,
+
+    userId:
+      currentOrder.userId,
   }
 
   orders.set(
@@ -151,10 +267,12 @@ export function updateOrder(
     const [
       idempotencyKey,
       order,
-    ] of ordersByIdempotencyKey
+    ] of
+    ordersByIdempotencyKey
   ) {
     if (
-      order.id === orderId
+      order.id ===
+      orderId
     ) {
       ordersByIdempotencyKey.set(
         idempotencyKey,
@@ -172,10 +290,12 @@ export function updateOrder(
 
 export function clearOrders() {
   orders.clear()
+
   ordersByIdempotencyKey.clear()
 
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return
   }

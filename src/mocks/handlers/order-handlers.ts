@@ -12,10 +12,23 @@ import {
   commitNftPurchase,
 } from '@/mocks/database/nft-database'
 
-import { getCheckoutQuote } from '../database/checkout-quotes'
 import {
-  getOrder,
+  deleteSession,
+  getActiveSession,
+  isSessionExpired,
+} from '@/mocks/database/sessions'
+
+import {
+  getUserById,
+} from '@/mocks/database/users'
+
+import {
+  getCheckoutQuote,
+} from '../database/checkout-quotes'
+
+import {
   getOrderByIdempotencyKey,
+  getOrderForUser,
   saveOrder,
 } from '../database/orders'
 
@@ -24,51 +37,152 @@ function createOrderId() {
 }
 
 function createTransactionHash() {
-  const bytes = new Uint8Array(32)
+  const bytes =
+    new Uint8Array(32)
 
-  crypto.getRandomValues(bytes)
-
-  const hash = Array.from(
+  crypto.getRandomValues(
     bytes,
-    (byte) =>
-      byte
-        .toString(16)
-        .padStart(2, '0'),
-  ).join('')
+  )
+
+  const hash =
+    Array.from(
+      bytes,
+      (byte) =>
+        byte
+          .toString(16)
+          .padStart(
+            2,
+            '0',
+          ),
+    ).join('')
 
   return `0x${hash}`
+}
+
+function getAuthenticatedUserId() {
+  const session =
+    getActiveSession()
+
+  if (!session) {
+    return {
+      ok: false as const,
+      response:
+        HttpResponse.json(
+          {
+            code:
+              'UNAUTHENTICATED',
+
+            message:
+              'Você precisa estar autenticado para acessar pedidos.',
+          },
+          {
+            status: 401,
+          },
+        ),
+    }
+  }
+
+  if (
+    isSessionExpired(
+      session,
+    )
+  ) {
+    deleteSession(
+      session.id,
+    )
+
+    return {
+      ok: false as const,
+      response:
+        HttpResponse.json(
+          {
+            code:
+              'SESSION_EXPIRED',
+
+            message:
+              'Sua sessão expirou. Entre novamente para continuar.',
+          },
+          {
+            status: 401,
+          },
+        ),
+    }
+  }
+
+  const user =
+    getUserById(
+      session.userId,
+    )
+
+  if (!user) {
+    deleteSession(
+      session.id,
+    )
+
+    return {
+      ok: false as const,
+      response:
+        HttpResponse.json(
+          {
+            code:
+              'INVALID_SESSION',
+
+            message:
+              'A sessão atual não está mais associada a um usuário válido.',
+          },
+          {
+            status: 401,
+          },
+        ),
+    }
+  }
+
+  return {
+    ok: true as const,
+    userId:
+      user.id,
+  }
 }
 
 function isCreateOrderRequest(
   value: unknown,
 ): value is CreateOrderRequest {
   if (
-    typeof value !== 'object' ||
+    typeof value !==
+      'object' ||
     value === null
   ) {
     return false
   }
 
   const request =
-    value as Record<string, unknown>
+    value as Record<
+      string,
+      unknown
+    >
 
   if (
-    typeof request.quoteId !== 'string' ||
+    typeof request.quoteId !==
+      'string' ||
     !request.quoteId.trim()
   ) {
     return false
   }
 
   if (
-    request.walletProvider !== 'metamask' &&
-    request.walletProvider !== 'coinbase'
+    request.walletProvider !==
+      'metamask' &&
+    request.walletProvider !==
+      'coinbase'
   ) {
     return false
   }
 
   if (
-    typeof request.profile !== 'object' ||
-    request.profile === null
+    typeof request.profile !==
+      'object' ||
+    request.profile ===
+      null
   ) {
     return false
   }
@@ -91,9 +205,12 @@ function isCreateOrderRequest(
       profile.username.trim(),
     ) &&
     (
-      profile.network === 'ethereum' ||
-      profile.network === 'polygon' ||
-      profile.network === 'solana'
+      profile.network ===
+        'ethereum' ||
+      profile.network ===
+        'polygon' ||
+      profile.network ===
+        'solana'
     ) &&
     typeof profile.profileName ===
       'string' &&
@@ -125,17 +242,23 @@ function createPurchaseErrorResponse(
     ReturnType<
       typeof commitNftPurchase
     >,
-    { ok: true }
+    {
+      ok: true
+    }
   >,
 ) {
-  switch (result.code) {
+  switch (
+    result.code
+  ) {
     case 'NFT_NOT_FOUND':
       return HttpResponse.json(
         {
           code:
             'NFT_NOT_FOUND',
+
           message:
             'Um dos NFTs da cotação não está mais disponível.',
+
           nftId:
             result.nftId,
         },
@@ -149,12 +272,16 @@ function createPurchaseErrorResponse(
         {
           code:
             'INSUFFICIENT_STOCK',
+
           message:
             'A quantidade disponível de um dos NFTs foi alterada antes da confirmação da compra.',
+
           nftId:
             result.nftId,
+
           requestedQuantity:
             result.requestedQuantity,
+
           availableQuantity:
             result.availableQuantity,
         },
@@ -168,12 +295,16 @@ function createPurchaseErrorResponse(
         {
           code:
             'NFT_CHANGED',
+
           message:
             'Um dos NFTs foi atualizado após a criação da cotação.',
+
           nftId:
             result.nftId,
+
           quotedVersion:
             result.expectedVersion,
+
           currentVersion:
             result.currentVersion,
         },
@@ -187,12 +318,16 @@ function createPurchaseErrorResponse(
         {
           code:
             'NFT_PRICE_CHANGED',
+
           message:
             'O preço de um dos NFTs foi alterado após a criação da cotação.',
+
           nftId:
             result.nftId,
+
           quotedPrice:
             result.expectedPriceEth,
+
           currentPrice:
             result.currentPriceEth,
         },
@@ -206,20 +341,43 @@ function createPurchaseErrorResponse(
 export const orderHandlers = [
   http.get(
     '/api/orders/:orderId',
-    ({ params }) => {
+    ({
+      params,
+    }) => {
+      const auth =
+        getAuthenticatedUserId()
+
+      if (!auth.ok) {
+        return auth.response
+      }
+
       const orderId =
         String(
           params.orderId,
         )
 
       const order =
-        getOrder(orderId)
+        getOrderForUser(
+          orderId,
+          auth.userId,
+        )
 
+      /*
+       * Deliberadamente retornamos
+       * 404 tanto para pedido
+       * inexistente quanto para
+       * pedido de outro usuário.
+       *
+       * Assim não revelamos a
+       * existência de recursos
+       * privados de outra conta.
+       */
       if (!order) {
         return HttpResponse.json(
           {
             code:
               'ORDER_NOT_FOUND',
+
             message:
               'Pedido não encontrado.',
           },
@@ -240,7 +398,22 @@ export const orderHandlers = [
 
   http.post(
     '/api/orders',
-    async ({ request }) => {
+    async ({
+      request,
+    }) => {
+      /*
+       * AUTHENTICATION
+       *
+       * O userId nunca é aceito
+       * diretamente do cliente.
+       */
+      const auth =
+        getAuthenticatedUserId()
+
+      if (!auth.ok) {
+        return auth.response
+      }
+
       const idempotencyKey =
         request.headers.get(
           'Idempotency-Key',
@@ -253,6 +426,7 @@ export const orderHandlers = [
           {
             code:
               'IDEMPOTENCY_KEY_REQUIRED',
+
             message:
               'A chave de idempotência é obrigatória.',
           },
@@ -265,17 +439,18 @@ export const orderHandlers = [
       /*
        * IDEMPOTENCY
        *
-       * Se a mesma requisição já criou
-       * um pedido, retornamos o pedido
-       * existente e não mexemos novamente
-       * no estoque.
+       * A chave agora é isolada
+       * por usuário.
        */
       const existingOrder =
         getOrderByIdempotencyKey(
+          auth.userId,
           idempotencyKey,
         )
 
-      if (existingOrder) {
+      if (
+        existingOrder
+      ) {
         return HttpResponse.json(
           existingOrder,
           {
@@ -296,6 +471,7 @@ export const orderHandlers = [
           {
             code:
               'INVALID_ORDER_REQUEST',
+
             message:
               'Os dados enviados para a compra são inválidos.',
           },
@@ -318,6 +494,7 @@ export const orderHandlers = [
           {
             code:
               'QUOTE_NOT_FOUND',
+
             message:
               'A cotação informada não existe.',
           },
@@ -346,6 +523,7 @@ export const orderHandlers = [
           {
             code:
               'QUOTE_EXPIRED',
+
             message:
               'A cotação expirou. Gere uma nova cotação antes de finalizar a compra.',
           },
@@ -366,10 +544,13 @@ export const orderHandlers = [
           {
             code:
               'NETWORK_MISMATCH',
+
             message:
               'A rede selecionada não corresponde à rede da cotação.',
+
             expectedNetwork:
               quote.network,
+
             selectedNetwork:
               body.profile.network,
           },
@@ -382,10 +563,12 @@ export const orderHandlers = [
       /*
        * ATOMIC NFT PURCHASE
        *
-       * O quote é um snapshot.
-       * commitNftPurchase valida todos os
-       * NFTs contra o estado atual e só
-       * altera o banco se todos passarem.
+       * O quote continua sendo
+       * apenas um snapshot.
+       *
+       * Estoque, versão e preço
+       * são revalidados antes
+       * da baixa.
        */
       const purchaseResult =
         commitNftPurchase(
@@ -406,7 +589,9 @@ export const orderHandlers = [
           ),
         )
 
-      if (!purchaseResult.ok) {
+      if (
+        !purchaseResult.ok
+      ) {
         return createPurchaseErrorResponse(
           purchaseResult,
         )
@@ -415,12 +600,15 @@ export const orderHandlers = [
       /*
        * ORDER
        *
-       * Só criamos o pedido depois que
-       * a baixa de estoque foi concluída.
+       * O owner vem exclusivamente
+       * da sessão autenticada.
        */
       const order: Order = {
         id:
           createOrderId(),
+
+        userId:
+          auth.userId,
 
         quoteId:
           quote.quoteId,
