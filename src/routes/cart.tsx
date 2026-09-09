@@ -1,12 +1,17 @@
+import { Link } from '@tanstack/react-router'
+import { ShoppingCart } from 'lucide-react'
+
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { PageContainer } from '@/components/layout/page-container'
+import { CartItemsList } from '@/features/cart/components/cart-items-list'
+import { CartRecommendations } from '@/features/cart/components/cart-recommendations'
+import { CartSummary } from '@/features/cart/components/cart-summary'
 import { useCart } from '@/features/cart/hooks/use-cart'
 import { BenefitsSection } from '@/features/home/components/benefits-section'
 
 export function CartPage() {
   const {
-    items,
     totalItems,
     isEmpty,
   } = useCart()
@@ -16,115 +21,155 @@ export function CartPage() {
       <Header />
 
       <main>
-        <PageContainer className="py-[32px]">
-          <p className="text-[12px] text-muted-foreground">
-            Início / Carrinho
-          </p>
-
-          <div className="mt-[24px]">
-            <h1 className="text-[28px] font-bold text-foreground">
-              Seu carrinho
-            </h1>
-
-            <p className="mt-[6px] text-[13px] text-muted-foreground">
-              {isEmpty
-                ? 'Seu carrinho está vazio.'
-                : `${totalItems} ${
-                    totalItems === 1
-                      ? 'item'
-                      : 'itens'
-                  } no carrinho.`}
-            </p>
-          </div>
-
-          {isEmpty ? (
-            <div
+        <PageContainer className="pt-6">
+          <div
+            className="
+              flex items-center gap-2
+              text-[11px]
+              text-muted-foreground
+            "
+          >
+            <Link
+              to="/"
               className="
-                mt-[40px]
-                flex min-h-[320px]
-                items-center justify-center
-                border border-border
-                bg-card
+                transition-colors
+                hover:text-[var(--color-text-accent)]
               "
             >
-              <p className="text-[14px] text-muted-foreground">
-                Nenhum NFT foi adicionado ainda.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-[32px] space-y-[16px]">
-              {items.map((item) => (
-                <article
-                  key={item.nftId}
-                  className="
-                    flex items-center gap-[20px]
-                    border border-border
-                    bg-card
-                    p-[16px]
-                  "
-                >
-                  <div
-                    className="
-                      h-[96px] w-[96px]
-                      shrink-0 overflow-hidden
-                      rounded-[8px]
-                      bg-background
-                    "
-                  >
-                    {item.imageUrl ? (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="
-                          flex h-full items-center justify-center
-                          text-muted-foreground
-                        "
-                      >
-                        NFT
-                      </div>
-                    )}
-                  </div>
+              Início
+            </Link>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-bold text-foreground">
-                      {item.name}
-                    </p>
+            <span>/</span>
 
-                    <p className="mt-[4px] text-[12px] text-muted-foreground">
-                      {item.collection}
-                    </p>
+            <span>Mercado</span>
 
-                    <p
-                      className="
-                        mt-[8px]
-                        text-[14px] font-bold
-                        text-[var(--color-text-accent)]
-                      "
-                    >
-                      {item.priceEth} ETH
-                    </p>
-                  </div>
+            <span>/</span>
 
-                  <div className="text-right">
-                    <p className="text-[12px] text-muted-foreground">
-                      Quantidade
-                    </p>
-
-                    <p className="mt-[4px] text-[14px] font-bold text-foreground">
-                      {item.quantity}
-                    </p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+            <span className="text-foreground">
+              Carrinho
+            </span>
+          </div>
         </PageContainer>
 
-        <div className="pb-[72px] pt-[72px]">
+        <PageContainer className="pb-18 pt-6">
+          <section>
+            <div>
+              <h1
+                className="
+                  text-[24px] font-bold
+                  leading-[30px]
+                  text-foreground
+                "
+              >
+                Seu carrinho
+              </h1>
+
+              <p
+                className="
+                  mt-1.5
+                  text-[11px]
+                  text-[var(--color-text-secondary)]
+                "
+              >
+                {isEmpty
+                  ? 'Seu carrinho está vazio.'
+                  : `${totalItems} ${
+                      totalItems === 1
+                        ? 'item'
+                        : 'itens'
+                    } no carrinho`}
+              </p>
+            </div>
+
+            {isEmpty ? (
+              <div
+                className="
+                  mt-8
+                  flex min-h-[300px]
+                  flex-col
+                  items-center justify-center
+                  border
+                  border-[var(--color-border-kurio)]
+                  bg-[var(--color-surface-card)]
+                  px-6
+                  text-center
+                "
+              >
+                <div
+                  className="
+                    flex h-12 w-12
+                    items-center justify-center
+                    rounded-full
+                    bg-[var(--color-ink)]
+                    text-[var(--color-text-accent)]
+                  "
+                >
+                  <ShoppingCart
+                    size={21}
+                    strokeWidth={1.7}
+                  />
+                </div>
+
+                <h2
+                  className="
+                    mt-4
+                    text-[14px] font-bold
+                    text-foreground
+                  "
+                >
+                  Seu carrinho está vazio
+                </h2>
+
+                <p
+                  className="
+                    mt-2 max-w-[360px]
+                    text-[11px] leading-[18px]
+                    text-[var(--color-text-secondary)]
+                  "
+                >
+                  Explore o mercado e adicione NFTs à
+                  sua coleção para continuar.
+                </p>
+
+                <Link
+                  to="/"
+                  className="
+                    mt-5
+                    flex h-9
+                    items-center justify-center
+                    rounded-[6px]
+                    bg-[var(--color-primary-kurio)]
+                    px-5
+                    text-[11px] font-bold
+                    text-[var(--color-ink)]
+                  "
+                >
+                  Explorar NFTs
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div
+                  className="
+                    mt-7
+                    grid
+                    grid-cols-[minmax(0,1fr)_280px]
+                    items-start
+                    gap-10
+                  "
+                >
+                  <CartItemsList />
+
+                  <CartSummary />
+                </div>
+
+                <CartRecommendations />
+              </>
+            )}
+          </section>
+        </PageContainer>
+
+        <div className="pb-18">
           <BenefitsSection />
         </div>
       </main>
