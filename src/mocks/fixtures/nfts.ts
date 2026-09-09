@@ -1,0 +1,51 @@
+export type Nft = {
+  id: string
+  name: string
+  tokenId: string
+  priceEth: string
+  imageUrl: string
+  collection: string
+  network: 'ethereum' | 'polygon' | 'solana'
+  category: string
+  availableQuantity: number
+  version: number
+}
+
+export const nftFixtures: Nft[] = [
+  {
+    id: 'emerald-ape-042',
+    name: 'Emerald Ape #042',
+    tokenId: '#0042',
+    priceEth: '1.19',
+    imageUrl: '/images/emerald-ape.png',
+    collection: 'Kurio Apes',
+    network: 'ethereum',
+    category: 'digital-art',
+    availableQuantity: 8,
+    version: 1,
+  },
+  {
+    id: 'sage-nomad-009',
+    name: 'Sage Nomad #009',
+    tokenId: '#0009',
+    priceEth: '1.69',
+    imageUrl: '/images/sage-nomad.png',
+    collection: 'Kurio Apes',
+    network: 'ethereum',
+    category: 'digital-art',
+    availableQuantity: 6,
+    version: 1,
+  },
+  {
+    id: 'ivory-baron-088',
+    name: 'Ivory Baron #088',
+    tokenId: '#0088',
+    priceEth: '1.79',
+    imageUrl: '/images/ivory-baron.png',
+    collection: 'Kurio Apes',
+    network: 'polygon',
+    category: 'digital-art',
+    availableQuantity: 9,
+    version: 1,
+  },
+]
