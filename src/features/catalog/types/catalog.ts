@@ -6,6 +6,11 @@ export type CatalogSort =
   | 'price-desc'
   | 'newest'
 
+export type CatalogTab =
+  | 'all'
+  | 'new'
+  | 'trending'
+
 export type CatalogParams = {
   search?: string
   network?: NftNetwork
@@ -13,5 +18,6 @@ export type CatalogParams = {
   minPrice?: string
   maxPrice?: string
   sort?: CatalogSort
+  tab?: CatalogTab
   page?: number
 }

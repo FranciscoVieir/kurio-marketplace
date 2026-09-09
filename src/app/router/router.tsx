@@ -4,11 +4,16 @@ import {
   createRouter,
   Outlet,
 } from '@tanstack/react-router'
+
 import { HomePage } from '@/routes/home'
+import { NftDetailPage } from '@/routes/nft-detail'
+
 import type {
   CatalogParams,
   CatalogSort,
+  CatalogTab,
 } from '@/features/catalog/types/catalog'
+
 import type { NftNetwork } from '@/features/nft/types/nft'
 
 function parsePage(value: unknown) {
@@ -20,6 +25,12 @@ function parsePage(value: unknown) {
 
   return parsed
 }
+
+const allowedTabs: CatalogTab[] = [
+  'all',
+  'new',
+  'trending',
+]
 
 const allowedSorts: CatalogSort[] = [
   'featured',
@@ -37,22 +48,34 @@ const allowedNetworks: NftNetwork[] = [
 function validateCatalogSearch(
   search: Record<string, unknown>,
 ): CatalogParams {
-  const sort = allowedSorts.includes(search.sort as CatalogSort)
+  const sort = allowedSorts.includes(
+    search.sort as CatalogSort,
+  )
     ? (search.sort as CatalogSort)
     : 'featured'
 
-  const network = allowedNetworks.includes(search.network as NftNetwork)
+  const network = allowedNetworks.includes(
+    search.network as NftNetwork,
+  )
     ? (search.network as NftNetwork)
     : undefined
 
+  const tab = allowedTabs.includes(
+    search.tab as CatalogTab,
+  )
+    ? (search.tab as CatalogTab)
+    : 'all'
+
   return {
     search:
-      typeof search.search === 'string' && search.search.trim()
+      typeof search.search === 'string' &&
+      search.search.trim()
         ? search.search
         : undefined,
 
     category:
-      typeof search.category === 'string' && search.category.trim()
+      typeof search.category === 'string' &&
+      search.category.trim()
         ? search.category
         : undefined,
 
@@ -70,6 +93,8 @@ function validateCatalogSearch(
 
     sort,
 
+    tab,
+
     page: parsePage(search.page),
   }
 }
@@ -85,7 +110,16 @@ const indexRoute = createRoute({
   component: HomePage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute])
+const nftDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/nft/$nftId',
+  component: NftDetailPage,
+})
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  nftDetailRoute,
+])
 
 export const router = createRouter({
   routeTree,

@@ -1,12 +1,16 @@
+import type { CatalogParams } from '../types/catalog'
+
 export const catalogQueryKeys = {
   all: ['catalog'] as const,
 
-  lists: () => [...catalogQueryKeys.all, 'list'] as const,
+  lists: () =>
+    [...catalogQueryKeys.all, 'list'] as const,
 
-  list: (params: Record<string, unknown>) =>
+  list: (params: CatalogParams) =>
     [...catalogQueryKeys.lists(), params] as const,
 
-  details: () => [...catalogQueryKeys.all, 'detail'] as const,
+  details: () =>
+    [...catalogQueryKeys.all, 'detail'] as const,
 
   detail: (nftId: string) =>
     [...catalogQueryKeys.details(), nftId] as const,
