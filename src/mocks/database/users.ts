@@ -1,16 +1,112 @@
+import {
+  compareSync,
+  hashSync,
+} from 'bcryptjs'
+
 import type {
   AuthUser,
   RegisterRequest,
 } from '@/features/auth/types/auth'
 
 type StoredUser = AuthUser & {
-  password: string
+  passwordHash: string
 }
+
+type LegacyStoredUser =
+  AuthUser & {
+    password: string
+  }
 
 const USERS_STORAGE_KEY =
   'kurio:mock:users'
 
-function loadUsers() {
+const PASSWORD_SALT_ROUNDS =
+  10
+
+function normalizeEmail(
+  email: string,
+) {
+  return email
+    .trim()
+    .toLowerCase()
+}
+
+function normalizeUsername(
+  username: string,
+) {
+  return username
+    .trim()
+    .toLowerCase()
+}
+
+function hashPassword(
+  password: string,
+) {
+  return hashSync(
+    password,
+    PASSWORD_SALT_ROUNDS,
+  )
+}
+
+function isLegacyStoredUser(
+  value: unknown,
+): value is LegacyStoredUser {
+  if (
+    typeof value !==
+      'object' ||
+    value === null
+  ) {
+    return false
+  }
+
+  const user =
+    value as Record<
+      string,
+      unknown
+    >
+
+  return (
+    typeof user.id ===
+      'string' &&
+    typeof user.username ===
+      'string' &&
+    typeof user.email ===
+      'string' &&
+    typeof user.password ===
+      'string'
+  )
+}
+
+function isStoredUser(
+  value: unknown,
+): value is StoredUser {
+  if (
+    typeof value !==
+      'object' ||
+    value === null
+  ) {
+    return false
+  }
+
+  const user =
+    value as Record<
+      string,
+      unknown
+    >
+
+  return (
+    typeof user.id ===
+      'string' &&
+    typeof user.username ===
+      'string' &&
+    typeof user.email ===
+      'string' &&
+    typeof user.passwordHash ===
+      'string'
+  )
+}
+
+function loadUsers(): StoredUser[] {
   if (
     typeof window ===
     'undefined'
@@ -28,10 +124,10 @@ function loadUsers() {
       return []
     }
 
-    const parsed =
+    const parsed: unknown =
       JSON.parse(
         storedUsers,
-      ) as StoredUser[]
+      )
 
     if (
       !Array.isArray(
@@ -41,7 +137,75 @@ function loadUsers() {
       return []
     }
 
-    return parsed
+    let requiresMigration =
+      false
+
+    const normalizedUsers =
+      parsed.flatMap(
+        (
+          value,
+        ): StoredUser[] => {
+          if (
+            isStoredUser(
+              value,
+            )
+          ) {
+            return [
+              value,
+            ]
+          }
+
+          /*
+           * Compatibilidade com
+           * usuários criados antes
+           * da alteração.
+           *
+           * A senha antiga em texto
+           * puro é convertida para
+           * hash e não é mantida no
+           * novo registro.
+           */
+          if (
+            isLegacyStoredUser(
+              value,
+            )
+          ) {
+            requiresMigration =
+              true
+
+            const {
+              password,
+              ...publicFields
+            } = value
+
+            return [
+              {
+                ...publicFields,
+
+                passwordHash:
+                  hashPassword(
+                    password,
+                  ),
+              },
+            ]
+          }
+
+          return []
+        },
+      )
+
+    if (
+      requiresMigration
+    ) {
+      window.localStorage.setItem(
+        USERS_STORAGE_KEY,
+        JSON.stringify(
+          normalizedUsers,
+        ),
+      )
+    }
+
+    return normalizedUsers
   } catch {
     return []
   }
@@ -64,22 +228,6 @@ function persistUsers() {
       users,
     ),
   )
-}
-
-function normalizeEmail(
-  email: string,
-) {
-  return email
-    .trim()
-    .toLowerCase()
-}
-
-function normalizeUsername(
-  username: string,
-) {
-  return username
-    .trim()
-    .toLowerCase()
 }
 
 export function getUserById(
@@ -137,8 +285,10 @@ export function validateUserCredentials(
 
   if (
     !user ||
-    user.password !==
-      password
+    !compareSync(
+      password,
+      user.passwordHash,
+    )
   ) {
     return undefined
   }
@@ -156,14 +306,15 @@ export function validateUserPassword(
     )
 
   if (
-    !user ||
-    user.password !==
-      password
+    !user
   ) {
     return false
   }
 
-  return true
+  return compareSync(
+    password,
+    user.passwordHash,
+  )
 }
 
 export function createUser(
@@ -184,8 +335,10 @@ export function createUser(
     displayName:
       request.username.trim(),
 
-    password:
-      request.password,
+    passwordHash:
+      hashPassword(
+        request.password,
+      ),
 
     createdAt:
       new Date().toISOString(),
@@ -269,7 +422,10 @@ export function updateUserPassword(
   const updatedUser: StoredUser = {
     ...users[index],
 
-    password,
+    passwordHash:
+      hashPassword(
+        password,
+      ),
   }
 
   users[index] =

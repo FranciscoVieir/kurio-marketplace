@@ -48,6 +48,10 @@ type CartContextValue = {
     quantity: number,
   ) => void
 
+  syncNft: (
+    nft: Nft,
+  ) => void
+
   clearCart: () => void
 
   getItemQuantity: (
@@ -456,6 +460,98 @@ export function CartProvider({
       [],
     )
 
+  /*
+   * Sincroniza o snapshot do NFT
+   * armazenado no carrinho quando
+   * chega um evento realtime.
+   *
+   * Não removemos o item nem
+   * alteramos a quantidade
+   * automaticamente. Dessa forma,
+   * mudanças de estoque/preço
+   * permanecem visíveis para o
+   * usuário e podem ser
+   * revalidadas no checkout.
+   *
+   * Eventos antigos ou duplicados
+   * não devem regredir o estado.
+   */
+  const syncNft =
+    useCallback(
+      (
+        nft: Nft,
+      ) => {
+        setCart(
+          (
+            currentCart,
+          ) => {
+            let hasChanges =
+              false
+
+            const items =
+              currentCart.items.map(
+                (
+                  item,
+                ) => {
+                  if (
+                    item.nftId !==
+                    nft.id
+                  ) {
+                    return item
+                  }
+
+                  if (
+                    nft.version <=
+                    item.version
+                  ) {
+                    return item
+                  }
+
+                  hasChanges =
+                    true
+
+                  return {
+                    ...item,
+
+                    name:
+                      nft.name,
+
+                    imageUrl:
+                      nft.imageUrl,
+
+                    collection:
+                      nft.collection,
+
+                    network:
+                      nft.network,
+
+                    priceEth:
+                      nft.priceEth,
+
+                    availableQuantity:
+                      nft.availableQuantity,
+
+                    version:
+                      nft.version,
+                  }
+                },
+              )
+
+            if (
+              !hasChanges
+            ) {
+              return currentCart
+            }
+
+            return {
+              items,
+            }
+          },
+        )
+      },
+      [],
+    )
+
   const clearCart =
     useCallback(
       () => {
@@ -540,6 +636,8 @@ export function CartProvider({
 
         updateQuantity,
 
+        syncNft,
+
         clearCart,
 
         getItemQuantity,
@@ -552,6 +650,7 @@ export function CartProvider({
         addItem,
         removeItem,
         updateQuantity,
+        syncNft,
         clearCart,
         getItemQuantity,
         hasItem,

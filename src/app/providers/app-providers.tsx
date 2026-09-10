@@ -30,15 +30,15 @@ export function AppProviders() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <RealtimeProvider>
-          <FavoritesProvider>
-            <CartProvider>
+        <FavoritesProvider>
+          <CartProvider>
+            <RealtimeProvider>
               <RouterProvider
                 router={router}
               />
-            </CartProvider>
-          </FavoritesProvider>
-        </RealtimeProvider>
+            </RealtimeProvider>
+          </CartProvider>
+        </FavoritesProvider>
       </AuthProvider>
     </QueryProvider>
   )
