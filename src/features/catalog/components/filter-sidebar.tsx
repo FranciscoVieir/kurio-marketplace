@@ -1,7 +1,26 @@
-import { useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
-import type { CatalogParams } from '../types/catalog'
-import type { NftNetwork } from '@/features/nft/types/nft'
+import {
+  useNavigate,
+} from '@tanstack/react-router'
+
+import {
+  useState,
+} from 'react'
+
+import {
+  Slider,
+} from '@/components/ui/slider'
+
+import type {
+  NftNetwork,
+} from '@/features/nft/types/nft'
+
+import type {
+  CatalogParams,
+} from '../types/catalog'
+
+const MIN_PRICE = 0.02
+const MAX_PRICE = 12.3
+const PRICE_STEP = 0.01
 
 const collections = [
   ['Arte digital', 'digital-art', 33],
@@ -41,91 +60,267 @@ type FilterSidebarProps = {
   params: CatalogParams
 }
 
+type PriceRangeProps = {
+  initialMinPrice: number
+  initialMaxPrice: number
+  onApply: (
+    minPrice: number,
+    maxPrice: number,
+  ) => void
+}
+
+function formatPrice(
+  value: number,
+) {
+  return value
+    .toFixed(2)
+    .replace('.', ',')
+}
+
+function PriceRange({
+  initialMinPrice,
+  initialMaxPrice,
+  onApply,
+}: PriceRangeProps) {
+  const [
+    priceRange,
+    setPriceRange,
+  ] = useState<number[]>([
+    initialMinPrice,
+    initialMaxPrice,
+  ])
+
+  const minPrice =
+    priceRange[0] ??
+    MIN_PRICE
+
+  const maxPrice =
+    priceRange[1] ??
+    MAX_PRICE
+
+  return (
+    <section
+      className="
+        mt-6
+        flex
+        w-[270px]
+        flex-col
+        gap-3
+      "
+    >
+      <h2
+        className="
+          text-[18px]
+          font-bold
+          leading-4
+          text-foreground
+        "
+      >
+        Faixa de preço
+      </h2>
+
+      <div className="px-3">
+        <Slider
+          aria-label="Faixa de preço"
+          min={MIN_PRICE}
+          max={MAX_PRICE}
+          step={PRICE_STEP}
+          value={
+            priceRange
+          }
+          onValueChange={
+            setPriceRange
+          }
+        />
+      </div>
+
+      <p
+        className="
+          px-3
+          text-[15px]
+          font-normal
+          leading-[15px]
+          text-foreground
+        "
+      >
+        Preço:{' '}
+        {formatPrice(
+          minPrice,
+        )}{' '}
+        -{' '}
+        {formatPrice(
+          maxPrice,
+        )}{' '}
+        ETH
+      </p>
+
+      <button
+        type="button"
+        onClick={() =>
+          onApply(
+            minPrice,
+            maxPrice,
+          )
+        }
+        className="
+          ml-3
+          h-9
+          w-[92px]
+          rounded-md
+          bg-primary
+          px-3
+          py-2
+          text-[15px]
+          font-bold
+          text-primary-foreground
+        "
+      >
+        Aplicar
+      </button>
+    </section>
+  )
+}
+
 export function FilterSidebar({
   params,
 }: FilterSidebarProps) {
-  const navigate = useNavigate({ from: '/' })
-
-  const [minPrice, setMinPrice] = useState(
-    params.minPrice ?? '0.02',
-  )
-
-  const [maxPrice, setMaxPrice] = useState(
-    params.maxPrice ?? '12.30',
-  )
-
-  useEffect(() => {
-    setMinPrice(params.minPrice ?? '0.02')
-    setMaxPrice(params.maxPrice ?? '12.30')
-  }, [params.minPrice, params.maxPrice])
+  const navigate =
+    useNavigate({
+      from: '/',
+    })
 
   function updateFilters(
     updates: Partial<CatalogParams>,
   ) {
-    navigate({
-      search: (previous) => ({
+    void navigate({
+      search: (
+        previous,
+      ) => ({
         ...previous,
         ...updates,
         page: 1,
       }),
+
+      resetScroll: false,
     })
   }
 
-  function toggleCategory(category: string) {
+  function toggleCategory(
+    category: string,
+  ) {
     updateFilters({
       category:
-        params.category === category
+        params.category ===
+        category
           ? undefined
           : category,
     })
   }
 
-  function toggleNetwork(network: NftNetwork) {
+  function toggleNetwork(
+    network: NftNetwork,
+  ) {
     updateFilters({
       network:
-        params.network === network
+        params.network ===
+        network
           ? undefined
           : network,
     })
   }
 
-  function applyPrice() {
+  function applyPrice(
+    minPrice: number,
+    maxPrice: number,
+  ) {
     updateFilters({
-      minPrice,
-      maxPrice,
+      minPrice:
+        minPrice.toFixed(
+          2,
+        ),
+
+      maxPrice:
+        maxPrice.toFixed(
+          2,
+        ),
     })
   }
 
+  const initialMinPrice =
+    Number(
+      params.minPrice ??
+        MIN_PRICE,
+    )
+
+  const initialMaxPrice =
+    Number(
+      params.maxPrice ??
+        MAX_PRICE,
+    )
+
   return (
-    <aside className="w-[310px] bg-card p-5">
-      <section className="flex w-[270px] flex-col gap-3">
-        <h2 className="text-[18px] font-bold leading-[16px] text-foreground">
+    <aside
+      className="
+        w-[310px]
+        bg-card
+        p-5
+      "
+    >
+      <section
+        className="
+          flex
+          w-[270px]
+          flex-col
+          gap-3
+        "
+      >
+        <h2
+          className="
+            text-[18px]
+            font-bold
+            leading-4
+            text-foreground
+          "
+        >
           Coleções
         </h2>
 
         <div className="px-3">
           {collections.map(
-            ([label, value, count]) => {
+            ([
+              label,
+              value,
+              count,
+            ]) => {
               const active =
-                params.category === value
+                params.category ===
+                value
 
               return (
                 <button
                   key={value}
                   type="button"
-                  aria-pressed={active}
+                  aria-pressed={
+                    active
+                  }
                   onClick={() =>
-                    toggleCategory(value)
+                    toggleCategory(
+                      value,
+                    )
                   }
                   className="
-                    flex h-10 w-full
-                    items-center justify-between
+                    flex
+                    h-10
+                    w-full
+                    items-center
+                    justify-between
                   "
                 >
                   <span
                     className={`
-                      text-[15px] font-normal
-                      leading-[40px]
+                      text-[15px]
+                      font-normal
+                      leading-10
                       ${
                         active
                           ? 'text-[var(--color-text-accent)]'
@@ -139,7 +334,7 @@ export function FilterSidebar({
                   <span
                     className={`
                       text-[15px]
-                      leading-[40px]
+                      leading-10
                       ${
                         active
                           ? 'font-bold text-[var(--color-text-accent)]'
@@ -156,98 +351,76 @@ export function FilterSidebar({
         </div>
       </section>
 
-      <section className="mt-6 flex w-[270px] flex-col gap-3">
-        <h2 className="text-[18px] font-bold leading-[16px] text-foreground">
-          Faixa de preço
-        </h2>
+      <PriceRange
+        key={`${params.minPrice ?? MIN_PRICE}-${params.maxPrice ?? MAX_PRICE}`}
+        initialMinPrice={
+          initialMinPrice
+        }
+        initialMaxPrice={
+          initialMaxPrice
+        }
+        onApply={
+          applyPrice
+        }
+      />
 
-        <div className="flex gap-2">
-          <input
-            aria-label="Preço mínimo"
-            type="number"
-            min="0"
-            step="0.01"
-            value={minPrice}
-            onChange={(event) =>
-              setMinPrice(event.target.value)
-            }
-            className="
-              h-9 min-w-0 flex-1
-              rounded-[6px]
-              border border-border
-              bg-background px-2
-              text-[13px] text-foreground
-            "
-          />
-
-          <input
-            aria-label="Preço máximo"
-            type="number"
-            min="0"
-            step="0.01"
-            value={maxPrice}
-            onChange={(event) =>
-              setMaxPrice(event.target.value)
-            }
-            className="
-              h-9 min-w-0 flex-1
-              rounded-[6px]
-              border border-border
-              bg-background px-2
-              text-[13px] text-foreground
-            "
-          />
-        </div>
-
-        <p className="text-[15px] font-normal leading-[15px] text-foreground">
-          Preço: {minPrice || '0'} -{' '}
-          {maxPrice || '0'} ETH
-        </p>
-
-        <button
-          type="button"
-          onClick={applyPrice}
+      <section
+        className="
+          mt-8
+          flex
+          w-[270px]
+          flex-col
+          gap-3
+        "
+      >
+        <h2
           className="
-            h-[36px] w-[92px]
-            rounded-[6px]
-            bg-primary px-3 py-2
-            text-[15px] font-bold
-            text-primary-foreground
+            text-[18px]
+            font-bold
+            leading-4
+            text-foreground
           "
         >
-          Aplicar
-        </button>
-      </section>
-
-      <section className="mt-8 flex w-[270px] flex-col gap-3">
-        <h2 className="text-[18px] font-bold leading-[16px] text-foreground">
           Rede
         </h2>
 
         <div>
           {networks.map(
-            ({ label, value, count }) => {
+            ({
+              label,
+              value,
+              count,
+            }) => {
               const active =
-                params.network === value
+                params.network ===
+                value
 
               return (
                 <button
                   key={value}
                   type="button"
-                  aria-pressed={active}
+                  aria-pressed={
+                    active
+                  }
                   onClick={() =>
-                    toggleNetwork(value)
+                    toggleNetwork(
+                      value,
+                    )
                   }
                   className="
-                    flex h-10 w-full
-                    items-center justify-between
+                    flex
+                    h-10
+                    w-full
+                    items-center
+                    justify-between
                     px-3
                   "
                 >
                   <span
                     className={`
-                      text-[15px] font-normal
-                      leading-[40px]
+                      text-[15px]
+                      font-normal
+                      leading-10
                       ${
                         active
                           ? 'text-[var(--color-text-accent)]'
@@ -261,7 +434,7 @@ export function FilterSidebar({
                   <span
                     className={`
                       text-[15px]
-                      leading-[40px]
+                      leading-10
                       ${
                         active
                           ? 'font-bold text-[var(--color-text-accent)]'
