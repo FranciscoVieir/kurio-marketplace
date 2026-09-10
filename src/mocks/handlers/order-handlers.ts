@@ -29,6 +29,7 @@ import {
 import {
   getOrderByIdempotencyKey,
   getOrderForUser,
+  getOrdersByUserId,
   saveOrder,
 } from '../database/orders'
 
@@ -339,6 +340,30 @@ function createPurchaseErrorResponse(
 }
 
 export const orderHandlers = [
+  http.get(
+  '/api/me/orders',
+  () => {
+    const auth =
+      getAuthenticatedUserId()
+
+    if (!auth.ok) {
+      return auth.response
+    }
+
+    const orders =
+      getOrdersByUserId(
+        auth.userId,
+      )
+
+    return HttpResponse.json(
+      orders,
+      {
+        status: 200,
+      },
+    )
+  },
+),
+
   http.get(
     '/api/orders/:orderId',
     ({
