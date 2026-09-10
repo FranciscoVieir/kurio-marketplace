@@ -98,6 +98,23 @@ function PriceRange({
     priceRange[1] ??
     MAX_PRICE
 
+  function handlePriceRangeChange(
+    value:
+      | number
+      | readonly number[],
+  ) {
+    if (
+      typeof value ===
+      'number'
+    ) {
+      return
+    }
+
+    setPriceRange([
+      ...value,
+    ])
+  }
+
   return (
     <section
       className="
@@ -129,7 +146,7 @@ function PriceRange({
             priceRange
           }
           onValueChange={
-            setPriceRange
+            handlePriceRangeChange
           }
         />
       </div>
