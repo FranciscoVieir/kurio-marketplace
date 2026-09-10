@@ -36,7 +36,7 @@ import {
 } from '../database/checkout-quotes'
 
 import {
-  getOrderByIdempotencyKey,
+  getIdempotencyRecord,
   getOrderForUser,
   getOrdersByUserId,
   saveOrder,
@@ -48,6 +48,44 @@ const ORDER_CONFIRMATION_DELAY_MS =
 
 function createOrderId() {
   return `order_${crypto.randomUUID()}`
+}
+
+function createRequestSignature(
+  request: CreateOrderRequest,
+) {
+  return JSON.stringify({
+    quoteId:
+      request.quoteId,
+
+    walletProvider:
+      request.walletProvider,
+
+    profile: {
+      displayName:
+        request.profile.displayName,
+
+      username:
+        request.profile.username,
+
+      network:
+        request.profile.network,
+
+      profileName:
+        request.profile.profileName,
+
+      walletAddress:
+        request.profile.walletAddress,
+
+      walletType:
+        request.profile.walletType,
+
+      email:
+        request.profile.email,
+
+      useAnotherWallet:
+        request.profile.useAnotherWallet,
+    },
+  })
 }
 
 function createTransactionHash() {
@@ -363,28 +401,92 @@ function createPurchaseErrorResponse(
   }
 }
 
+function confirmPendingOrder(
+  order: Order,
+) {
+  if (
+    order.status !==
+    'pending'
+  ) {
+    return order
+  }
+
+  const confirmedOrder =
+    updateOrder(
+      order.id,
+      {
+        status:
+          'confirmed',
+      },
+    )
+
+  if (!confirmedOrder) {
+    return order
+  }
+
+  emitOrderUpdated({
+    order:
+      confirmedOrder,
+  })
+
+  return confirmedOrder
+}
+
+function reconcilePendingOrder(
+  order: Order,
+) {
+  if (
+    order.status !==
+    'pending'
+  ) {
+    return order
+  }
+
+  const createdAt =
+    new Date(
+      order.createdAt,
+    ).getTime()
+
+  if (
+    !Number.isFinite(
+      createdAt,
+    )
+  ) {
+    return order
+  }
+
+  if (
+    Date.now() <
+    createdAt +
+      ORDER_CONFIRMATION_DELAY_MS
+  ) {
+    return order
+  }
+
+  return confirmPendingOrder(
+    order,
+  )
+}
+
 function scheduleOrderConfirmation(
   orderId: string,
+  userId: string,
 ) {
   window.setTimeout(
     () => {
-      const confirmedOrder =
-        updateOrder(
+      const order =
+        getOrderForUser(
           orderId,
-          {
-            status:
-              'confirmed',
-          },
+          userId,
         )
 
-      if (!confirmedOrder) {
+      if (!order) {
         return
       }
 
-      emitOrderUpdated({
-        order:
-          confirmedOrder,
-      })
+      confirmPendingOrder(
+        order,
+      )
     },
     ORDER_CONFIRMATION_DELAY_MS,
   )
@@ -404,6 +506,8 @@ export const orderHandlers = [
       const orders =
         getOrdersByUserId(
           auth.userId,
+        ).map(
+          reconcilePendingOrder,
         )
 
       return HttpResponse.json(
@@ -432,11 +536,18 @@ export const orderHandlers = [
           params.orderId,
         )
 
-      const order =
+      const storedOrder =
         getOrderForUser(
           orderId,
           auth.userId,
         )
+
+      const order =
+        storedOrder
+          ? reconcilePendingOrder(
+              storedOrder,
+            )
+          : null
 
       /*
        * Retornamos 404 tanto para
@@ -514,29 +625,6 @@ export const orderHandlers = [
         )
       }
 
-      /*
-       * IDEMPOTENCY
-       *
-       * A chave fica isolada
-       * por usuário.
-       */
-      const existingOrder =
-        getOrderByIdempotencyKey(
-          auth.userId,
-          idempotencyKey,
-        )
-
-      if (
-        existingOrder
-      ) {
-        return HttpResponse.json(
-          existingOrder,
-          {
-            status: 200,
-          },
-        )
-      }
-
       const body: unknown =
         await request.json()
 
@@ -555,6 +643,62 @@ export const orderHandlers = [
           },
           {
             status: 400,
+          },
+        )
+      }
+
+      /*
+       * IDEMPOTENCY
+       *
+       * A chave fica isolada por usuário
+       * e vinculada ao conteúdo da tentativa.
+       *
+       * Mesma chave + mesmo conteúdo:
+       * retorna exatamente o mesmo pedido.
+       *
+       * Mesma chave + conteúdo diferente:
+       * conflito, sem criar outra compra.
+       */
+      const requestSignature =
+        createRequestSignature(
+          body,
+        )
+
+      const idempotencyRecord =
+        getIdempotencyRecord(
+          auth.userId,
+          idempotencyKey,
+        )
+
+      if (
+        idempotencyRecord
+      ) {
+        if (
+          idempotencyRecord.requestSignature !==
+            null &&
+          idempotencyRecord.requestSignature !==
+            requestSignature
+        ) {
+          return HttpResponse.json(
+            {
+              code:
+                'IDEMPOTENCY_CONFLICT',
+
+              message:
+                'A chave de idempotência já foi utilizada com dados diferentes.',
+            },
+            {
+              status: 409,
+            },
+          )
+        }
+
+        return HttpResponse.json(
+          reconcilePendingOrder(
+            idempotencyRecord.order,
+          ),
+          {
+            status: 200,
           },
         )
       }
@@ -768,6 +912,7 @@ for (
       saveOrder(
         order,
         idempotencyKey,
+        requestSignature,
       )
 
       /*
@@ -799,6 +944,7 @@ for (
        */
       scheduleOrderConfirmation(
         order.id,
+        auth.userId,
       )
 
       /*

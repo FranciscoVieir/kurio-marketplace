@@ -20,7 +20,7 @@ export function ProtectedRoute({
   const [
     isAuthDialogOpen,
     setIsAuthDialogOpen,
-  ] = useState(true)
+  ] = useState(false)
 
   if (isInitializing) {
     return (
@@ -58,7 +58,9 @@ export function ProtectedRoute({
             <button
               type="button"
               onClick={() => {
-                setIsAuthDialogOpen(true)
+                setIsAuthDialogOpen(
+                  true,
+                )
               }}
               className="
                 rounded-[var(--radius-control)]
@@ -76,9 +78,13 @@ export function ProtectedRoute({
         </PageContainer>
 
         <AuthDialog
-          open={isAuthDialogOpen}
+          open={
+            isAuthDialogOpen
+          }
           onClose={() => {
-            setIsAuthDialogOpen(false)
+            setIsAuthDialogOpen(
+              false,
+            )
           }}
         />
       </div>

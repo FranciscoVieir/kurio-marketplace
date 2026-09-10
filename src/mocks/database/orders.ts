@@ -6,6 +6,13 @@ const ORDERS_STORAGE_KEY =
 const IDEMPOTENCY_STORAGE_KEY =
   'kurio:mock:orders:idempotency'
 
+export interface IdempotencyRecord {
+  order: Order
+  requestSignature:
+    | string
+    | null
+}
+
 function createIdempotencyStorageKey(
   userId: string,
   idempotencyKey: string,
@@ -61,6 +68,36 @@ function loadOrders() {
   }
 }
 
+function isIdempotencyRecord(
+  value: unknown,
+): value is IdempotencyRecord {
+  if (
+    typeof value !==
+      'object' ||
+    value === null
+  ) {
+    return false
+  }
+
+  const record =
+    value as Record<
+      string,
+      unknown
+    >
+
+  return (
+    typeof record.order ===
+      'object' &&
+    record.order !== null &&
+    (
+      typeof record.requestSignature ===
+        'string' ||
+      record.requestSignature ===
+        null
+    )
+  )
+}
+
 function loadOrdersByIdempotencyKey() {
   if (
     typeof window ===
@@ -68,7 +105,7 @@ function loadOrdersByIdempotencyKey() {
   ) {
     return new Map<
       string,
-      Order
+      IdempotencyRecord
     >()
   }
 
@@ -81,7 +118,7 @@ function loadOrdersByIdempotencyKey() {
     if (!storedEntries) {
       return new Map<
         string,
-        Order
+        IdempotencyRecord
       >()
     }
 
@@ -91,20 +128,64 @@ function loadOrdersByIdempotencyKey() {
       ) as Array<
         [
           string,
-          Order,
+          unknown,
         ]
       >
 
+    const normalizedEntries =
+      parsed.flatMap(
+        ([
+          storageKey,
+          value,
+        ]) => {
+          /*
+           * Compatibilidade com a versão
+           * anterior do mock.
+           *
+           * Antes, o localStorage guardava
+           * diretamente o Order.
+           *
+           * Dados antigos continuam válidos,
+           * mas sem uma assinatura conhecida.
+           */
+          if (
+            !isIdempotencyRecord(
+              value,
+            )
+          ) {
+            return [
+              [
+                storageKey,
+                {
+                  order:
+                    value as Order,
+
+                  requestSignature:
+                    null,
+                },
+              ] as const,
+            ]
+          }
+
+          return [
+            [
+              storageKey,
+              value,
+            ] as const,
+          ]
+        },
+      )
+
     return new Map<
       string,
-      Order
+      IdempotencyRecord
     >(
-      parsed,
+      normalizedEntries,
     )
   } catch {
     return new Map<
       string,
-      Order
+      IdempotencyRecord
     >()
   }
 }
@@ -145,6 +226,9 @@ function persistOrders() {
 export function saveOrder(
   order: Order,
   idempotencyKey: string,
+  requestSignature:
+    | string
+    | null = null,
 ) {
   orders.set(
     order.id,
@@ -159,7 +243,11 @@ export function saveOrder(
 
   ordersByIdempotencyKey.set(
     storageKey,
-    order,
+    {
+      order,
+
+      requestSignature,
+    },
   )
 
   persistOrders()
@@ -218,7 +306,7 @@ export function getOrdersByUserId(
     )
 }
 
-export function getOrderByIdempotencyKey(
+export function getIdempotencyRecord(
   userId: string,
   idempotencyKey: string,
 ) {
@@ -231,6 +319,16 @@ export function getOrderByIdempotencyKey(
   return ordersByIdempotencyKey.get(
     storageKey,
   )
+}
+
+export function getOrderByIdempotencyKey(
+  userId: string,
+  idempotencyKey: string,
+) {
+  return getIdempotencyRecord(
+    userId,
+    idempotencyKey,
+  )?.order
 }
 
 export function updateOrder(
@@ -266,17 +364,22 @@ export function updateOrder(
   for (
     const [
       idempotencyKey,
-      order,
+      record,
     ] of
     ordersByIdempotencyKey
   ) {
     if (
-      order.id ===
+      record.order.id ===
       orderId
     ) {
       ordersByIdempotencyKey.set(
         idempotencyKey,
-        updatedOrder,
+        {
+          ...record,
+
+          order:
+            updatedOrder,
+        },
       )
 
       break
