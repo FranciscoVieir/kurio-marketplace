@@ -1,3 +1,7 @@
+import {
+  useNavigate,
+} from '@tanstack/react-router'
+
 import type {
   CheckoutWalletProvider,
   Order,
@@ -73,41 +77,91 @@ function getExplorerLabel(
 export function OrderConfirmationCard({
   order,
 }: OrderConfirmationCardProps) {
+  const navigate =
+    useNavigate()
+
   const networkLabel =
     getNetworkLabel(order.network)
+
+  const isConfirmed =
+    order.status === 'confirmed'
+
+  function handleClose() {
+    void navigate({
+      to: '/',
+    })
+  }
 
   return (
     <article
       className="
+        relative
         w-full
-        max-w-[470px]
+        max-w-[520px]
         overflow-hidden
         border
         border-[var(--color-border-kurio)]
         bg-[var(--color-surface-card)]
         text-foreground
+        shadow-2xl
       "
     >
-      <header className="px-5 pt-5">
-        <div className="flex justify-end">
-          <span
-            aria-hidden="true"
-            className="text-[11px] text-[var(--color-text-accent)]"
-          >
-            ×
-          </span>
-        </div>
+      <button
+        type="button"
+        onClick={handleClose}
+        aria-label="Fechar comprovante e voltar ao mercado"
+        title="Voltar ao mercado"
+        className="
+          absolute
+          right-5
+          top-4
+          z-10
+          flex
+          size-8
+          items-center
+          justify-center
+          rounded-full
+          text-[18px]
+          leading-none
+          text-[var(--color-text-accent)]
+          transition
+          hover:bg-[rgba(210,138,76,0.12)]
+          hover:text-foreground
+          focus-visible:outline-none
+          focus-visible:ring-1
+          focus-visible:ring-[var(--color-primary-kurio)]
+        "
+      >
+        ×
+      </button>
 
-        <div className="flex flex-col items-center">
+      <header
+        className="
+          px-7
+          pb-1
+          pt-7
+        "
+      >
+        <div
+          className="
+            flex
+            flex-col
+            items-center
+          "
+        >
           <div
             className="
-              flex size-12
-              items-center justify-center
+              flex
+              size-[58px]
+              items-center
+              justify-center
               border
               border-[var(--color-text-accent)]
               text-center
-              text-[8px] font-bold
-              leading-tight
+              text-[9px]
+              font-bold
+              leading-[11px]
+              tracking-wide
               text-[var(--color-text-accent)]
             "
           >
@@ -116,27 +170,256 @@ export function OrderConfirmationCard({
             YOU
           </div>
 
-          <p className="mt-3 text-center text-[10px] font-bold">
-            Seus NFTs agora estão na sua carteira
+          <p
+            className="
+              mt-4
+              text-center
+              text-[12px]
+              font-bold
+              leading-5
+            "
+          >
+            Pedido realizado com sucesso
+          </p>
+
+          <p
+            className="
+              mt-1
+              max-w-[340px]
+              text-center
+              text-[10px]
+              leading-4
+              text-[var(--color-text-secondary)]
+            "
+          >
+            Acompanhe abaixo o processamento
+            da sua transação.
           </p>
         </div>
       </header>
 
       <div
+        role="status"
+        aria-live="polite"
         className="
-          mt-4
-          grid grid-cols-4
+          mx-7
+          mt-5
+          border
+          border-[var(--color-border-kurio)]
+          bg-[rgba(210,138,76,0.06)]
+          px-5
+          py-4
+        "
+      >
+        <p
+          className="
+            text-[9px]
+            font-bold
+            uppercase
+            tracking-[0.12em]
+            text-[var(--color-text-secondary)]
+          "
+        >
+          Status do pedido
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <span
+              className="
+                flex
+                size-5
+                items-center
+                justify-center
+                rounded-full
+                bg-[var(--color-primary-kurio)]
+                text-[9px]
+                font-bold
+                text-[var(--color-ink)]
+              "
+            >
+              ✓
+            </span>
+
+            <div>
+              <p
+                className="
+                  text-[10px]
+                  font-bold
+                "
+              >
+                Pedido recebido
+              </p>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[9px]
+                  text-[var(--color-text-secondary)]
+                "
+              >
+                Sua compra foi registrada.
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <span
+              className={`
+                flex
+                size-5
+                items-center
+                justify-center
+                rounded-full
+                border
+                text-[9px]
+                font-bold
+                ${
+                  isConfirmed
+                    ? `
+                      border-[var(--color-primary-kurio)]
+                      bg-[var(--color-primary-kurio)]
+                      text-[var(--color-ink)]
+                    `
+                    : `
+                      animate-pulse
+                      border-[var(--color-primary-kurio)]
+                      text-[var(--color-text-accent)]
+                    `
+                }
+              `}
+            >
+              {isConfirmed
+                ? '✓'
+                : '•'}
+            </span>
+
+            <div>
+              <p
+                className="
+                  text-[10px]
+                  font-bold
+                "
+              >
+                Processando transação
+              </p>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[9px]
+                  text-[var(--color-text-secondary)]
+                "
+              >
+                {isConfirmed
+                  ? 'Processamento concluído.'
+                  : `Aguardando confirmação na ${networkLabel}.`}
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <span
+              className={`
+                flex
+                size-5
+                items-center
+                justify-center
+                rounded-full
+                border
+                text-[9px]
+                font-bold
+                ${
+                  isConfirmed
+                    ? `
+                      border-[var(--color-primary-kurio)]
+                      bg-[var(--color-primary-kurio)]
+                      text-[var(--color-ink)]
+                    `
+                    : `
+                      border-[var(--color-border-kurio)]
+                      text-[var(--color-text-secondary)]
+                    `
+                }
+              `}
+            >
+              {isConfirmed
+                ? '✓'
+                : '3'}
+            </span>
+
+            <div>
+              <p
+                className="
+                  text-[10px]
+                  font-bold
+                "
+              >
+                Confirmado
+              </p>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[9px]
+                  text-[var(--color-text-secondary)]
+                "
+              >
+                {isConfirmed
+                  ? 'Os NFTs foram associados à sua carteira.'
+                  : 'Aguardando conclusão da transação.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="
+          mt-5
+          grid
+          grid-cols-4
           border-y
           border-[var(--color-primary-kurio)]
-          px-5 py-3
+          px-7
+          py-4
         "
       >
         <div>
-          <p className="text-[7px] text-[var(--color-text-secondary)]">
+          <p
+            className="
+              text-[9px]
+              text-[var(--color-text-secondary)]
+            "
+          >
             ID da transação
           </p>
 
-          <p className="mt-1 text-[8px] text-foreground">
+          <p
+            className="
+              mt-1.5
+              text-[10px]
+              font-medium
+            "
+          >
             {formatTransactionHash(
               order.transactionHash,
             )}
@@ -144,11 +427,22 @@ export function OrderConfirmationCard({
         </div>
 
         <div>
-          <p className="text-[7px] text-[var(--color-text-secondary)]">
+          <p
+            className="
+              text-[9px]
+              text-[var(--color-text-secondary)]
+            "
+          >
             Data
           </p>
 
-          <p className="mt-1 text-[8px] text-foreground">
+          <p
+            className="
+              mt-1.5
+              text-[10px]
+              font-medium
+            "
+          >
             {formatOrderDate(
               order.createdAt,
             )}
@@ -156,21 +450,43 @@ export function OrderConfirmationCard({
         </div>
 
         <div>
-          <p className="text-[7px] text-[var(--color-text-secondary)]">
+          <p
+            className="
+              text-[9px]
+              text-[var(--color-text-secondary)]
+            "
+          >
             Total
           </p>
 
-          <p className="mt-1 text-[8px] text-foreground">
+          <p
+            className="
+              mt-1.5
+              text-[10px]
+              font-medium
+            "
+          >
             {order.totalEth} ETH
           </p>
         </div>
 
         <div>
-          <p className="text-[7px] text-[var(--color-text-secondary)]">
+          <p
+            className="
+              text-[9px]
+              text-[var(--color-text-secondary)]
+            "
+          >
             Carteira
           </p>
 
-          <p className="mt-1 text-[8px] text-foreground">
+          <p
+            className="
+              mt-1.5
+              text-[10px]
+              font-medium
+            "
+          >
             {getWalletProviderLabel(
               order.walletProvider,
             )}
@@ -178,93 +494,147 @@ export function OrderConfirmationCard({
         </div>
       </div>
 
-      <div className="px-5 py-4">
-        <p className="text-[8px] font-bold">
+      <div
+        className="
+          px-7
+          py-5
+        "
+      >
+        <p
+          className="
+            text-[10px]
+            font-bold
+          "
+        >
           Detalhes da transação
         </p>
 
         <div
           className="
-            mt-3
-            grid grid-cols-[minmax(0,1fr)_60px_78px]
-            gap-3
-            text-[8px]
+            mt-4
+            grid
+            grid-cols-[minmax(0,1fr)_70px_90px]
+            gap-4
+            text-[9px]
             font-bold
           "
         >
-          <span>NFTs</span>
+          <span>
+            NFTs
+          </span>
 
           <span>
             Edições
           </span>
 
-          <span>
+          <span className="text-right">
             Subtotal
           </span>
         </div>
 
-        <div className="mt-3 space-y-3">
-          {order.items.map((item) => (
-            <div
-              key={item.nftId}
-              className="
-                grid
-                grid-cols-[minmax(0,1fr)_60px_78px]
-                items-center
-                gap-3
-              "
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
+        <div className="mt-4 space-y-4">
+          {order.items.map(
+            (item) => (
+              <div
+                key={item.nftId}
+                className="
+                  grid
+                  grid-cols-[minmax(0,1fr)_70px_90px]
+                  items-center
+                  gap-4
+                "
+              >
+                <div
                   className="
-                    size-11
-                    shrink-0
-                    rounded-[6px]
-                    object-cover
+                    flex
+                    min-w-0
+                    items-center
+                    gap-3
                   "
-                />
+                >
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="
+                      size-[54px]
+                      shrink-0
+                      rounded-[6px]
+                      object-cover
+                    "
+                  />
 
-                <div className="min-w-0">
-                  <p className="truncate text-[9px] font-bold">
-                    {item.name}
-                  </p>
+                  <div className="min-w-0">
+                    <p
+                      className="
+                        truncate
+                        text-[11px]
+                        font-bold
+                        leading-4
+                      "
+                    >
+                      {item.name}
+                    </p>
 
-                  <p className="mt-1 text-[7px] text-[var(--color-text-secondary)]">
-                    ID do token:{' '}
-                    {item.tokenId}
-                  </p>
+                    <p
+                      className="
+                        mt-1
+                        text-[9px]
+                        leading-3
+                        text-[var(--color-text-secondary)]
+                      "
+                    >
+                      ID do token:{' '}
+                      {item.tokenId}
+                    </p>
+                  </div>
                 </div>
+
+                <span
+                  className="
+                    text-[10px]
+                    text-[var(--color-text-secondary)]
+                  "
+                >
+                  (x {item.quantity})
+                </span>
+
+                <span
+                  className="
+                    text-right
+                    text-[11px]
+                    font-bold
+                    text-[var(--color-text-accent)]
+                  "
+                >
+                  {item.subtotalEth} ETH
+                </span>
               </div>
-
-              <span className="text-[8px] text-[var(--color-text-secondary)]">
-                (x {item.quantity})
-              </span>
-
-              <span className="text-[9px] font-bold text-[var(--color-text-accent)]">
-                {item.subtotalEth} ETH
-              </span>
-            </div>
-          ))}
+            ),
+          )}
         </div>
 
         <div
           className="
-            mt-5
+            mt-6
             ml-auto
             grid
-            max-w-[220px]
+            max-w-[250px]
             grid-cols-[1fr_auto]
-            gap-x-5 gap-y-2
-            text-[8px]
+            gap-x-6
+            gap-y-2.5
+            text-[10px]
           "
         >
           <span className="text-right">
             Taxa de rede
           </span>
 
-          <span className="text-right">
+          <span
+            className="
+              min-w-[85px]
+              text-right
+            "
+          >
             {order.networkFeeEth} ETH
           </span>
 
@@ -274,69 +644,122 @@ export function OrderConfirmationCard({
                 Desconto
               </span>
 
-              <span className="text-right">
+              <span
+                className="
+                  min-w-[85px]
+                  text-right
+                "
+              >
                 (-) {order.discountEth} ETH
               </span>
             </>
           )}
 
-          <span className="text-right font-bold">
+          <span
+            className="
+              text-right
+              font-bold
+            "
+          >
             Total
           </span>
 
-          <span className="text-right font-bold text-[var(--color-text-accent)]">
+          <span
+            className="
+              min-w-[85px]
+              text-right
+              text-[12px]
+              font-bold
+              text-[var(--color-text-accent)]
+            "
+          >
             {order.totalEth} ETH
           </span>
         </div>
 
         <div
           className="
-            mt-4
+            mt-5
             border-t
             border-[var(--color-border-kurio)]
-            pt-3
+            pt-4
           "
         >
           <p
             className="
               mx-auto
-              max-w-[330px]
+              max-w-[390px]
               text-center
-              text-[8px]
-              leading-relaxed
+              text-[10px]
+              leading-[17px]
               text-[var(--color-text-secondary)]
             "
           >
-            Transação confirmada na{' '}
-            {networkLabel}. A propriedade
-            foi transferida para sua
-            carteira conectada e registrada
-            na rede.
+            {isConfirmed
+              ? (
+                <>
+                  Transação confirmada na{' '}
+                  {networkLabel}. A propriedade
+                  foi transferida para sua
+                  carteira conectada e registrada
+                  na rede.
+                </>
+              )
+              : (
+                <>
+                  A transação está sendo processada
+                  na {networkLabel}. O comprovante
+                  será atualizado automaticamente
+                  assim que houver confirmação.
+                </>
+              )}
           </p>
 
-          <div className="mt-4 flex justify-center">
+          <div
+            className="
+              mt-5
+              flex
+              justify-center
+            "
+          >
             <button
               type="button"
               disabled
-              title="Transação simulada pelo ambiente de testes"
+              title={
+                isConfirmed
+                  ? 'Transação simulada pelo ambiente de testes'
+                  : 'Aguardando confirmação da transação'
+              }
               className="
-                h-9
+                flex
+                h-10
+                min-w-[165px]
+                items-center
+                justify-center
                 bg-[var(--color-primary-kurio)]
                 px-5
-                text-[9px] font-bold
+                text-[10px]
+                font-bold
                 text-[var(--color-ink)]
-                opacity-90
+                disabled:cursor-not-allowed
               "
             >
-              {getExplorerLabel(
-                order.network,
-              )}
+              {isConfirmed
+                ? getExplorerLabel(
+                    order.network,
+                  )
+                : 'Aguardando confirmação'}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="h-[5px] bg-[var(--color-primary-kurio)]" />
+      <div
+        className="
+          h-[6px]
+          bg-[var(--color-primary-kurio)]
+        "
+      />
     </article>
   )
 }

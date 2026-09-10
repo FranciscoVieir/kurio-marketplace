@@ -3,19 +3,12 @@ import {
   createRoute,
   createRouter,
   Outlet,
+  stripSearchParams,
 } from '@tanstack/react-router'
 
-import { ProtectedRoute } from '@/features/auth/components/protected-route'
-
-import { ProfileWalletsPage } from '@/routes/profile-wallets'
-
 import {
-  ProfileFavoritesPage,
-} from '@/routes/profile-favorites'
-
-import {
-  ProfileActivityPage,
-} from '@/routes/profile-activity'
+  ProtectedRoute,
+} from '@/features/auth/components/protected-route'
 
 import {
   ProfileLayout,
@@ -31,13 +24,45 @@ import type {
   NftNetwork,
 } from '@/features/nft/types/nft'
 
-import { CartPage } from '@/routes/cart'
-import { CheckoutPage } from '@/routes/checkout'
-import { HomePage } from '@/routes/home'
-import { NftDetailPage } from '@/routes/nft-detail'
-import { OrderConfirmationPage } from '@/routes/order-confirmation'
-import { ProfilePage } from '@/routes/profile'
-import { ProfileSectionPage } from '@/routes/profile-section'
+import {
+  CartPage,
+} from '@/routes/cart'
+
+import {
+  CheckoutPage,
+} from '@/routes/checkout'
+
+import {
+  HomePage,
+} from '@/routes/home'
+
+import {
+  NftDetailPage,
+} from '@/routes/nft-detail'
+
+import {
+  OrderConfirmationPage,
+} from '@/routes/order-confirmation'
+
+import {
+  ProfileActivityPage,
+} from '@/routes/profile-activity'
+
+import {
+  ProfileFavoritesPage,
+} from '@/routes/profile-favorites'
+
+import {
+  ProfilePage,
+} from '@/routes/profile'
+
+import {
+  ProfileSectionPage,
+} from '@/routes/profile-section'
+
+import {
+  ProfileWalletsPage,
+} from '@/routes/profile-wallets'
 
 function parsePage(
   value: unknown,
@@ -73,6 +98,12 @@ const allowedNetworks: NftNetwork[] = [
   'polygon',
   'solana',
 ]
+
+const defaultCatalogSearch = {
+  sort: 'featured',
+  tab: 'all',
+  page: 1,
+} satisfies Partial<CatalogParams>
 
 function validateCatalogSearch(
   search: Record<
@@ -164,6 +195,14 @@ const indexRoute =
     validateSearch:
       validateCatalogSearch,
 
+    search: {
+      middlewares: [
+        stripSearchParams(
+          defaultCatalogSearch,
+        ),
+      ],
+    },
+
     component:
       HomePage,
   })
@@ -207,14 +246,6 @@ const checkoutRoute =
     ),
   })
 
-/*
- * Layout compartilhado de todas
- * as áreas do perfil.
- *
- * Este route possui o path /profile,
- * e os filhos são renderizados dentro
- * do Outlet.
- */
 const profileRootRoute =
   createRoute({
     getParentRoute:
@@ -334,6 +365,17 @@ const profileSupportRoute =
     ),
   })
 
+const profileRoute =
+  profileRootRoute.addChildren([
+    profileIndexRoute,
+    profileWalletsRoute,
+    profileActivityRoute,
+    profileFavoritesRoute,
+    profileOffersRoute,
+    profileDownloadsRoute,
+    profileSupportRoute,
+  ])
+
 const orderConfirmationRoute =
   createRoute({
     getParentRoute:
@@ -342,12 +384,6 @@ const orderConfirmationRoute =
     path:
       '/orders/$orderId',
 
-    /*
-     * O backend já protege o
-     * recurso, e agora a própria
-     * interface também exige
-     * autenticação.
-     */
     component: () => (
       <ProtectedRoute>
         <OrderConfirmationPage />
@@ -355,33 +391,13 @@ const orderConfirmationRoute =
     ),
   })
 
-profileRootRoute.addChildren([
-  profileIndexRoute,
-  profileWalletsRoute,
-  profileActivityRoute,
-  profileFavoritesRoute,
-  profileOffersRoute,
-  profileDownloadsRoute,
-  profileSupportRoute,
-])
-
 const routeTree =
   rootRoute.addChildren([
     indexRoute,
     nftDetailRoute,
     cartRoute,
     checkoutRoute,
-
-    profileRootRoute.addChildren([
-      profileIndexRoute,
-      profileWalletsRoute,
-      profileActivityRoute,
-      profileFavoritesRoute,
-      profileOffersRoute,
-      profileDownloadsRoute,
-      profileSupportRoute,
-    ]),
-
+    profileRoute,
     orderConfirmationRoute,
   ])
 

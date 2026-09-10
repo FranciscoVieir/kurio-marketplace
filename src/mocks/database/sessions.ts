@@ -149,6 +149,42 @@ export function isSessionExpired(
   )
 }
 
+export function expireActiveSession() {
+  const activeSession =
+    getActiveSession()
+
+  if (!activeSession) {
+    return undefined
+  }
+
+  const sessionIndex =
+    sessions.findIndex(
+      (session) =>
+        session.id ===
+        activeSession.id,
+    )
+
+  if (sessionIndex === -1) {
+    return undefined
+  }
+
+  const expiredSession: AuthSession = {
+    ...sessions[sessionIndex],
+
+    expiresAt:
+      new Date(
+        Date.now() - 1000,
+      ).toISOString(),
+  }
+
+  sessions[sessionIndex] =
+    expiredSession
+
+  persistSessions()
+
+  return expiredSession
+}
+
 export function deleteSession(
   sessionId: string,
 ) {
@@ -185,7 +221,8 @@ export function deleteSession(
 
 export function clearActiveSession() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return
   }
@@ -199,7 +236,8 @@ export function resetSessions() {
   sessions = []
 
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return
   }

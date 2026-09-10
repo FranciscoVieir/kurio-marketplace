@@ -11,6 +11,8 @@ import type {
 import type { Nft } from '@/features/nft/types/nft'
 
 import { getNftById } from '@/mocks/database/nft-database'
+import { isScenarioActive } from '@/mocks/scenarios/scenario-state'
+
 import { saveCheckoutQuote } from '../database/checkout-quotes'
 
 const NETWORK_FEE_ETH = '0.016'
@@ -116,6 +118,24 @@ function hasMixedNetworks(
       nft.network !==
       firstNetwork,
   )
+}
+
+function getQuoteExpiration(
+  now: number,
+) {
+  if (
+    isScenarioActive(
+      'quote-expired',
+    )
+  ) {
+    return new Date(
+      now - 1000,
+    ).toISOString()
+  }
+
+  return new Date(
+    now + QUOTE_DURATION_MS,
+  ).toISOString()
 }
 
 export const checkoutHandlers = [
@@ -331,10 +351,9 @@ export const checkoutHandlers = [
             total.toFixed(3),
 
           expiresAt:
-            new Date(
-              now +
-                QUOTE_DURATION_MS,
-            ).toISOString(),
+            getQuoteExpiration(
+              now,
+            ),
         }
 
       saveCheckoutQuote(

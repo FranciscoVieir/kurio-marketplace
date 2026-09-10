@@ -23,6 +23,15 @@ import {
 } from '@/mocks/database/users'
 
 import {
+  emitNftUpdated,
+  emitOrderUpdated,
+} from '@/mocks/socket/realtime'
+
+import {
+  applyPurchaseScenario,
+} from '@/mocks/scenarios/purchase-scenarios'
+
+import {
   getCheckoutQuote,
 } from '../database/checkout-quotes'
 
@@ -31,7 +40,11 @@ import {
   getOrderForUser,
   getOrdersByUserId,
   saveOrder,
+  updateOrder,
 } from '../database/orders'
+
+const ORDER_CONFIRMATION_DELAY_MS =
+  1800
 
 function createOrderId() {
   return `order_${crypto.randomUUID()}`
@@ -67,6 +80,7 @@ function getAuthenticatedUserId() {
   if (!session) {
     return {
       ok: false as const,
+
       response:
         HttpResponse.json(
           {
@@ -94,6 +108,7 @@ function getAuthenticatedUserId() {
 
     return {
       ok: false as const,
+
       response:
         HttpResponse.json(
           {
@@ -122,6 +137,7 @@ function getAuthenticatedUserId() {
 
     return {
       ok: false as const,
+
       response:
         HttpResponse.json(
           {
@@ -140,6 +156,7 @@ function getAuthenticatedUserId() {
 
   return {
     ok: true as const,
+
     userId:
       user.id,
   }
@@ -200,11 +217,13 @@ function isCreateOrderRequest(
     Boolean(
       profile.displayName.trim(),
     ) &&
+
     typeof profile.username ===
       'string' &&
     Boolean(
       profile.username.trim(),
     ) &&
+
     (
       profile.network ===
         'ethereum' ||
@@ -213,26 +232,31 @@ function isCreateOrderRequest(
       profile.network ===
         'solana'
     ) &&
+
     typeof profile.profileName ===
       'string' &&
     Boolean(
       profile.profileName.trim(),
     ) &&
+
     typeof profile.walletAddress ===
       'string' &&
     Boolean(
       profile.walletAddress.trim(),
     ) &&
+
     typeof profile.walletType ===
       'string' &&
     Boolean(
       profile.walletType.trim(),
     ) &&
+
     typeof profile.email ===
       'string' &&
     Boolean(
       profile.email.trim(),
     ) &&
+
     typeof profile.useAnotherWallet ===
       'boolean'
   )
@@ -339,30 +363,57 @@ function createPurchaseErrorResponse(
   }
 }
 
+function scheduleOrderConfirmation(
+  orderId: string,
+) {
+  window.setTimeout(
+    () => {
+      const confirmedOrder =
+        updateOrder(
+          orderId,
+          {
+            status:
+              'confirmed',
+          },
+        )
+
+      if (!confirmedOrder) {
+        return
+      }
+
+      emitOrderUpdated({
+        order:
+          confirmedOrder,
+      })
+    },
+    ORDER_CONFIRMATION_DELAY_MS,
+  )
+}
+
 export const orderHandlers = [
   http.get(
-  '/api/me/orders',
-  () => {
-    const auth =
-      getAuthenticatedUserId()
+    '/api/me/orders',
+    () => {
+      const auth =
+        getAuthenticatedUserId()
 
-    if (!auth.ok) {
-      return auth.response
-    }
+      if (!auth.ok) {
+        return auth.response
+      }
 
-    const orders =
-      getOrdersByUserId(
-        auth.userId,
+      const orders =
+        getOrdersByUserId(
+          auth.userId,
+        )
+
+      return HttpResponse.json(
+        orders,
+        {
+          status: 200,
+        },
       )
-
-    return HttpResponse.json(
-      orders,
-      {
-        status: 200,
-      },
-    )
-  },
-),
+    },
+  ),
 
   http.get(
     '/api/orders/:orderId',
@@ -388,14 +439,13 @@ export const orderHandlers = [
         )
 
       /*
-       * Deliberadamente retornamos
-       * 404 tanto para pedido
-       * inexistente quanto para
-       * pedido de outro usuário.
+       * Retornamos 404 tanto para
+       * pedido inexistente quanto
+       * para pedido de outro usuário.
        *
-       * Assim não revelamos a
-       * existência de recursos
-       * privados de outra conta.
+       * Dessa forma, uma conta não
+       * consegue descobrir se um ID
+       * pertence a outra conta.
        */
       if (!order) {
         return HttpResponse.json(
@@ -429,8 +479,11 @@ export const orderHandlers = [
       /*
        * AUTHENTICATION
        *
-       * O userId nunca é aceito
-       * diretamente do cliente.
+       * O userId nunca é recebido
+       * diretamente do frontend.
+       *
+       * O owner vem exclusivamente
+       * da sessão autenticada.
        */
       const auth =
         getAuthenticatedUserId()
@@ -464,7 +517,7 @@ export const orderHandlers = [
       /*
        * IDEMPOTENCY
        *
-       * A chave agora é isolada
+       * A chave fica isolada
        * por usuário.
        */
       const existingOrder =
@@ -586,14 +639,48 @@ export const orderHandlers = [
       }
 
       /*
+ * DETERMINISTIC PURCHASE SCENARIOS
+ *
+ * Em cenários de teste podemos
+ * simular uma alteração externa no
+ * NFT depois que a quote foi criada
+ * e antes do commit da compra.
+ *
+ * A regra real de negócio continua
+ * sendo validada exclusivamente por
+ * commitNftPurchase().
+ */
+const scenarioUpdatedNfts =
+  applyPurchaseScenario(
+    quote,
+  )
+
+/*
+ * A alteração simulada representa
+ * uma mudança externa no marketplace.
+ *
+ * Por isso também publicamos
+ * nft.updated para outras telas
+ * abertas reagirem em realtime.
+ */
+for (
+  const updatedNft of
+    scenarioUpdatedNfts
+) {
+  emitNftUpdated({
+    nft: updatedNft,
+  })
+}
+
+      /*
        * ATOMIC NFT PURCHASE
        *
-       * O quote continua sendo
-       * apenas um snapshot.
+       * A quote é apenas um snapshot.
        *
-       * Estoque, versão e preço
-       * são revalidados antes
-       * da baixa.
+       * No momento da compra,
+       * preço, versão e estoque são
+       * novamente validados antes
+       * da baixa atômica.
        */
       const purchaseResult =
         commitNftPurchase(
@@ -625,8 +712,10 @@ export const orderHandlers = [
       /*
        * ORDER
        *
-       * O owner vem exclusivamente
-       * da sessão autenticada.
+       * Neste ponto a compra foi
+       * aceita pelo mock backend,
+       * mas a transação ainda está
+       * aguardando confirmação.
        */
       const order: Order = {
         id:
@@ -642,7 +731,7 @@ export const orderHandlers = [
           createTransactionHash(),
 
         status:
-          'confirmed',
+          'pending',
 
         items:
           quote.items,
@@ -669,11 +758,56 @@ export const orderHandlers = [
           new Date().toISOString(),
       }
 
+      /*
+       * Primeiro persistimos o pedido.
+       *
+       * Isso garante que qualquer
+       * GET subsequente já enxergue
+       * o status pending.
+       */
       saveOrder(
         order,
         idempotencyKey,
       )
 
+      /*
+       * O commitNftPurchase devolve
+       * exatamente os NFTs persistidos
+       * após a compra.
+       *
+       * Esses eventos são públicos:
+       * qualquer tela que esteja
+       * exibindo esses NFTs poderá
+       * reagir ao novo estoque/versão.
+       */
+      for (
+        const updatedNft of
+        purchaseResult.updatedNfts
+      ) {
+        emitNftUpdated({
+          nft:
+            updatedNft,
+        })
+      }
+
+      /*
+       * A confirmação acontece
+       * posteriormente no mock backend.
+       *
+       * A UI NÃO altera o status
+       * diretamente.
+       */
+      scheduleOrderConfirmation(
+        order.id,
+      )
+
+      /*
+       * O HTTP retorna o recurso
+       * inicialmente em pending.
+       *
+       * A confirmação posterior
+       * chegará pelo Socket.IO.
+       */
       return HttpResponse.json(
         order,
         {
