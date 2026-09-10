@@ -4,6 +4,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type ReactNode,
 } from 'react'
 
 import {
@@ -38,6 +39,10 @@ type AuthContextValue = {
   logout: () => Promise<void>
 
   refreshSession: () => Promise<void>
+
+  syncUser: (
+    user: AuthUser,
+  ) => void
 }
 
 export const AuthContext =
@@ -46,7 +51,7 @@ export const AuthContext =
   )
 
 type AuthProviderProps = {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export function AuthProvider({
@@ -78,6 +83,18 @@ export function AuthProvider({
       setUser(null)
       setSession(null)
     }, [])
+
+  const syncUser =
+    useCallback(
+      (
+        nextUser: AuthUser,
+      ) => {
+        setUser(
+          nextUser,
+        )
+      },
+      [],
+    )
 
   const refreshSession =
     useCallback(
@@ -223,6 +240,7 @@ export function AuthProvider({
         register,
         logout,
         refreshSession,
+        syncUser,
       }),
       [
         user,
@@ -232,6 +250,7 @@ export function AuthProvider({
         register,
         logout,
         refreshSession,
+        syncUser,
       ],
     )
 

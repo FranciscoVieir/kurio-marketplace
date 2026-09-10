@@ -10,6 +10,10 @@ import { ProtectedRoute } from '@/features/auth/components/protected-route'
 import { ProfileWalletsPage } from '@/routes/profile-wallets'
 
 import {
+  ProfileFavoritesPage,
+} from '@/routes/profile-favorites'
+
+import {
   ProfileActivityPage,
 } from '@/routes/profile-activity'
 
@@ -275,12 +279,8 @@ const profileFavoritesRoute =
     path:
       'favorites',
 
-    component: () => (
-      <ProfileSectionPage
-        title="Lista de interesse"
-        description="Veja os NFTs que você salvou para acompanhar depois."
-      />
-    ),
+    component:
+      ProfileFavoritesPage,
   })
 
 const profileOffersRoute =

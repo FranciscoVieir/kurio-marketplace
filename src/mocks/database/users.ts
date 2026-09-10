@@ -12,7 +12,8 @@ const USERS_STORAGE_KEY =
 
 function loadUsers() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return []
   }
@@ -32,7 +33,11 @@ function loadUsers() {
         storedUsers,
       ) as StoredUser[]
 
-    if (!Array.isArray(parsed)) {
+    if (
+      !Array.isArray(
+        parsed,
+      )
+    ) {
       return []
     }
 
@@ -47,14 +52,17 @@ let users: StoredUser[] =
 
 function persistUsers() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return
   }
 
   window.localStorage.setItem(
     USERS_STORAGE_KEY,
-    JSON.stringify(users),
+    JSON.stringify(
+      users,
+    ),
   )
 }
 
@@ -79,7 +87,8 @@ export function getUserById(
 ) {
   return users.find(
     (user) =>
-      user.id === userId,
+      user.id ===
+      userId,
   )
 }
 
@@ -87,13 +96,16 @@ export function getUserByEmail(
   email: string,
 ) {
   const normalizedEmail =
-    normalizeEmail(email)
+    normalizeEmail(
+      email,
+    )
 
   return users.find(
     (user) =>
       normalizeEmail(
         user.email,
-      ) === normalizedEmail,
+      ) ===
+      normalizedEmail,
   )
 }
 
@@ -101,13 +113,16 @@ export function getUserByUsername(
   username: string,
 ) {
   const normalizedUsername =
-    normalizeUsername(username)
+    normalizeUsername(
+      username,
+    )
 
   return users.find(
     (user) =>
       normalizeUsername(
         user.username,
-      ) === normalizedUsername,
+      ) ===
+      normalizedUsername,
   )
 }
 
@@ -116,16 +131,39 @@ export function validateUserCredentials(
   password: string,
 ) {
   const user =
-    getUserByEmail(email)
+    getUserByEmail(
+      email,
+    )
 
   if (
     !user ||
-    user.password !== password
+    user.password !==
+      password
   ) {
     return undefined
   }
 
   return user
+}
+
+export function validateUserPassword(
+  userId: string,
+  password: string,
+) {
+  const user =
+    getUserById(
+      userId,
+    )
+
+  if (
+    !user ||
+    user.password !==
+      password
+  ) {
+    return false
+  }
+
+  return true
 }
 
 export function createUser(
@@ -153,11 +191,93 @@ export function createUser(
       new Date().toISOString(),
   }
 
-  users.push(user)
+  users.push(
+    user,
+  )
 
   persistUsers()
 
   return user
+}
+
+type UpdateUserIdentityInput = {
+  displayName: string
+  username: string
+  email: string
+}
+
+export function updateUserIdentity(
+  userId: string,
+  input: UpdateUserIdentityInput,
+) {
+  const index =
+    users.findIndex(
+      (user) =>
+        user.id ===
+        userId,
+    )
+
+  if (
+    index === -1
+  ) {
+    return undefined
+  }
+
+  const currentUser =
+    users[index]
+
+  const updatedUser: StoredUser = {
+    ...currentUser,
+
+    displayName:
+      input.displayName.trim(),
+
+    username:
+      input.username.trim(),
+
+    email:
+      normalizeEmail(
+        input.email,
+      ),
+  }
+
+  users[index] =
+    updatedUser
+
+  persistUsers()
+
+  return updatedUser
+}
+
+export function updateUserPassword(
+  userId: string,
+  password: string,
+) {
+  const index =
+    users.findIndex(
+      (user) =>
+        user.id ===
+        userId,
+    )
+
+  if (
+    index === -1
+  ) {
+    return undefined
+  }
+
+  const updatedUser: StoredUser = {
+    ...users[index],
+
+    password,
+  }
+
+  users[index] =
+    updatedUser
+
+  persistUsers()
+
+  return updatedUser
 }
 
 export function toPublicUser(
@@ -185,7 +305,8 @@ export function resetUsers() {
   users = []
 
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return
   }
