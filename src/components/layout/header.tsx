@@ -66,6 +66,11 @@ export function Header() {
     'home',
   )
 
+  const [
+    searchQuery,
+    setSearchQuery,
+  ] = useState('')
+
   const navigate =
     useNavigate()
 
@@ -100,6 +105,21 @@ export function Header() {
 
   const isProfile =
     pathname === '/profile'
+
+  useEffect(() => {
+    const url =
+      new URL(
+        window.location.href,
+      )
+
+    setSearchQuery(
+      url.searchParams.get(
+        'search',
+      ) ?? '',
+    )
+  }, [
+    pathname,
+  ])
 
   useEffect(() => {
     if (!isHome) {
@@ -197,6 +217,106 @@ export function Header() {
     )
   }
 
+  function updateSearchUrl(
+    value: string,
+  ) {
+    const url =
+      new URL(
+        window.location.href,
+      )
+
+    const normalizedValue =
+      value.trim()
+
+    if (normalizedValue) {
+      url.searchParams.set(
+        'search',
+        normalizedValue,
+      )
+    } else {
+      url.searchParams.delete(
+        'search',
+      )
+    }
+
+    url.hash =
+      'catalog'
+
+    window.history.replaceState(
+      window.history.state,
+      '',
+      url,
+    )
+
+    window.dispatchEvent(
+      new CustomEvent(
+        'kurio:market-search',
+        {
+          detail: {
+            query: value,
+          },
+        },
+      ),
+    )
+  }
+
+  function handleSearchChange(
+    value: string,
+  ) {
+    setSearchQuery(
+      value,
+    )
+
+    /*
+     * Enquanto o usuário digita, mantemos o foco
+     * no campo e não movemos a página.
+     *
+     * Na home, a query já pode ser publicada para
+     * o catálogo em tempo real. Em outras rotas,
+     * aguardamos o Enter para navegar ao mercado.
+     */
+    if (isHome) {
+      updateSearchUrl(
+        value,
+      )
+    }
+  }
+
+  async function handleSearchSubmit() {
+    if (!isHome) {
+      await navigate({
+        to: '/',
+        resetScroll: false,
+      })
+
+      updateSearchUrl(
+        searchQuery,
+      )
+
+      window.requestAnimationFrame(
+        () => {
+          window.requestAnimationFrame(
+            () => {
+              scrollToSection(
+                'catalog',
+              )
+            },
+          )
+        },
+      )
+
+      return
+    }
+
+    updateSearchUrl(
+      searchQuery,
+    )
+
+    scrollToSection(
+      'catalog',
+    )
+  }
+
   function isSectionActive(
     section: HomeSection,
   ) {
@@ -243,49 +363,78 @@ export function Header() {
               gap-2
             "
           >
-            <button
-              type="button"
-              aria-label="Explorar coleções de NFTs"
-              onClick={() =>
-                void goToSection(
-                  'catalog',
-                )
-              }
+            <div
               className="
-                flex
+                relative
                 h-[45px]
                 min-w-0
                 flex-1
-                items-center
-                gap-2
-                rounded-[10px]
-                bg-[var(--color-surface-card)]
-                px-3
-                text-left
-                text-[14px]
-                font-bold
-                leading-[16px]
-                text-[var(--color-secondary)]
-                transition-colors
-                hover:text-[var(--color-text-accent)]
               "
             >
               <Search
+                aria-hidden="true"
                 className="
+                  pointer-events-none
+                  absolute
+                  left-3
+                  top-1/2
                   size-[22px]
                   shrink-0
+                  -translate-y-1/2
+                  text-[var(--color-secondary)]
                 "
                 strokeWidth={1.8}
               />
 
-              <span
+              <input
+                type="search"
+                value={
+                  searchQuery
+                }
+                onChange={(
+                  event,
+                ) => {
+                  void handleSearchChange(
+                    event.target.value,
+                  )
+                }}
+                onKeyDown={(
+                  event,
+                ) => {
+                  if (
+                    event.key ===
+                    'Enter'
+                  ) {
+                    event.preventDefault()
+
+                    void handleSearchSubmit()
+                  }
+                }}
+                aria-label="Explorar coleções de NFTs"
+                placeholder="Explorar coleções"
                 className="
-                  truncate
+                  h-[45px]
+                  w-full
+                  rounded-[10px]
+                  border-0
+                  bg-[var(--color-surface-card)]
+                  pb-0
+                  pl-[42px]
+                  pr-3
+                  pt-0
+                  text-[14px]
+                  font-bold
+                  leading-[16px]
+                  text-[var(--color-foreground-kurio)]
+                  outline-none
+                  transition-colors
+                  placeholder:text-[var(--color-secondary)]
+                  focus:ring-1
+                  focus:ring-[var(--color-primary-kurio)]/35
+                  [&::-webkit-search-cancel-button]:hidden
                 "
-              >
-                Explorar coleções
-              </span>
-            </button>
+              />
+            </div>
 
             <button
               type="button"
@@ -430,27 +579,80 @@ export function Header() {
                   gap-5
                 "
               >
-                <button
-                  type="button"
-                  aria-label="Ir para a busca de NFTs"
-                  onClick={() =>
-                    void goToSection(
-                      'catalog',
-                    )
-                  }
+                <div
                   className="
-                    text-[var(--color-foreground-kurio)]
-                    transition-colors
-                    hover:text-[var(--color-text-accent)]
+                    relative
+                    h-[35px]
+                    w-[190px]
+                    xl:w-[220px]
                   "
                 >
                   <Search
-                    size={20}
-                    strokeWidth={
-                      1.8
-                    }
+                    aria-hidden="true"
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-[11px]
+                      top-1/2
+                      size-[18px]
+                      -translate-y-1/2
+                      text-[var(--color-text-secondary)]
+                    "
+                    strokeWidth={1.8}
                   />
-                </button>
+
+                  <input
+                    type="search"
+                    value={
+                      searchQuery
+                    }
+                    onChange={(
+                      event,
+                    ) => {
+                      void handleSearchChange(
+                        event.target.value,
+                      )
+                    }}
+                    onKeyDown={(
+                      event,
+                    ) => {
+                      if (
+                        event.key ===
+                        'Enter'
+                      ) {
+                        event.preventDefault()
+
+                        void handleSearchSubmit()
+                      }
+                    }}
+                    aria-label="Pesquisar NFTs e coleções"
+                    placeholder="Explorar coleções"
+                    className="
+                      h-[35px]
+                      w-full
+                      rounded-[8px]
+                      border
+                      border-[var(--color-border-kurio)]
+                      bg-[var(--color-surface-card)]
+                      pb-0
+                      pl-[38px]
+                      pr-[12px]
+                      pt-0
+                      text-[13px]
+                      font-normal
+                      leading-[16px]
+                      text-[var(--color-foreground-kurio)]
+                      outline-none
+                      transition-colors
+                      placeholder:text-[var(--color-text-secondary)]
+                      hover:border-[rgba(210,138,76,0.35)]
+                      focus:border-[var(--color-primary-kurio)]
+                      focus:ring-1
+                      focus:ring-[var(--color-primary-kurio)]/20
+                      [&::-webkit-search-cancel-button]:hidden
+                    "
+                  />
+                </div>
 
                 <Link
                   to="/cart"
