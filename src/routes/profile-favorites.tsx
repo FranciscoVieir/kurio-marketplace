@@ -5,7 +5,12 @@ import {
 import {
   Heart,
   ShoppingCart,
+  TriangleAlert,
 } from 'lucide-react'
+
+import {
+  Button,
+} from '@/components/ui/button'
 
 import {
   useCart,
@@ -44,56 +49,81 @@ export function ProfileFavoritesPage() {
     0
   ) {
     return (
-      <section>
+      <section className="w-full max-w-225">
         <div>
-          <h1 className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+          <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
             Lista de interesse
           </h1>
 
-          <p className="mt-1 text-[10px] text-[var(--color-text-secondary)]">
+          <p className="mt-1.5 text-xs leading-5 text-[var(--color-text-secondary)]">
             NFTs que você salvou para acompanhar depois.
           </p>
         </div>
 
         <div
           className="
-            mt-8
+            mt-7
             flex
-            min-h-56
+            min-h-80
             flex-col
             items-center
             justify-center
+            rounded-lg
             border
             border-[var(--color-border-kurio)]
+            bg-[var(--color-surface-card)]
             px-6
+            py-10
             text-center
           "
         >
-          <Heart
-            size={28}
-            strokeWidth={1.4}
-            className="text-[var(--color-text-accent)]"
-          />
+          <div
+            className="
+              flex
+              size-14
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-[rgba(210,138,76,0.24)]
+              bg-[rgba(210,138,76,0.08)]
+            "
+          >
+            <Heart
+              size={24}
+              strokeWidth={1.5}
+              className="text-[var(--color-text-accent)]"
+            />
+          </div>
 
-          <h2 className="mt-4 text-sm text-[var(--color-foreground-kurio)]">
+          <h2 className="mt-5 text-base font-semibold text-[var(--color-foreground-kurio)]">
             Sua lista está vazia
           </h2>
 
-          <p className="mt-2 max-w-sm text-xs text-[var(--color-text-secondary)]">
+          <p className="mt-2 max-w-sm text-xs leading-5 text-[var(--color-text-secondary)]">
             Favorite NFTs no marketplace para encontrá-los rapidamente aqui.
           </p>
 
           <Link
             to="/"
+            hash="catalog"
             className="
-              mt-5
-              rounded-[var(--radius-control)]
+              mt-6
+              inline-flex
+              h-10
+              items-center
+              justify-center
+              rounded-md
               bg-[var(--color-primary-kurio)]
-              px-4
-              py-2
+              px-5
               text-xs
               font-semibold
               text-[var(--color-ink)]
+              transition
+              hover:opacity-90
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-[var(--color-primary-kurio)]/30
             "
           >
             Explorar NFTs
@@ -105,28 +135,106 @@ export function ProfileFavoritesPage() {
 
   if (isLoading) {
     return (
-      <p className="text-xs text-[var(--color-text-secondary)]">
-        Carregando sua lista de interesse...
-      </p>
+      <section
+        aria-label="Carregando lista de interesse"
+        className="w-full max-w-225"
+      >
+        <div className="h-7 w-48 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+        <div className="mt-2 h-4 w-64 animate-pulse rounded-sm bg-[var(--color-surface-card)]" />
+
+        <div
+          className="
+            mt-7
+            grid
+            gap-5
+            sm:grid-cols-2
+            xl:grid-cols-3
+          "
+        >
+          {Array.from({
+            length: 6,
+          }).map(
+            (_, index) => (
+              <div
+                key={index}
+                className="
+                  overflow-hidden
+                  rounded-lg
+                  border
+                  border-[var(--color-border-kurio)]
+                  bg-[var(--color-surface-card)]
+                "
+              >
+                <div className="aspect-square w-full animate-pulse bg-[var(--color-border-kurio)]" />
+
+                <div className="space-y-4 p-4">
+                  <div className="space-y-2">
+                    <div className="h-4 w-2/3 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
+                    <div className="h-3 w-1/2 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
+                  </div>
+
+                  <div className="flex items-end justify-between gap-4">
+                    <div className="space-y-2">
+                      <div className="h-3 w-12 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
+                      <div className="h-4 w-20 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
+                    </div>
+
+                    <div className="h-3 w-16 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
+                  </div>
+
+                  <div className="h-9 w-full animate-pulse rounded-md bg-[var(--color-border-kurio)]" />
+                </div>
+              </div>
+            ),
+          )}
+        </div>
+      </section>
     )
   }
 
   if (isError) {
     return (
-      <p className="text-xs text-red-400">
-        Não foi possível carregar sua lista de interesse.
-      </p>
+      <section className="w-full max-w-225">
+        <div
+          role="alert"
+          className="
+            rounded-lg
+            border
+            border-red-400/20
+            bg-red-400/5
+            px-5
+            py-4
+          "
+        >
+          <div className="flex items-start gap-3">
+            <TriangleAlert
+              size={17}
+              className="mt-0.5 shrink-0 text-red-400"
+            />
+
+            <div>
+              <p className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+                Não foi possível carregar sua lista de interesse
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">
+                Tente novamente em alguns instantes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     )
   }
 
   return (
-    <section>
+    <section className="w-full max-w-225">
       <div>
-        <h1 className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+        <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
           Lista de interesse
         </h1>
 
-        <p className="mt-1 text-[10px] text-[var(--color-text-secondary)]">
+        <p className="mt-1.5 text-xs leading-5 text-[var(--color-text-secondary)]">
           {favoriteIds.length}{' '}
           {favoriteIds.length ===
           1
@@ -137,7 +245,7 @@ export function ProfileFavoritesPage() {
 
       <div
         className="
-          mt-6
+          mt-7
           grid
           gap-5
           sm:grid-cols-2
@@ -165,94 +273,124 @@ export function ProfileFavoritesPage() {
                   nft.id
                 }
                 className="
+                  group
                   overflow-hidden
+                  rounded-lg
                   border
                   border-[var(--color-border-kurio)]
                   bg-[var(--color-surface-card)]
+                  transition
+                  hover:border-[rgba(210,138,76,0.28)]
                 "
               >
-                <Link
-                  to="/nft/$nftId"
-                  params={{
-                    nftId:
-                      nft.id,
-                  }}
-                >
-                  <img
-                    src={
-                      nft.imageUrl
-                    }
-                    alt={
-                      nft.name
-                    }
+                <div className="relative overflow-hidden">
+                  <Link
+                    to="/nft/$nftId"
+                    params={{
+                      nftId:
+                        nft.id,
+                    }}
                     className="
-                      aspect-square
-                      w-full
-                      object-cover
+                      block
+                      focus-visible:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-inset
+                      focus-visible:ring-[var(--color-primary-kurio)]/30
                     "
-                  />
-                </Link>
+                  >
+                    <img
+                      src={
+                        nft.imageUrl
+                      }
+                      alt={
+                        nft.name
+                      }
+                      className="
+                        aspect-square
+                        w-full
+                        object-cover
+                        transition
+                        duration-300
+                        group-hover:scale-[1.02]
+                      "
+                    />
+                  </Link>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    aria-label={`Remover ${nft.name} dos favoritos`}
+                    title="Remover dos favoritos"
+                    onClick={() => {
+                      removeFavorite(
+                        nft.id,
+                      )
+                    }}
+                    className="
+                      absolute
+                      right-3
+                      top-3
+                      size-9
+                      rounded-full
+                      border
+                      border-[rgba(245,241,235,0.14)]
+                      bg-[rgba(20,13,10,0.72)]
+                      p-0
+                      text-[var(--color-text-accent)]
+                      backdrop-blur-sm
+                      hover:bg-[rgba(20,13,10,0.9)]
+                      hover:text-[var(--color-text-accent)]
+                    "
+                  >
+                    <Heart
+                      size={16}
+                      fill="currentColor"
+                      strokeWidth={1.5}
+                    />
+                  </Button>
+                </div>
 
                 <div className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        to="/nft/$nftId"
-                        params={{
-                          nftId:
-                            nft.id,
-                        }}
-                        className="
-                          block
-                          truncate
-                          text-xs
-                          font-semibold
-                          text-[var(--color-foreground-kurio)]
-                          hover:text-[var(--color-text-accent)]
-                        "
-                      >
-                        {
-                          nft.name
-                        }
-                      </Link>
-
-                      <p className="mt-1 truncate text-[10px] text-[var(--color-text-secondary)]">
-                        {
-                          nft.collection
-                        }
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      aria-label="Remover dos favoritos"
-                      onClick={() => {
-                        removeFavorite(
+                  <div className="min-w-0">
+                    <Link
+                      to="/nft/$nftId"
+                      params={{
+                        nftId:
                           nft.id,
-                        )
                       }}
                       className="
-                        shrink-0
-                        text-[var(--color-text-accent)]
+                        block
+                        truncate
+                        text-sm
+                        font-semibold
+                        leading-5
+                        text-[var(--color-foreground-kurio)]
                         transition
-                        hover:opacity-70
+                        hover:text-[var(--color-text-accent)]
+                        focus-visible:outline-none
+                        focus-visible:ring-1
+                        focus-visible:ring-[var(--color-primary-kurio)]
                       "
                     >
-                      <Heart
-                        size={17}
-                        fill="currentColor"
-                        strokeWidth={1.4}
-                      />
-                    </button>
+                      {
+                        nft.name
+                      }
+                    </Link>
+
+                    <p className="mt-1 truncate text-[11px] leading-4 text-[var(--color-text-secondary)]">
+                      {
+                        nft.collection
+                      }
+                    </p>
                   </div>
 
                   <div className="mt-5 flex items-end justify-between gap-3">
                     <div>
-                      <p className="text-[9px] uppercase text-[var(--color-text-secondary)]">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--color-text-secondary)]">
                         Preço
                       </p>
 
-                      <p className="mt-1 text-sm font-semibold text-[var(--color-foreground-kurio)]">
+                      <p className="mt-1 text-base font-semibold leading-6 text-[var(--color-text-accent)]">
                         {
                           nft.priceEth
                         }{' '}
@@ -260,14 +398,27 @@ export function ProfileFavoritesPage() {
                       </p>
                     </div>
 
-                    <span className="text-[9px] uppercase text-[var(--color-text-secondary)]">
+                    <span
+                      className="
+                        rounded-md
+                        border
+                        border-[var(--color-border-kurio)]
+                        px-2
+                        py-1
+                        text-[9px]
+                        font-medium
+                        uppercase
+                        tracking-[0.06em]
+                        text-[var(--color-text-secondary)]
+                      "
+                    >
                       {
                         nft.network
                       }
                     </span>
                   </div>
 
-                  <button
+                  <Button
                     type="button"
                     disabled={
                       soldOut ||
@@ -282,26 +433,22 @@ export function ProfileFavoritesPage() {
                     }}
                     className="
                       mt-4
-                      flex
-                      h-9
+                      h-10
                       w-full
-                      items-center
-                      justify-center
-                      gap-2
-                      rounded-[var(--radius-control)]
+                      rounded-md
                       bg-[var(--color-primary-kurio)]
-                      px-3
-                      text-[10px]
+                      px-4
+                      text-xs
                       font-semibold
                       text-[var(--color-ink)]
-                      transition
+                      hover:bg-[var(--color-primary-kurio)]
                       hover:opacity-90
                       disabled:cursor-not-allowed
                       disabled:opacity-40
                     "
                   >
                     <ShoppingCart
-                      size={13}
+                      size={14}
                     />
 
                     {soldOut
@@ -312,7 +459,7 @@ export function ProfileFavoritesPage() {
                             0
                           ? 'Adicionar mais'
                           : 'Adicionar ao carrinho'}
-                  </button>
+                  </Button>
                 </div>
               </article>
             )

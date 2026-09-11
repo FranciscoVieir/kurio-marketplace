@@ -8,6 +8,8 @@ import {
 
 import axios from 'axios'
 
+import { Input } from '@/components/ui/input'
+
 import {
   Eye,
   EyeOff,
@@ -114,16 +116,19 @@ function getInitials(
 const inputClassName = `
   h-10
   w-full
-  border
+  rounded-md
   border-[var(--color-border-kurio)]
   bg-transparent
   px-3
   text-xs
+  leading-5
   text-[var(--color-foreground-kurio)]
-  outline-none
-  transition
-  placeholder:text-[var(--color-text-secondary)]/50
-  focus:border-[var(--color-primary-kurio)]
+  shadow-none
+  placeholder:text-[var(--color-text-secondary)]/60
+  focus-visible:border-[var(--color-primary-kurio)]
+  focus-visible:ring-[var(--color-primary-kurio)]/15
+  disabled:cursor-not-allowed
+  disabled:opacity-50
 `
 
 type FieldProps = {
@@ -139,7 +144,7 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-[11px] text-[var(--color-foreground-kurio)]">
+      <span className="mb-2 block text-xs font-medium leading-4 text-[var(--color-foreground-kurio)]">
         {label}
 
         {required && (
@@ -177,7 +182,7 @@ function PasswordField({
       required
     >
       <div className="relative">
-        <input
+        <Input
           type={
             visible
               ? 'text'
@@ -658,9 +663,24 @@ export function ProfilePage() {
 
   if (isLoading) {
     return (
-      <p className="text-xs text-[var(--color-text-secondary)]">
-        Carregando perfil...
-      </p>
+      <section
+        aria-label="Carregando perfil"
+        className="w-full max-w-225"
+      >
+        <div className="h-7 w-48 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+
+        <div className="mt-7 grid gap-x-6 gap-y-4 md:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="space-y-2"
+            >
+              <div className="h-4 w-24 animate-pulse rounded-sm bg-[var(--color-surface-card)]" />
+              <div className="h-10 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+            </div>
+          ))}
+        </div>
+      </section>
     )
   }
 
@@ -676,8 +696,8 @@ export function ProfilePage() {
   }
 
   return (
-    <section className="max-w-[900px]">
-      <h1 className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+    <section className="w-full max-w-225">
+      <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
         Perfil do colecionador
       </h1>
 
@@ -692,7 +712,7 @@ export function ProfilePage() {
             label="Nome de exibição"
             required
           >
-            <input
+            <Input
               value={
                 profileForm.displayName
               }
@@ -714,7 +734,7 @@ export function ProfilePage() {
             label="Nome de usuário"
             required
           >
-            <input
+            <Input
               value={
                 profileForm.username
               }
@@ -757,23 +777,7 @@ export function ProfilePage() {
 
           <Field label="Nome ENS">
             <div className="flex">
-              <div
-                className="
-                  flex
-                  h-10
-                  items-center
-                  border
-                  border-r-0
-                  border-[var(--color-border-kurio)]
-                  px-3
-                  text-[11px]
-                  text-[var(--color-text-secondary)]
-                "
-              >
-                .eth
-              </div>
-
-              <input
+              <Input
                 value={
                   profileForm.ensName
                 }
@@ -785,13 +789,34 @@ export function ProfilePage() {
                     event.target.value,
                   )
                 }}
-                className={`${inputClassName} flex-1`}
+                autoComplete="off"
+                placeholder="seunome"
+                className={`${inputClassName} min-w-0 flex-1 rounded-r-none border-r-0`}
               />
+
+              <div
+                className="
+                  flex
+                  h-10
+                  shrink-0
+                  items-center
+                  rounded-r-md
+                  border
+                  border-[var(--color-border-kurio)]
+                  bg-[var(--color-surface-card)]
+                  px-3
+                  text-[11px]
+                  font-medium
+                  text-[var(--color-text-secondary)]
+                "
+              >
+                .eth
+              </div>
             </div>
           </Field>
 
           <Field label="Apelido da carteira">
-            <input
+            <Input
               value={
                 profileForm.walletNickname
               }
@@ -814,8 +839,7 @@ export function ProfilePage() {
               <div
                 className="
                   flex
-                  h-12
-                  w-12
+                  size-14
                   shrink-0
                   items-center
                   justify-center
@@ -907,10 +931,10 @@ export function ProfilePage() {
           }
           className="
             mt-5
-            rounded-[var(--radius-control)]
+            h-10
+            rounded-md
             bg-[var(--color-primary-kurio)]
-            px-4
-            py-2
+            px-5
             text-xs
             font-semibold
             text-[var(--color-ink)]
@@ -935,7 +959,7 @@ export function ProfilePage() {
       />
 
       <section>
-        <h2 className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+        <h2 className="text-base font-semibold leading-6 text-[var(--color-foreground-kurio)]">
           Alterar senha
         </h2>
 
@@ -943,7 +967,7 @@ export function ProfilePage() {
           onSubmit={
             handlePasswordSubmit
           }
-          className="mt-5 max-w-[430px]"
+          className="mt-5 max-w-107.5"
         >
           <div className="space-y-4">
             <PasswordField
@@ -1038,10 +1062,10 @@ export function ProfilePage() {
             }
             className="
               mt-5
-              rounded-[var(--radius-control)]
+              h-10
+              rounded-md
               bg-[var(--color-primary-kurio)]
-              px-4
-              py-2
+              px-5
               text-xs
               font-semibold
               text-[var(--color-ink)]

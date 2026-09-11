@@ -6,6 +6,16 @@ import {
 } from 'react'
 
 import axios from 'axios'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   CheckCircle2,
   Plus,
@@ -301,7 +311,7 @@ function WalletForm({
           label="Nome de exibição"
           required
         >
-          <input
+          <Input
             value={
               form.displayName
             }
@@ -313,6 +323,8 @@ function WalletForm({
                 event.target.value,
               )
             }}
+            autoComplete="name"
+            placeholder="Seu nome de exibição"
             className={inputClassName}
           />
         </Field>
@@ -321,7 +333,7 @@ function WalletForm({
           label="Apelido da carteira"
           required
         >
-          <input
+          <Input
             value={
               form.nickname
             }
@@ -333,6 +345,7 @@ function WalletForm({
                 event.target.value,
               )
             }}
+            placeholder="Ex.: Carteira principal"
             className={inputClassName}
           />
         </Field>
@@ -341,46 +354,48 @@ function WalletForm({
           label="Rede"
           required
         >
-          <select
+          <Select
             value={
-              form.network
+              form.network || null
             }
-            onChange={(
-              event,
-            ) => {
+            onValueChange={(value) => {
+              if (value === null) {
+                return
+              }
+
               updateField(
                 'network',
-                event.target
-                  .value as
-                  | NftNetwork
-                  | '',
+                value as NftNetwork,
               )
             }}
-            className={inputClassName}
           >
-            <option value="">
-              Selecione uma rede
-            </option>
+            <SelectTrigger
+              className={inputClassName}
+            >
+              <SelectValue placeholder="Selecione uma rede" />
+            </SelectTrigger>
 
-            <option value="ethereum">
-              Ethereum
-            </option>
+            <SelectContent>
+              <SelectItem value="ethereum">
+                Ethereum
+              </SelectItem>
 
-            <option value="polygon">
-              Polygon
-            </option>
+              <SelectItem value="polygon">
+                Polygon
+              </SelectItem>
 
-            <option value="solana">
-              Solana
-            </option>
-          </select>
+              <SelectItem value="solana">
+                Solana
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
 
         <Field
           label="Nome do perfil"
           required
         >
-          <input
+          <Input
             value={
               form.profileName
             }
@@ -392,6 +407,7 @@ function WalletForm({
                 event.target.value,
               )
             }}
+            placeholder="Nome do perfil da carteira"
             className={inputClassName}
           />
         </Field>
@@ -400,7 +416,7 @@ function WalletForm({
           label="Endereço da carteira"
           required
         >
-          <input
+          <Input
             value={
               form.address
             }
@@ -412,13 +428,13 @@ function WalletForm({
                 event.target.value,
               )
             }}
-            placeholder="Endereço 0x da carteira"
+            placeholder="0x... ou endereço da carteira"
             className={inputClassName}
           />
         </Field>
 
         <Field label="Carteira / ENS secundária">
-          <input
+          <Input
             value={
               form.secondaryAddress
             }
@@ -439,47 +455,49 @@ function WalletForm({
           label="Tipo de carteira"
           required
         >
-          <select
+          <Select
             value={
-              form.provider
+              form.provider || null
             }
-            onChange={(
-              event,
-            ) => {
+            onValueChange={(value) => {
+              if (value === null) {
+                return
+              }
+
               updateField(
                 'provider',
-                event.target
-                  .value as
-                  | WalletProvider
-                  | '',
+                value as WalletProvider,
               )
             }}
-            className={inputClassName}
           >
-            <option value="">
-              Selecione uma carteira
-            </option>
+            <SelectTrigger
+              className={inputClassName}
+            >
+              <SelectValue placeholder="Selecione uma carteira" />
+            </SelectTrigger>
 
-            <option value="metamask">
-              MetaMask
-            </option>
+            <SelectContent>
+              <SelectItem value="metamask">
+                MetaMask
+              </SelectItem>
 
-            <option value="coinbase">
-              Coinbase Wallet
-            </option>
+              <SelectItem value="coinbase">
+                Coinbase Wallet
+              </SelectItem>
 
-            <option value="walletconnect">
-              WalletConnect
-            </option>
+              <SelectItem value="walletconnect">
+                WalletConnect
+              </SelectItem>
 
-            <option value="other">
-              Outra
-            </option>
-          </select>
+              <SelectItem value="other">
+                Outra
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
 
         <Field label="Código de indicação">
-          <input
+          <Input
             value={
               form.referralCode
             }
@@ -491,6 +509,7 @@ function WalletForm({
                 event.target.value,
               )
             }}
+            placeholder="Código de indicação (opcional)"
             className={inputClassName}
           />
         </Field>
@@ -499,7 +518,7 @@ function WalletForm({
           label="E-mail"
           required
         >
-          <input
+          <Input
             type="email"
             value={
               form.email
@@ -512,30 +531,15 @@ function WalletForm({
                 event.target.value,
               )
             }}
+            autoComplete="email"
+            placeholder="email@exemplo.com"
             className={inputClassName}
           />
         </Field>
 
         <Field label="Nome ENS">
           <div className="flex">
-            <div
-              className="
-                flex
-                h-10
-                items-center
-                border
-                border-r-0
-                border-[var(--color-border-kurio)]
-                bg-[var(--color-surface-card)]
-                px-3
-                text-xs
-                text-[var(--color-text-secondary)]
-              "
-            >
-              .eth
-            </div>
-
-            <input
+            <Input
               value={
                 form.ensName
               }
@@ -547,8 +551,29 @@ function WalletForm({
                   event.target.value,
                 )
               }}
-              className={`${inputClassName} flex-1`}
+              autoComplete="off"
+              placeholder="seunome"
+              className={`${inputClassName} min-w-0 flex-1 rounded-r-none border-r-0`}
             />
+
+            <div
+              className="
+                flex
+                h-10
+                shrink-0
+                items-center
+                rounded-r-md
+                border
+                border-[var(--color-border-kurio)]
+                bg-[var(--color-surface-card)]
+                px-3
+                text-[11px]
+                font-medium
+                text-[var(--color-text-secondary)]
+              "
+            >
+              .eth
+            </div>
           </div>
         </Field>
       </div>
@@ -570,30 +595,32 @@ function WalletForm({
       )}
 
       <div className="mt-5 flex items-center gap-3">
-        <button
+        <Button
           type="submit"
           disabled={
             saveWallet.isPending
           }
           className="
-            rounded-[var(--radius-control)]
+            h-10
+            rounded-md
             bg-[var(--color-primary-kurio)]
-            px-4
-            py-2
+            px-5
             text-xs
             font-semibold
             text-[var(--color-ink)]
-            disabled:opacity-50
+            hover:bg-[var(--color-primary-kurio)]
+            hover:opacity-90
           "
         >
           {saveWallet.isPending
             ? 'Salvando...'
             : 'Salvar carteira'}
-        </button>
+        </Button>
 
         {wallet && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
             disabled={
               deleteWallet.isPending
             }
@@ -601,16 +628,14 @@ function WalletForm({
               void handleDelete()
             }}
             className="
-              flex
-              items-center
+              h-10
               gap-2
-              px-2
-              py-2
+              px-3
               text-xs
+              font-normal
               text-[var(--color-text-secondary)]
-              transition
+              hover:bg-transparent
               hover:text-red-400
-              disabled:opacity-50
             "
           >
             <Trash2
@@ -618,7 +643,7 @@ function WalletForm({
             />
 
             Remover
-          </button>
+          </Button>
         )}
       </div>
     </form>
@@ -638,7 +663,7 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-[11px] text-[var(--color-foreground-kurio)]">
+      <span className="mb-2 block text-xs font-medium leading-4 text-[var(--color-foreground-kurio)]">
         {label}
 
         {required && (
@@ -656,16 +681,19 @@ function Field({
 const inputClassName = `
   h-10
   w-full
-  border
+  rounded-md
   border-[var(--color-border-kurio)]
   bg-transparent
   px-3
   text-xs
+  leading-5
   text-[var(--color-foreground-kurio)]
-  outline-none
-  transition
+  shadow-none
   placeholder:text-[var(--color-text-secondary)]/60
-  focus:border-[var(--color-primary-kurio)]
+  focus-visible:border-[var(--color-primary-kurio)]
+  focus-visible:ring-[var(--color-primary-kurio)]/15
+  disabled:cursor-not-allowed
+  disabled:opacity-50
 `
 
 export function ProfileWalletsPage() {
@@ -752,9 +780,24 @@ export function ProfileWalletsPage() {
 
   if (isLoading) {
     return (
-      <p className="text-xs text-[var(--color-text-secondary)]">
-        Carregando carteiras...
-      </p>
+      <section
+        aria-label="Carregando carteiras"
+        className="w-full max-w-225"
+      >
+        <div className="h-7 w-48 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+
+        <div className="mt-6 grid gap-x-6 gap-y-4 md:grid-cols-2">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div
+              key={index}
+              className="space-y-2"
+            >
+              <div className="h-4 w-28 animate-pulse rounded-sm bg-[var(--color-surface-card)]" />
+              <div className="h-10 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+            </div>
+          ))}
+        </div>
+      </section>
     )
   }
 
@@ -767,21 +810,21 @@ export function ProfileWalletsPage() {
   }
 
   return (
-    <section className="max-w-[900px]">
+    <section className="w-full max-w-225">
       <div>
         <div className="flex items-start justify-between gap-5">
           <div>
-            <h1 className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+            <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
               Carteira principal
             </h1>
 
-            <p className="mt-1 text-[10px] text-[var(--color-text-secondary)]">
+            <p className="mt-1.5 max-w-150 text-xs leading-5 text-[var(--color-text-secondary)]">
               Estas carteiras ficam disponíveis no pagamento e para receber NFTs comprados.
             </p>
           </div>
 
           {!primaryWallet && (
-            <span className="text-[11px] text-[var(--color-text-accent)]">
+            <span className="text-xs font-medium text-[var(--color-text-accent)]">
               Adicionar
             </span>
           )}
@@ -801,44 +844,45 @@ export function ProfileWalletsPage() {
         />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-10 border-t border-[var(--color-border-kurio)] pt-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+            <h2 className="text-base font-semibold leading-6 text-[var(--color-foreground-kurio)]">
               Carteira secundária
             </h2>
 
-            {!secondaryWallet &&
-              !showSecondary && (
-                <p className="mt-1 text-[10px] text-[var(--color-text-secondary)]">
-                  Você ainda não adicionou uma carteira secundária.
-                </p>
-              )}
+            <p className="mt-1.5 max-w-150 text-xs leading-5 text-[var(--color-text-secondary)]">
+              Use uma segunda carteira para organizar recebimentos ou pagamentos alternativos.
+            </p>
           </div>
 
           {!secondaryWallet &&
             !showSecondary && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => {
                   setShowSecondary(
                     true,
                   )
                 }}
                 className="
-                  flex
-                  items-center
+                  h-9
                   gap-2
-                  text-[11px]
+                  px-3
+                  text-xs
+                  font-medium
                   text-[var(--color-text-accent)]
+                  hover:bg-[rgba(210,138,76,0.08)]
+                  hover:text-[var(--color-text-accent)]
                 "
               >
                 <Plus
-                  size={13}
+                  size={14}
                 />
 
                 Adicionar
-              </button>
+              </Button>
             )}
         </div>
 

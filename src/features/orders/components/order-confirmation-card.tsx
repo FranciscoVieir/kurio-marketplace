@@ -25,7 +25,7 @@ function formatOrderDate(
   createdAt: string,
 ) {
   return new Intl.DateTimeFormat(
-    'en-US',
+    'pt-BR',
     {
       day: '2-digit',
       month: 'short',
@@ -97,7 +97,7 @@ export function OrderConfirmationCard({
       className="
         relative
         w-full
-        max-w-[520px]
+        max-w-130
         overflow-hidden
         border
         border-[var(--color-border-kurio)]
@@ -152,7 +152,7 @@ export function OrderConfirmationCard({
           <div
             className="
               flex
-              size-[58px]
+              size-14.5
               items-center
               justify-center
               border
@@ -185,7 +185,7 @@ export function OrderConfirmationCard({
           <p
             className="
               mt-1
-              max-w-[340px]
+              max-w-85
               text-center
               text-[10px]
               leading-4
@@ -556,9 +556,9 @@ export function OrderConfirmationCard({
                     src={item.imageUrl}
                     alt={item.name}
                     className="
-                      size-[54px]
+                      size-13.5
                       shrink-0
-                      rounded-[6px]
+                      rounded-md
                       object-cover
                     "
                   />
@@ -618,7 +618,7 @@ export function OrderConfirmationCard({
             mt-6
             ml-auto
             grid
-            max-w-[250px]
+            max-w-62.5
             grid-cols-[1fr_auto]
             gap-x-6
             gap-y-2.5
@@ -626,12 +626,25 @@ export function OrderConfirmationCard({
           "
         >
           <span className="text-right">
+            Subtotal
+          </span>
+
+          <span
+            className="
+              min-w-21.25
+              text-right
+            "
+          >
+            {order.subtotalEth} ETH
+          </span>
+
+          <span className="text-right">
             Taxa de rede
           </span>
 
           <span
             className="
-              min-w-[85px]
+              min-w-21.25
               text-right
             "
           >
@@ -646,8 +659,10 @@ export function OrderConfirmationCard({
 
               <span
                 className="
-                  min-w-[85px]
+                  min-w-21.25
                   text-right
+                  font-medium
+                  text-[var(--color-text-accent)]
                 "
               >
                 (-) {order.discountEth} ETH
@@ -666,7 +681,7 @@ export function OrderConfirmationCard({
 
           <span
             className="
-              min-w-[85px]
+              min-w-21.25
               text-right
               text-[12px]
               font-bold
@@ -688,10 +703,10 @@ export function OrderConfirmationCard({
           <p
             className="
               mx-auto
-              max-w-[390px]
+              max-w-97.5
               text-center
               text-[10px]
-              leading-[17px]
+              leading-4.25
               text-[var(--color-text-secondary)]
             "
           >
@@ -733,7 +748,7 @@ export function OrderConfirmationCard({
               className="
                 flex
                 h-10
-                min-w-[165px]
+                min-w-41.25
                 items-center
                 justify-center
                 bg-[var(--color-primary-kurio)]
@@ -756,7 +771,7 @@ export function OrderConfirmationCard({
 
       <div
         className="
-          h-[6px]
+          h-1.5
           bg-[var(--color-primary-kurio)]
         "
       />
