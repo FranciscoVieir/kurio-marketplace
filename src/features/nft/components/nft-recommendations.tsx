@@ -18,11 +18,24 @@ export function NftRecommendations({
   }
 
   return (
-    <section className={`mt-[72px] ${className}`}>
-      <div className="border-b border-border pb-[10px]">
+    <section
+      className={`
+        mt-[72px]
+        ${className}
+      `}
+    >
+      <div
+        className="
+          border-b
+          border-[var(--color-border-kurio)]
+          pb-[10px]
+        "
+      >
         <h2
           className="
-            text-[14px] font-bold
+            text-[14px]
+            font-bold
+            leading-[18px]
             text-[var(--color-text-accent)]
           "
         >
@@ -32,7 +45,10 @@ export function NftRecommendations({
 
       <div
         className="
-          mt-[20px] flex
+          mt-[20px]
+          flex
+          w-full
+          justify-between
           gap-[20px]
           overflow-x-auto
           pb-[8px]
@@ -45,28 +61,48 @@ export function NftRecommendations({
             params={{
               nftId: nft.id,
             }}
-            className="block w-[190px] shrink-0"
+            className="
+              group
+              block
+              w-[190px]
+              shrink-0
+            "
           >
             <article>
               <div
                 className="
-                  h-[190px] w-[190px]
+                  h-[190px]
+                  w-[190px]
                   overflow-hidden
-                  rounded-[8px]
-                  bg-card
+                  rounded-[10px]
+                  border
+                  border-[var(--color-border-kurio)]
+                  bg-[var(--color-surface-card)]
                 "
               >
                 {nft.imageUrl ? (
                   <img
                     src={nft.imageUrl}
                     alt={nft.name}
-                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    className="
+                      h-full
+                      w-full
+                      object-cover
+                      transition-transform
+                      duration-300
+                      group-hover:scale-[1.03]
+                    "
                   />
                 ) : (
                   <div
                     className="
-                      flex h-full items-center justify-center
-                      text-muted-foreground
+                      flex
+                      h-full
+                      items-center
+                      justify-center
+                      text-[13px]
+                      text-[var(--color-text-secondary)]
                     "
                   >
                     NFT
@@ -74,35 +110,65 @@ export function NftRecommendations({
                 )}
               </div>
 
-              <p
-                className="
-                  mt-[8px]
-                  text-[12px] font-normal
-                  text-foreground
-                "
-              >
-                {nft.name}
-              </p>
+              <div className="pt-[10px]">
+                <p
+                  className="
+                    truncate
+                    text-[13px]
+                    font-medium
+                    leading-[18px]
+                    text-[var(--color-foreground-kurio)]
+                    transition-colors
+                    group-hover:text-[var(--color-text-accent)]
+                  "
+                >
+                  {nft.name}
+                </p>
 
-              <p
-                className="
-                  mt-[4px]
-                  text-[12px] font-bold
-                  text-[var(--color-text-accent)]
-                "
-              >
-                {nft.priceEth} ETH
-              </p>
+                <p
+                  className="
+                    mt-[5px]
+                    text-[13px]
+                    font-bold
+                    leading-[18px]
+                    text-[var(--color-text-accent)]
+                  "
+                >
+                  {nft.priceEth} ETH
+                </p>
+
+                <p
+                  className="
+                    mt-[3px]
+                    truncate
+                    text-[11px]
+                    font-normal
+                    leading-[16px]
+                    text-[var(--color-text-secondary)]
+                  "
+                >
+                  {nft.collection}
+                </p>
+              </div>
             </article>
           </Link>
         ))}
       </div>
 
       {nfts.length > 1 && (
-        <div className="mt-[12px] flex justify-center gap-[5px]">
+        <div
+          className="
+            mt-[14px]
+            flex
+            justify-center
+            gap-[6px]
+          "
+          aria-hidden="true"
+        >
           <span
             className="
-              h-[6px] w-[6px]
+              h-[6px]
+              w-[6px]
               rounded-full
               bg-[var(--color-primary-kurio)]
             "
@@ -110,17 +176,21 @@ export function NftRecommendations({
 
           <span
             className="
-              h-[6px] w-[6px]
+              h-[6px]
+              w-[6px]
               rounded-full
-              border border-[var(--color-primary-kurio)]
+              border
+              border-[var(--color-primary-kurio)]
             "
           />
 
           <span
             className="
-              h-[6px] w-[6px]
+              h-[6px]
+              w-[6px]
               rounded-full
-              border border-[var(--color-primary-kurio)]
+              border
+              border-[var(--color-primary-kurio)]
             "
           />
         </div>
