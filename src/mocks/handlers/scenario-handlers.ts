@@ -23,7 +23,9 @@ function isMockScenario(
     value === 'insufficient-stock' ||
     value === 'nft-price-changed' ||
     value === 'nft-version-changed' ||
-    value === 'session-expired'
+    value === 'session-expired' ||
+    value ===
+      'favorite-mutation-error'
   )
 }
 
@@ -95,6 +97,7 @@ export const scenarioHandlers = [
               'nft-price-changed',
               'nft-version-changed',
               'session-expired',
+              'favorite-mutation-error',
             ],
           },
           {
@@ -114,7 +117,9 @@ export const scenarioHandlers = [
         const expiredSession =
           expireActiveSession()
 
-        if (!expiredSession) {
+        if (
+          !expiredSession
+        ) {
           return HttpResponse.json(
             {
               code:

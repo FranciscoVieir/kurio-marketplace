@@ -5,6 +5,7 @@ export type MockScenario =
   | 'nft-price-changed'
   | 'nft-version-changed'
   | 'session-expired'
+  | 'favorite-mutation-error'
 
 const DEFAULT_SCENARIO: MockScenario =
   'default'
@@ -12,12 +13,6 @@ const DEFAULT_SCENARIO: MockScenario =
 const MOCK_SCENARIO_STORAGE_KEY =
   'kurio:mock-scenario'
 
-/*
- * Fallback utilizado somente quando
- * sessionStorage não estiver disponível,
- * por exemplo em algum ambiente que
- * não possua window.
- */
 let fallbackScenario: MockScenario =
   DEFAULT_SCENARIO
 
@@ -27,20 +22,19 @@ function isMockScenario(
   return (
     value === 'default' ||
     value === 'quote-expired' ||
+    value === 'insufficient-stock' ||
+    value === 'nft-price-changed' ||
+    value === 'nft-version-changed' ||
+    value === 'session-expired' ||
     value ===
-      'insufficient-stock' ||
-    value ===
-      'nft-price-changed' ||
-    value ===
-      'nft-version-changed' ||
-    value ===
-      'session-expired'
+      'favorite-mutation-error'
   )
 }
 
 function getScenarioStorage() {
   if (
-    typeof window === 'undefined'
+    typeof window ===
+    'undefined'
   ) {
     return null
   }

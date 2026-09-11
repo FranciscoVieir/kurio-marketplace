@@ -9,20 +9,11 @@ export type MockScenario =
   | 'nft-price-changed'
   | 'nft-version-changed'
   | 'session-expired'
+  | 'favorite-mutation-error'
 
 async function waitForMockingReady(
   page: Page,
 ) {
-  /*
-   * No bootstrap da aplicação,
-   * o React só é renderizado depois
-   * que enableMocking() termina.
-   *
-   * Portanto, esperar o #root possuir
-   * conteúdo garante que o MSW já foi
-   * inicializado antes de acessarmos
-   * os endpoints /api/__mock/*.
-   */
   await page.waitForFunction(
     () => {
       const root =
@@ -55,7 +46,8 @@ export async function setMockScenario(
         await fetch(
           '/api/__mock/scenario',
           {
-            method: 'POST',
+            method:
+              'POST',
 
             headers: {
               'Content-Type':
@@ -71,11 +63,8 @@ export async function setMockScenario(
         )
 
       if (!response.ok) {
-        const body =
-          await response.text()
-
         throw new Error(
-          `Failed to activate mock scenario "${selectedScenario}". Status: ${response.status}. Body: ${body}`,
+          `Não foi possível ativar o cenário ${selectedScenario}.`,
         )
       }
     },
@@ -96,16 +85,14 @@ export async function resetMockScenario(
         await fetch(
           '/api/__mock/scenario',
           {
-            method: 'DELETE',
+            method:
+              'DELETE',
           },
         )
 
       if (!response.ok) {
-        const body =
-          await response.text()
-
         throw new Error(
-          `Failed to reset mock scenario. Status: ${response.status}. Body: ${body}`,
+          'Não foi possível resetar o cenário mock.',
         )
       }
     },

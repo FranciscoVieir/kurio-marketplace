@@ -11,20 +11,40 @@ import {
 import { useAuth } from '@/features/auth/hooks/use-auth'
 
 import {
+  setFavorite,
+} from '../api/set-favorite'
+
+import {
   loadFavoriteIds,
   mergeFavoriteIds,
   saveFavoriteIds,
 } from '../lib/favorites-storage'
 
-const GUEST_OWNER_ID = 'guest'
+const GUEST_OWNER_ID =
+  'guest'
+
+const FAVORITE_ERROR_MESSAGE =
+  'Não foi possível atualizar o favorito. A alteração foi desfeita.'
 
 type FavoritesContextValue = {
   favoriteIds: string[]
   favoritesCount: number
-  isFavorite: (nftId: string) => boolean
-  addFavorite: (nftId: string) => void
-  removeFavorite: (nftId: string) => void
-  toggleFavorite: (nftId: string) => void
+
+  isFavorite: (
+    nftId: string,
+  ) => boolean
+
+  addFavorite: (
+    nftId: string,
+  ) => Promise<void>
+
+  removeFavorite: (
+    nftId: string,
+  ) => Promise<void>
+
+  toggleFavorite: (
+    nftId: string,
+  ) => Promise<void>
 }
 
 export const FavoritesContext =
@@ -42,19 +62,39 @@ export function FavoritesProvider({
   } = useAuth()
 
   const ownerId =
-    isAuthenticated && user
+    isAuthenticated &&
+    user
       ? user.id
       : GUEST_OWNER_ID
 
   const [
     favoriteIds,
     setFavoriteIds,
-  ] = useState<string[]>([])
+  ] = useState<string[]>(
+    [],
+  )
+
+  const [
+    favoriteError,
+    setFavoriteError,
+  ] = useState<
+    string | null
+  >(null)
+
+  /*
+   * Mantém acesso síncrono ao
+   * estado mais recente durante
+   * optimistic updates.
+   */
+  const favoriteIdsRef =
+    useRef<string[]>(
+      [],
+    )
 
   const activeOwnerRef =
-    useRef<string | null>(
-      null,
-    )
+    useRef<
+      string | null
+    >(null)
 
   const hasInitializedRef =
     useRef(false)
@@ -66,6 +106,29 @@ export function FavoritesProvider({
    */
   const skipPersistenceRef =
     useRef(false)
+
+  const replaceFavoriteIds =
+    useCallback(
+      (
+        nextFavoriteIds:
+          string[],
+      ) => {
+        favoriteIdsRef.current =
+          nextFavoriteIds
+
+        setFavoriteIds(
+          nextFavoriteIds,
+        )
+      },
+      [],
+    )
+
+  useEffect(() => {
+    favoriteIdsRef.current =
+      favoriteIds
+  }, [
+    favoriteIds,
+  ])
 
   useEffect(() => {
     if (isInitializing) {
@@ -102,8 +165,12 @@ export function FavoritesProvider({
       hasInitializedRef.current =
         true
 
-      setFavoriteIds(
+      replaceFavoriteIds(
         nextFavorites,
+      )
+
+      setFavoriteError(
+        null,
       )
 
       return
@@ -118,8 +185,6 @@ export function FavoritesProvider({
 
     /*
      * guest → usuário
-     *
-     * Login ou cadastro.
      */
     if (
       previousOwnerId ===
@@ -127,13 +192,9 @@ export function FavoritesProvider({
       isAuthenticated &&
       user
     ) {
-      /*
-       * Persiste primeiro o estado
-       * guest mais recente.
-       */
       saveFavoriteIds(
         GUEST_OWNER_ID,
-        favoriteIds,
+        favoriteIdsRef.current,
       )
 
       const mergedFavorites =
@@ -148,8 +209,12 @@ export function FavoritesProvider({
       activeOwnerRef.current =
         user.id
 
-      setFavoriteIds(
+      replaceFavoriteIds(
         mergedFavorites,
+      )
+
+      setFavoriteError(
+        null,
       )
 
       return
@@ -158,11 +223,8 @@ export function FavoritesProvider({
     /*
      * usuário → guest
      *
-     * Logout ou expiração.
-     *
-     * Os favoritos privados da
-     * conta não são transferidos
-     * para o guest.
+     * Favoritos privados não são
+     * transferidos para guest.
      */
     skipPersistenceRef.current =
       true
@@ -170,16 +232,20 @@ export function FavoritesProvider({
     activeOwnerRef.current =
       ownerId
 
-    setFavoriteIds(
+    replaceFavoriteIds(
       loadFavoriteIds(
         ownerId,
       ),
     )
+
+    setFavoriteError(
+      null,
+    )
   }, [
-    favoriteIds,
     isAuthenticated,
     isInitializing,
     ownerId,
+    replaceFavoriteIds,
     user,
   ])
 
@@ -214,7 +280,9 @@ export function FavoritesProvider({
 
   const isFavorite =
     useCallback(
-      (nftId: string) => {
+      (
+        nftId: string,
+      ) => {
         return favoriteIds.includes(
           nftId,
         )
@@ -224,87 +292,143 @@ export function FavoritesProvider({
       ],
     )
 
-  const addFavorite =
+  const mutateFavorite =
     useCallback(
-      (nftId: string) => {
-        setFavoriteIds(
-          (
-            currentFavoriteIds,
-          ) => {
-            if (
-              currentFavoriteIds.includes(
-                nftId,
-              )
-            ) {
-              return currentFavoriteIds
-            }
-
-            return [
-              ...currentFavoriteIds,
-              nftId,
-            ]
-          },
+      async (
+        nftId: string,
+        shouldBeFavorite:
+          boolean,
+      ) => {
+        setFavoriteError(
+          null,
         )
-      },
-      [],
-    )
 
-  const removeFavorite =
-    useCallback(
-      (nftId: string) => {
-        setFavoriteIds(
-          (
-            currentFavoriteIds,
-          ) =>
-            currentFavoriteIds.filter(
-              (
-                favoriteId,
-              ) =>
-                favoriteId !==
-                nftId,
-            ),
-        )
-      },
-      [],
-    )
+        const previousFavoriteIds =
+          favoriteIdsRef.current
 
-  const toggleFavorite =
-    useCallback(
-      (nftId: string) => {
-        setFavoriteIds(
-          (
-            currentFavoriteIds,
-          ) => {
-            if (
-              currentFavoriteIds.includes(
-                nftId,
+        const nextFavoriteIds =
+          shouldBeFavorite
+            ? Array.from(
+                new Set([
+                  ...previousFavoriteIds,
+                  nftId,
+                ]),
               )
-            ) {
-              return currentFavoriteIds.filter(
+            : previousFavoriteIds.filter(
                 (
                   favoriteId,
                 ) =>
                   favoriteId !==
                   nftId,
               )
-            }
 
-            return [
-              ...currentFavoriteIds,
-              nftId,
-            ]
-          },
+        /*
+         * Optimistic update:
+         * UI muda imediatamente.
+         */
+        replaceFavoriteIds(
+          nextFavoriteIds,
+        )
+
+        try {
+          await setFavorite(
+            nftId,
+            shouldBeFavorite,
+          )
+        } catch {
+          /*
+           * Rollback:
+           * restaura exatamente
+           * o estado anterior.
+           */
+          replaceFavoriteIds(
+            previousFavoriteIds,
+          )
+
+          setFavoriteError(
+            FAVORITE_ERROR_MESSAGE,
+          )
+        }
+      },
+      [
+        replaceFavoriteIds,
+      ],
+    )
+
+  const addFavorite =
+    useCallback(
+      async (
+        nftId: string,
+      ) => {
+        if (
+          favoriteIdsRef.current.includes(
+            nftId,
+          )
+        ) {
+          return
+        }
+
+        await mutateFavorite(
+          nftId,
+          true,
         )
       },
-      [],
+      [
+        mutateFavorite,
+      ],
+    )
+
+  const removeFavorite =
+    useCallback(
+      async (
+        nftId: string,
+      ) => {
+        if (
+          !favoriteIdsRef.current.includes(
+            nftId,
+          )
+        ) {
+          return
+        }
+
+        await mutateFavorite(
+          nftId,
+          false,
+        )
+      },
+      [
+        mutateFavorite,
+      ],
+    )
+
+  const toggleFavorite =
+    useCallback(
+      async (
+        nftId: string,
+      ) => {
+        const shouldBeFavorite =
+          !favoriteIdsRef.current.includes(
+            nftId,
+          )
+
+        await mutateFavorite(
+          nftId,
+          shouldBeFavorite,
+        )
+      },
+      [
+        mutateFavorite,
+      ],
     )
 
   const value =
     useMemo<FavoritesContextValue>(
       () => ({
         favoriteIds,
+
         favoritesCount:
           favoriteIds.length,
+
         isFavorite,
         addFavorite,
         removeFavorite,
@@ -324,6 +448,15 @@ export function FavoritesProvider({
       value={value}
     >
       {children}
+
+      {favoriteError && (
+        <p
+          role="alert"
+          className="sr-only"
+        >
+          {favoriteError}
+        </p>
+      )}
     </FavoritesContext.Provider>
   )
 }
