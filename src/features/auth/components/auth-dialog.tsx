@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -19,6 +20,22 @@ type AuthDialogProps = {
   open: boolean
   onClose: () => void
 }
+
+type AuthFieldErrors = {
+  username?: string
+  email?: string
+  password?: string
+  confirmPassword?: string
+}
+
+const focusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
 
 function getApiErrorMessage(
   error: unknown,
@@ -145,20 +162,359 @@ export function AuthDialog({
   ] =
     useState(false)
 
+  const [
+    fieldErrors,
+    setFieldErrors,
+  ] =
+    useState<AuthFieldErrors>(
+      {},
+    )
+
+  const dialogRef =
+    useRef<HTMLElement | null>(
+      null,
+    )
+
+  const usernameInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    )
+
+  const emailInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    )
+
+  const passwordInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    )
+
+  const confirmPasswordInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    )
+
+  const previousActiveElementRef =
+    useRef<HTMLElement | null>(
+      null,
+    )
+
+  const onCloseRef =
+    useRef(
+      onClose,
+    )
+
+  useEffect(() => {
+    onCloseRef.current =
+      onClose
+  }, [
+    onClose,
+  ])
+
   useEffect(() => {
     if (!open) {
       return
     }
 
-    setErrorMessage(null)
-  }, [open])
+    previousActiveElementRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+
+    setErrorMessage(
+      null,
+    )
+
+    setFieldErrors(
+      {},
+    )
+
+    const focusFrame =
+      window.requestAnimationFrame(
+        () => {
+          emailInputRef.current?.focus()
+        },
+      )
+
+    function handleKeyDown(
+      event: KeyboardEvent,
+    ) {
+      if (
+        event.key ===
+        'Escape'
+      ) {
+        event.preventDefault()
+
+        onCloseRef.current()
+
+        return
+      }
+
+      if (
+        event.key !==
+        'Tab'
+      ) {
+        return
+      }
+
+      const dialog =
+        dialogRef.current
+
+      if (!dialog) {
+        return
+      }
+
+      const focusableElements =
+        Array.from(
+          dialog.querySelectorAll<HTMLElement>(
+            focusableSelector,
+          ),
+        ).filter(
+          (element) =>
+            element.getClientRects()
+              .length > 0,
+        )
+
+      if (
+        focusableElements.length ===
+        0
+      ) {
+        event.preventDefault()
+
+        return
+      }
+
+      const firstElement =
+        focusableElements[0]
+
+      const lastElement =
+        focusableElements[
+          focusableElements.length -
+            1
+        ]
+
+      const activeElement =
+        document.activeElement
+
+      if (
+        event.shiftKey &&
+        (
+          activeElement ===
+            firstElement ||
+          !dialog.contains(
+            activeElement,
+          )
+        )
+      ) {
+        event.preventDefault()
+
+        lastElement.focus()
+
+        return
+      }
+
+      if (
+        !event.shiftKey &&
+        activeElement ===
+          lastElement
+      ) {
+        event.preventDefault()
+
+        firstElement.focus()
+      }
+    }
+
+    document.addEventListener(
+      'keydown',
+      handleKeyDown,
+    )
+
+    return () => {
+      window.cancelAnimationFrame(
+        focusFrame,
+      )
+
+      document.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      )
+
+      const previousElement =
+        previousActiveElementRef.current
+
+      if (
+        previousElement?.isConnected
+      ) {
+        window.requestAnimationFrame(
+          () => {
+            previousElement.focus()
+          },
+        )
+      }
+    }
+  }, [
+    open,
+  ])
 
   useEffect(() => {
-    setErrorMessage(null)
-  }, [mode])
+    setErrorMessage(
+      null,
+    )
+
+    setFieldErrors(
+      {},
+    )
+
+    if (!open) {
+      return
+    }
+
+    const focusFrame =
+      window.requestAnimationFrame(
+        () => {
+          if (
+            mode ===
+            'register'
+          ) {
+            usernameInputRef.current?.focus()
+
+            return
+          }
+
+          emailInputRef.current?.focus()
+        },
+      )
+
+    return () => {
+      window.cancelAnimationFrame(
+        focusFrame,
+      )
+    }
+  }, [
+    mode,
+    open,
+  ])
+
 
   if (!open) {
     return null
+  }
+
+  function clearFieldError(
+    field: keyof AuthFieldErrors,
+  ) {
+    setFieldErrors(
+      (currentErrors) => {
+        if (
+          !currentErrors[
+            field
+          ]
+        ) {
+          return currentErrors
+        }
+
+        return {
+          ...currentErrors,
+          [field]:
+            undefined,
+        }
+      },
+    )
+  }
+
+  function validateForm() {
+    const errors: AuthFieldErrors =
+      {}
+
+    if (
+      mode ===
+        'register' &&
+      !username.trim()
+    ) {
+      errors.username =
+        'Informe o nome de usuário.'
+    }
+
+    const normalizedEmail =
+      email.trim()
+
+    if (!normalizedEmail) {
+      errors.email =
+        'Informe seu e-mail.'
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        normalizedEmail,
+      )
+    ) {
+      errors.email =
+        'Informe um e-mail válido.'
+    }
+
+    if (!password) {
+      errors.password =
+        'Informe sua senha.'
+    } else if (
+      mode ===
+        'register' &&
+      password.length < 6
+    ) {
+      errors.password =
+        'A senha precisa ter pelo menos 6 caracteres.'
+    }
+
+    if (
+      mode ===
+      'register'
+    ) {
+      if (
+        !confirmPassword
+      ) {
+        errors.confirmPassword =
+          'Confirme sua senha.'
+      } else if (
+        password &&
+        password !==
+          confirmPassword
+      ) {
+        errors.confirmPassword =
+          'A confirmação de senha não corresponde.'
+      }
+    }
+
+    return errors
+  }
+
+  function focusFirstInvalidField(
+    errors: AuthFieldErrors,
+  ) {
+    if (
+      errors.username
+    ) {
+      usernameInputRef.current?.focus()
+
+      return
+    }
+
+    if (errors.email) {
+      emailInputRef.current?.focus()
+
+      return
+    }
+
+    if (
+      errors.password
+    ) {
+      passwordInputRef.current?.focus()
+
+      return
+    }
+
+    if (
+      errors.confirmPassword
+    ) {
+      confirmPasswordInputRef.current?.focus()
+    }
   }
 
   async function handleSubmit(
@@ -166,7 +522,29 @@ export function AuthDialog({
   ) {
     event.preventDefault()
 
-    setErrorMessage(null)
+    setErrorMessage(
+      null,
+    )
+
+    const validationErrors =
+      validateForm()
+
+    setFieldErrors(
+      validationErrors,
+    )
+
+    if (
+      Object.keys(
+        validationErrors,
+      ).length > 0
+    ) {
+      focusFirstInvalidField(
+        validationErrors,
+      )
+
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -223,6 +601,9 @@ export function AuthDialog({
       }}
     >
       <section
+        ref={
+          dialogRef
+        }
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-dialog-title"
@@ -364,6 +745,7 @@ export function AuthDialog({
         </div>
 
         <form
+          noValidate
           onSubmit={
             handleSubmit
           }
@@ -426,32 +808,49 @@ export function AuthDialog({
 
           {mode ===
             'register' && (
-            <div className="block">
-              <label
-                htmlFor="auth-username"
+            <label className="block">
+              <span
                 className="sr-only"
               >
                 Nome de usuário
-              </label>
+              </span>
 
               <div className="relative">
                 <input
+                  ref={
+                    usernameInputRef
+                  }
                   id="auth-username"
-                  aria-label="Nome de usuário"
                   type="text"
                   value={
                     username
                   }
                   onChange={(
                     event,
-                  ) =>
+                  ) => {
                     setUsername(
                       event.target
                         .value,
                     )
-                  }
+
+                    clearFieldError(
+                      'username',
+                    )
+                  }}
                   autoComplete="username"
                   required
+                  aria-invalid={
+                    Boolean(
+                      fieldErrors.username,
+                    )
+                  }
+                  aria-describedby={
+                    fieldErrors.username
+                      ? 'auth-username-error'
+                      : errorMessage
+                        ? 'auth-form-error'
+                        : undefined
+                  }
                   disabled={
                     isSubmitting
                   }
@@ -500,33 +899,63 @@ export function AuthDialog({
                   </span>
                 )}
               </div>
-            </div>
+
+              {fieldErrors.username && (
+                <span
+                  id="auth-username-error"
+                  role="alert"
+                  className="mt-1 block text-[11px] leading-4 text-red-300"
+                >
+                  {
+                    fieldErrors.username
+                  }
+                </span>
+              )}
+            </label>
           )}
 
-          <div className="block">
-            <label
-              htmlFor="auth-email"
+          <label className="block">
+            <span
               className="sr-only"
             >
               E-mail
-            </label>
+            </span>
 
             <div className="relative">
               <input
+                ref={
+                  emailInputRef
+                }
                 id="auth-email"
-                aria-label="E-mail"
                 type="email"
                 value={email}
                 onChange={(
                   event,
-                ) =>
+                ) => {
                   setEmail(
                     event.target
                       .value,
                   )
-                }
+
+                  clearFieldError(
+                    'email',
+                  )
+                }}
                 autoComplete="email"
                 required
+                aria-invalid={
+                  Boolean(
+                    fieldErrors.email ||
+                      errorMessage,
+                  )
+                }
+                aria-describedby={
+                  fieldErrors.email
+                    ? 'auth-email-error'
+                    : errorMessage
+                      ? 'auth-form-error'
+                      : undefined
+                }
                 disabled={
                   isSubmitting
                 }
@@ -581,20 +1010,33 @@ export function AuthDialog({
                 </span>
               )}
             </div>
-          </div>
 
-          <div className="block">
-            <label
-              htmlFor="auth-password"
+            {fieldErrors.email && (
+              <span
+                id="auth-email-error"
+                role="alert"
+                className="mt-1 block text-[11px] leading-4 text-red-300"
+              >
+                {
+                  fieldErrors.email
+                }
+              </span>
+            )}
+          </label>
+
+          <label className="block">
+            <span
               className="sr-only"
             >
               Senha
-            </label>
+            </span>
 
             <div className="relative">
               <input
+                ref={
+                  passwordInputRef
+                }
                 id="auth-password"
-                aria-label="Senha"
                 type={
                   showPassword
                     ? 'text'
@@ -605,12 +1047,16 @@ export function AuthDialog({
                 }
                 onChange={(
                   event,
-                ) =>
+                ) => {
                   setPassword(
                     event.target
                       .value,
                   )
-                }
+
+                  clearFieldError(
+                    'password',
+                  )
+                }}
                 autoComplete={
                   mode ===
                   'login'
@@ -618,6 +1064,19 @@ export function AuthDialog({
                     : 'new-password'
                 }
                 required
+                aria-invalid={
+                  Boolean(
+                    fieldErrors.password ||
+                      errorMessage,
+                  )
+                }
+                aria-describedby={
+                  fieldErrors.password
+                    ? 'auth-password-error'
+                    : errorMessage
+                      ? 'auth-form-error'
+                      : undefined
+                }
                 disabled={
                   isSubmitting
                 }
@@ -702,22 +1161,35 @@ export function AuthDialog({
                 )}
               </button>
             </div>
-          </div>
+
+            {fieldErrors.password && (
+              <span
+                id="auth-password-error"
+                role="alert"
+                className="mt-1 block text-[11px] leading-4 text-red-300"
+              >
+                {
+                  fieldErrors.password
+                }
+              </span>
+            )}
+          </label>
 
           {mode ===
             'register' && (
-            <div className="block">
-              <label
-                htmlFor="auth-confirm-password"
+            <label className="block">
+              <span
                 className="sr-only"
               >
                 Confirmar senha
-              </label>
+              </span>
 
               <div className="relative">
                 <input
+                  ref={
+                    confirmPasswordInputRef
+                  }
                   id="auth-confirm-password"
-                  aria-label="Confirmar senha"
                   type={
                     showConfirmPassword
                       ? 'text'
@@ -728,14 +1200,31 @@ export function AuthDialog({
                   }
                   onChange={(
                     event,
-                  ) =>
+                  ) => {
                     setConfirmPassword(
                       event.target
                         .value,
                     )
-                  }
+
+                    clearFieldError(
+                      'confirmPassword',
+                    )
+                  }}
                   autoComplete="new-password"
                   required
+                  aria-invalid={
+                    Boolean(
+                      fieldErrors.confirmPassword ||
+                        errorMessage,
+                    )
+                  }
+                  aria-describedby={
+                    fieldErrors.confirmPassword
+                      ? 'auth-confirm-password-error'
+                      : errorMessage
+                        ? 'auth-form-error'
+                        : undefined
+                  }
                   disabled={
                     isSubmitting
                   }
@@ -820,7 +1309,19 @@ export function AuthDialog({
                   )}
                 </button>
               </div>
-            </div>
+
+              {fieldErrors.confirmPassword && (
+                <span
+                  id="auth-confirm-password-error"
+                  role="alert"
+                  className="mt-1 block text-[11px] leading-4 text-red-300"
+                >
+                  {
+                    fieldErrors.confirmPassword
+                  }
+                </span>
+              )}
+            </label>
           )}
 
           {mode ===
@@ -849,6 +1350,7 @@ export function AuthDialog({
 
           {errorMessage && (
             <div
+              id="auth-form-error"
               role="alert"
               className="
                 rounded-[6px]
