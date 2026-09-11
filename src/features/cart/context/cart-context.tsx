@@ -32,6 +32,7 @@ type AddCartItemInput = {
 
 type CartContextValue = {
   items: CartItem[]
+  couponCode: string | null
   totalItems: number
   isEmpty: boolean
 
@@ -51,6 +52,12 @@ type CartContextValue = {
   syncNft: (
     nft: Nft,
   ) => void
+
+  applyCoupon: (
+    couponCode: string,
+  ) => void
+
+  removeCoupon: () => void
 
   clearCart: () => void
 
@@ -88,6 +95,7 @@ export function CartProvider({
   ] =
     useState<CartState>({
       items: [],
+      couponCode: null,
     })
 
   const activeOwnerRef =
@@ -290,6 +298,8 @@ export function CartProvider({
                 )
 
               return {
+                ...currentCart,
+
                 items:
                   currentCart.items.map(
                     (
@@ -373,6 +383,8 @@ export function CartProvider({
               }
 
             return {
+              ...currentCart,
+
               items: [
                 ...currentCart.items,
                 newItem,
@@ -393,6 +405,8 @@ export function CartProvider({
           (
             currentCart,
           ) => ({
+            ...currentCart,
+
             items:
               currentCart.items.filter(
                 (
@@ -417,6 +431,8 @@ export function CartProvider({
           (
             currentCart,
           ) => ({
+            ...currentCart,
+
             items:
               currentCart.items.map(
                 (
@@ -544,9 +560,58 @@ export function CartProvider({
             }
 
             return {
+              ...currentCart,
+
               items,
             }
           },
+        )
+      },
+      [],
+    )
+
+  const applyCoupon =
+    useCallback(
+      (
+        couponCode: string,
+      ) => {
+        const normalizedCouponCode =
+          couponCode
+            .trim()
+            .toUpperCase()
+
+        if (
+          !normalizedCouponCode
+        ) {
+          return
+        }
+
+        setCart(
+          (
+            currentCart,
+          ) => ({
+            ...currentCart,
+
+            couponCode:
+              normalizedCouponCode,
+          }),
+        )
+      },
+      [],
+    )
+
+  const removeCoupon =
+    useCallback(
+      () => {
+        setCart(
+          (
+            currentCart,
+          ) => ({
+            ...currentCart,
+
+            couponCode:
+              null,
+          }),
         )
       },
       [],
@@ -557,6 +622,7 @@ export function CartProvider({
       () => {
         setCart({
           items: [],
+          couponCode: null,
         })
       },
       [],
@@ -624,6 +690,9 @@ export function CartProvider({
         items:
           cart.items,
 
+        couponCode:
+          cart.couponCode,
+
         totalItems,
 
         isEmpty:
@@ -638,6 +707,10 @@ export function CartProvider({
 
         syncNft,
 
+        applyCoupon,
+
+        removeCoupon,
+
         clearCart,
 
         getItemQuantity,
@@ -646,11 +719,14 @@ export function CartProvider({
       }),
       [
         cart.items,
+        cart.couponCode,
         totalItems,
         addItem,
         removeItem,
         updateQuantity,
         syncNft,
+        applyCoupon,
+        removeCoupon,
         clearCart,
         getItemQuantity,
         hasItem,

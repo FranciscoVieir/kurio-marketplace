@@ -1,10 +1,16 @@
-import type {
-  ChangeEvent,
-  FormEvent,
-} from 'react'
 import {
   useState,
+  type FocusEvent,
 } from 'react'
+
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 import type {
   CollectorProfileInput,
@@ -12,19 +18,81 @@ import type {
 
 type CollectorProfileFormProps = {
   value: CollectorProfileInput
+
   onChange: (
     value: CollectorProfileInput,
   ) => void
+
   disabled?: boolean
 }
+
+type TouchedFields = Partial<
+  Record<
+    keyof CollectorProfileInput,
+    boolean
+  >
+>
+
+const inputClassName = `
+  h-10
+  rounded-md
+  border-[var(--color-border-kurio)]
+  bg-transparent
+  px-2.75
+  text-xs
+  leading-4.5
+  text-[var(--color-foreground-kurio)]
+  shadow-none
+  placeholder:text-[var(--color-text-secondary)]
+  focus-visible:border-[var(--color-primary-kurio)]
+  focus-visible:ring-[var(--color-primary-kurio)]/15
+  disabled:cursor-not-allowed
+  disabled:opacity-50
+`
+
+const selectTriggerClassName = `
+  h-10
+  w-full
+  rounded-md
+  border-[var(--color-border-kurio)]
+  bg-transparent
+  px-2.75
+  text-xs
+  text-[var(--color-foreground-kurio)]
+  shadow-none
+  focus-visible:border-[var(--color-primary-kurio)]
+  focus-visible:ring-[var(--color-primary-kurio)]/15
+  disabled:cursor-not-allowed
+  disabled:opacity-50
+`
+
+const labelClassName = `
+  block
+  text-xs
+  font-medium
+  leading-4
+  text-[var(--color-foreground-kurio)]
+`
+
+const errorClassName = `
+  mt-1.25
+  text-[10px]
+  leading-[15px]
+  text-destructive
+`
 
 export function CollectorProfileForm({
   value,
   onChange,
   disabled = false,
 }: CollectorProfileFormProps) {
-  const [submitted, setSubmitted] =
-    useState(false)
+  const [
+    touched,
+    setTouched,
+  ] =
+    useState<TouchedFields>(
+      {},
+    )
 
   function updateField<
     Key extends keyof CollectorProfileInput,
@@ -39,99 +107,138 @@ export function CollectorProfileForm({
     })
   }
 
-  function handleInputChange(
-    event: ChangeEvent<
-      HTMLInputElement |
-      HTMLSelectElement |
-      HTMLTextAreaElement
-    >,
+  function markTouched(
+    field:
+      keyof CollectorProfileInput,
   ) {
-    const {
-      name,
-      value: fieldValue,
-    } = event.target
-
-    updateField(
-      name as keyof CollectorProfileInput,
-      fieldValue as never,
+    setTouched(
+      (current) => ({
+        ...current,
+        [field]: true,
+      }),
     )
   }
 
-  function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
+  function handleBlur(
+    event: FocusEvent<
+      HTMLInputElement |
+      HTMLTextAreaElement
+    >,
   ) {
-    event.preventDefault()
-    setSubmitted(true)
+    markTouched(
+      event.target
+        .name as keyof CollectorProfileInput,
+    )
   }
 
   const showDisplayNameError =
-    submitted &&
+    touched.displayName &&
     !value.displayName.trim()
 
   const showUsernameError =
-    submitted &&
+    touched.username &&
     !value.username.trim()
 
   const showNetworkError =
-    submitted &&
+    touched.network &&
     !value.network
 
   const showProfileNameError =
-    submitted &&
+    touched.profileName &&
     !value.profileName.trim()
 
   const showWalletAddressError =
-    submitted &&
+    touched.walletAddress &&
     !value.walletAddress.trim()
 
   const showWalletTypeError =
-    submitted &&
+    touched.walletType &&
     !value.walletType.trim()
 
   const showEmailError =
-    submitted &&
+    touched.email &&
     !value.email.trim()
 
   return (
     <form
-      onSubmit={handleSubmit}
-      className="mt-7"
+      className="
+        w-full
+      "
+      onSubmit={(
+        event,
+      ) => {
+        event.preventDefault()
+      }}
     >
-      <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+      <div
+        className="
+          grid
+          grid-cols-2
+          gap-x-6
+          gap-y-5
+        "
+      >
         <div>
           <label
             htmlFor="displayName"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Nome de exibição *
+            Nome de exibição{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <input
+          <Input
             id="displayName"
             name="displayName"
             type="text"
-            value={value.displayName}
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            value={
+              value.displayName
+            }
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'displayName',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            aria-invalid={
+              Boolean(
+                showDisplayNameError,
+              )
+            }
+            autoComplete="name"
+            placeholder="Seu nome de exibição"
+            className={`
+              mt-1.75
+              ${inputClassName}
+            `}
           />
 
           {showDisplayNameError && (
-            <p className="mt-1 text-[9px] text-destructive">
-              Informe o nome de exibição.
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
+              Informe o nome de
+              exibição.
             </p>
           )}
         </div>
@@ -139,37 +246,64 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="username"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Nome de usuário *
+            Nome de usuário{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <input
+          <Input
             id="username"
             name="username"
             type="text"
-            value={value.username}
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            value={
+              value.username
+            }
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'username',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            aria-invalid={
+              Boolean(
+                showUsernameError,
+              )
+            }
+            autoComplete="username"
+            placeholder="@usuario"
+            className={`
+              mt-1.75
+              ${inputClassName}
+            `}
           />
 
           {showUsernameError && (
-            <p className="mt-1 text-[9px] text-destructive">
-              Informe o nome de usuário.
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
+              Informe o nome de
+              usuário.
             </p>
           )}
         </div>
@@ -177,51 +311,109 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="network"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Rede *
+            Rede{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <select
-            id="network"
-            name="network"
-            value={value.network}
-            onChange={handleInputChange}
-            disabled={disabled}
+          <div
             className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-[var(--color-ink)]
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
+              mt-1.75
             "
           >
-            <option value="">
-              Selecione uma rede
-            </option>
+            <Select
+              value={
+                value.network
+              }
+              onValueChange={(
+                nextNetwork,
+              ) => {
+                if (nextNetwork === null) {
+                  return
+                }
 
-            <option value="ethereum">
-              Ethereum
-            </option>
+                updateField(
+                  'network',
+                  nextNetwork as CollectorProfileInput['network'],
+                )
 
-            <option value="polygon">
-              Polygon
-            </option>
+                markTouched(
+                  'network',
+                )
+              }}
+              disabled={
+                disabled
+              }
+            >
+              <SelectTrigger
+                id="network"
+                aria-invalid={
+                  Boolean(
+                    showNetworkError,
+                  )
+                }
+                className={
+                  selectTriggerClassName
+                }
+              >
+                <SelectValue
+                  placeholder="Selecione uma rede"
+                />
+              </SelectTrigger>
 
-            <option value="solana">
-              Solana
-            </option>
-          </select>
+              <SelectContent
+                className="
+                  border-[var(--color-border-kurio)]
+                  bg-[var(--color-surface-card)]
+                  text-[var(--color-foreground-kurio)]
+                "
+              >
+                <SelectItem
+                  value="ethereum"
+                  className="
+                    text-xs
+                  "
+                >
+                  Ethereum
+                </SelectItem>
+
+                <SelectItem
+                  value="polygon"
+                  className="
+                    text-xs
+                  "
+                >
+                  Polygon
+                </SelectItem>
+
+                <SelectItem
+                  value="solana"
+                  className="
+                    text-xs
+                  "
+                >
+                  Solana
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {showNetworkError && (
-            <p className="mt-1 text-[9px] text-destructive">
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
               Selecione uma rede.
             </p>
           )}
@@ -230,37 +422,63 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="profileName"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Nome do perfil *
+            Nome do perfil{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <input
+          <Input
             id="profileName"
             name="profileName"
             type="text"
-            value={value.profileName}
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            value={
+              value.profileName
+            }
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'profileName',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            aria-invalid={
+              Boolean(
+                showProfileNameError,
+              )
+            }
+            placeholder="Nome do perfil"
+            className={`
+              mt-1.75
+              ${inputClassName}
+            `}
           />
 
           {showProfileNameError && (
-            <p className="mt-1 text-[9px] text-destructive">
-              Informe o nome do perfil.
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
+              Informe o nome do
+              perfil.
             </p>
           )}
         </div>
@@ -268,39 +486,66 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="walletAddress"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Endereço da carteira *
+            Endereço da carteira{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <input
+          <Input
             id="walletAddress"
             name="walletAddress"
             type="text"
-            value={value.walletAddress}
-            onChange={handleInputChange}
-            disabled={disabled}
+            value={
+              value.walletAddress
+            }
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'walletAddress',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            aria-invalid={
+              Boolean(
+                showWalletAddressError,
+              )
+            }
+            autoComplete="off"
+            spellCheck={false}
             placeholder="0x..."
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              placeholder:text-[var(--color-text-secondary)]
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            className={`
+              mt-1.75
+              font-mono
+              ${inputClassName}
+            `}
           />
 
           {showWalletAddressError && (
-            <p className="mt-1 text-[9px] text-destructive">
-              Informe o endereço da carteira.
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
+              Informe o endereço da
+              carteira.
             </p>
           )}
         </div>
@@ -308,83 +553,169 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="secondaryWallet"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            ENS ou carteira secundária
-            (opcional)
+            ENS ou carteira secundária{' '}
+            <span
+              className="
+                font-normal
+                text-[var(--color-text-secondary)]
+              "
+            >
+              (opcional)
+            </span>
           </label>
 
-          <input
+          <Input
             id="secondaryWallet"
             name="secondaryWallet"
             type="text"
             value={
-              value.secondaryWallet ?? ''
+              value.secondaryWallet ??
+              ''
             }
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'secondaryWallet',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            placeholder="0x... ou nome.eth"
+            className={`
+              mt-1.75
+              ${inputClassName}
+            `}
           />
         </div>
 
         <div>
           <label
             htmlFor="walletType"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Tipo de carteira *
+            Tipo de carteira{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <select
-            id="walletType"
-            name="walletType"
-            value={value.walletType}
-            onChange={handleInputChange}
-            disabled={disabled}
+          <div
             className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-[var(--color-ink)]
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
+              mt-1.75
             "
           >
-            <option value="">
-              Selecione uma carteira
-            </option>
+            <Select
+              value={
+                value.walletType
+              }
+              onValueChange={(
+                nextWalletType,
+              ) => {
+                if (nextWalletType === null) {
+                  return
+                }
 
-            <option value="hot">
-              Hot wallet
-            </option>
+                updateField(
+                  'walletType',
+                  nextWalletType,
+                )
 
-            <option value="cold">
-              Cold wallet
-            </option>
-          </select>
+                markTouched(
+                  'walletType',
+                )
+              }}
+              disabled={
+                disabled
+              }
+            >
+              <SelectTrigger
+                id="walletType"
+                aria-invalid={
+                  Boolean(
+                    showWalletTypeError,
+                  )
+                }
+                className={
+                  selectTriggerClassName
+                }
+              >
+                <SelectValue
+                  placeholder="Selecione uma carteira"
+                />
+              </SelectTrigger>
+
+              <SelectContent
+                className="
+                  border-[var(--color-border-kurio)]
+                  bg-[var(--color-surface-card)]
+                  text-[var(--color-foreground-kurio)]
+                "
+              >
+                <SelectItem
+                  value="metamask"
+                  className="
+                    text-xs
+                  "
+                >
+                  MetaMask
+                </SelectItem>
+
+                <SelectItem
+                  value="coinbase"
+                  className="
+                    text-xs
+                  "
+                >
+                  Coinbase Wallet
+                </SelectItem>
+
+                <SelectItem
+                  value="hot"
+                  className="
+                    text-xs
+                  "
+                >
+                  Hot wallet
+                </SelectItem>
+
+                <SelectItem
+                  value="cold"
+                  className="
+                    text-xs
+                  "
+                >
+                  Cold wallet
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {showWalletTypeError && (
-            <p className="mt-1 text-[9px] text-destructive">
-              Selecione o tipo de carteira.
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
+              Selecione o tipo de
+              carteira.
             </p>
           )}
         </div>
@@ -392,70 +723,104 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="referralCode"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
             Código de indicação
           </label>
 
-          <input
+          <Input
             id="referralCode"
             name="referralCode"
             type="text"
             value={
-              value.referralCode ?? ''
+              value.referralCode ??
+              ''
             }
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'referralCode',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            autoComplete="off"
+            placeholder="Código de indicação"
+            className={`
+              mt-1.75
+              ${inputClassName}
+            `}
           />
         </div>
 
         <div>
           <label
             htmlFor="email"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            E-mail *
+            E-mail{' '}
+            <span
+              className="
+                text-[var(--color-text-accent)]
+              "
+            >
+              *
+            </span>
           </label>
 
-          <input
+          <Input
             id="email"
             name="email"
             type="email"
-            value={value.email}
-            onChange={handleInputChange}
-            disabled={disabled}
-            className="
-              mt-1.5
-              h-9 w-full
-              border
-              border-[var(--color-border-kurio)]
-              bg-transparent
-              px-3
-              text-[10px]
-              text-foreground
-              outline-none
-              focus:border-[var(--color-primary-kurio)]
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            value={
+              value.email
+            }
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'email',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
+            aria-invalid={
+              Boolean(
+                showEmailError,
+              )
+            }
+            autoComplete="email"
+            placeholder="email@exemplo.com"
+            className={`
+              mt-1.75
+              ${inputClassName}
+            `}
           />
 
           {showEmailError && (
-            <p className="mt-1 text-[9px] text-destructive">
+            <p
+              role="alert"
+              className={
+                errorClassName
+              }
+            >
               Informe o e-mail.
             </p>
           )}
@@ -464,42 +829,66 @@ export function CollectorProfileForm({
         <div>
           <label
             htmlFor="ensName"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
             Nome ENS
           </label>
 
-          <div className="mt-1.5 flex">
-            <input
+          <div
+            className="
+              mt-1.75
+              flex
+            "
+          >
+            <Input
               id="ensName"
               name="ensName"
               type="text"
-              value={value.ensName ?? ''}
-              onChange={handleInputChange}
-              disabled={disabled}
-              className="
-                h-9 min-w-0 flex-1
-                border
-                border-[var(--color-border-kurio)]
-                bg-transparent
-                px-3
-                text-[10px]
-                text-foreground
-                outline-none
-                focus:border-[var(--color-primary-kurio)]
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
+              value={
+                value.ensName ??
+                ''
+              }
+              onChange={(
+                event,
+              ) => {
+                updateField(
+                  'ensName',
+                  event.target
+                    .value,
+                )
+              }}
+              onBlur={
+                handleBlur
+              }
+              disabled={
+                disabled
+              }
+              autoComplete="off"
+              placeholder="seunome"
+              className={`
+                min-w-0
+                flex-1
+                rounded-r-none
+                border-r-0
+                ${inputClassName}
+              `}
             />
 
             <div
               className="
-                flex h-9 items-center
+                flex
+                h-10
+                shrink-0
+                items-center
+                rounded-r-[6px]
                 border
-                border-l-0
                 border-[var(--color-border-kurio)]
-                px-3
-                text-[10px]
+                bg-[var(--color-surface-card)]
+                px-2.75
+                text-[11px]
+                font-medium
                 text-[var(--color-text-secondary)]
               "
             >
@@ -508,62 +897,125 @@ export function CollectorProfileForm({
           </div>
         </div>
 
-        <label
+        <div
           className="
-            flex cursor-pointer
-            items-center gap-2
-            text-[10px]
-            text-foreground
+            flex
+            min-h-10
+            items-center
           "
         >
-          <input
-            type="checkbox"
-            checked={
-              value.useAnotherWallet
-            }
-            onChange={(event) => {
-              updateField(
-                'useAnotherWallet',
-                event.target.checked,
-              )
-            }}
-            disabled={disabled}
-            className="size-3.5"
-          />
+          <label
+            className="
+              inline-flex
+              cursor-pointer
+              items-center
+              gap-2.25
+              text-xs
+              leading-4.25
+              text-[var(--color-foreground-kurio)]
+            "
+          >
+            <input
+              type="checkbox"
+              checked={
+                value.useAnotherWallet
+              }
+              onChange={(
+                event,
+              ) => {
+                updateField(
+                  'useAnotherWallet',
+                  event.target
+                    .checked,
+                )
+              }}
+              disabled={
+                disabled
+              }
+              className="
+                h-3.75
+                w-3.75
+                cursor-pointer
+                accent-[var(--color-primary-kurio)]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
+            />
 
-          Usar outra carteira?
-        </label>
+            Usar outra carteira?
+          </label>
+        </div>
 
-        <div className="col-span-2">
+        <div
+          aria-hidden="true"
+        />
+
+        <div
+          className="
+            col-span-2
+          "
+        >
           <label
             htmlFor="collectionNote"
-            className="block text-[10px] font-bold text-foreground"
+            className={
+              labelClassName
+            }
           >
-            Observação do colecionador
-            (opcional)
+            Observação do colecionador{' '}
+            <span
+              className="
+                font-normal
+                text-[var(--color-text-secondary)]
+              "
+            >
+              (opcional)
+            </span>
           </label>
 
           <textarea
             id="collectionNote"
             name="collectionNote"
             value={
-              value.collectionNote ?? ''
+              value.collectionNote ??
+              ''
             }
-            onChange={handleInputChange}
-            disabled={disabled}
+            onChange={(
+              event,
+            ) => {
+              updateField(
+                'collectionNote',
+                event.target
+                  .value,
+              )
+            }}
+            onBlur={
+              handleBlur
+            }
+            disabled={
+              disabled
+            }
             rows={4}
+            placeholder="Adicione uma observação sobre sua coleção..."
             className="
-              mt-1.5
-              min-h-24 w-full
+              mt-1.75
+              min-h-26
+              w-full
               resize-y
+              rounded-md
               border
               border-[var(--color-border-kurio)]
               bg-transparent
-              px-3 py-2
-              text-[10px]
-              text-foreground
+              px-2.75
+              py-2.25
+              text-xs
+              leading-4.75
+              text-[var(--color-foreground-kurio)]
               outline-none
+              transition-colors
+              placeholder:text-[var(--color-text-secondary)]
               focus:border-[var(--color-primary-kurio)]
+              focus:ring-3
+              focus:ring-[var(--color-primary-kurio)]/15
               disabled:cursor-not-allowed
               disabled:opacity-50
             "

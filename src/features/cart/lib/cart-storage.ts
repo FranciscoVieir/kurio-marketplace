@@ -92,13 +92,20 @@ function isCartState(
       unknown
     >
 
+  const isCouponCodeValid =
+    state.couponCode ===
+      null ||
+    typeof state.couponCode ===
+      'string'
+
   return (
     Array.isArray(
       state.items,
     ) &&
     state.items.every(
       isCartItem,
-    )
+    ) &&
+    isCouponCodeValid
   )
 }
 
@@ -122,9 +129,18 @@ function normalizeCart(
         ),
       }))
 
+  const normalizedCouponCode =
+    cart.couponCode
+      ?.trim()
+      .toUpperCase() ||
+    null
+
   return {
     items:
       normalizedItems,
+
+    couponCode:
+      normalizedCouponCode,
   }
 }
 
@@ -137,6 +153,7 @@ export function loadCart(
   ) {
     return {
       items: [],
+      couponCode: null,
     }
   }
 
@@ -151,6 +168,7 @@ export function loadCart(
     if (!storedValue) {
       return {
         items: [],
+        couponCode: null,
       }
     }
 
@@ -159,6 +177,44 @@ export function loadCart(
         storedValue,
       )
 
+    /*
+     * Compatibilidade com carrinhos
+     * salvos antes da introdução
+     * de couponCode.
+     */
+    if (
+      typeof parsedValue ===
+        'object' &&
+      parsedValue !==
+        null &&
+      !(
+        'couponCode' in
+        parsedValue
+      )
+    ) {
+      const legacyCart =
+        parsedValue as {
+          items?: unknown
+        }
+
+      if (
+        Array.isArray(
+          legacyCart.items,
+        ) &&
+        legacyCart.items.every(
+          isCartItem,
+        )
+      ) {
+        return normalizeCart({
+          items:
+            legacyCart.items,
+
+          couponCode:
+            null,
+        })
+      }
+    }
+
     if (
       !isCartState(
         parsedValue,
@@ -166,6 +222,7 @@ export function loadCart(
     ) {
       return {
         items: [],
+        couponCode: null,
       }
     }
 
@@ -175,6 +232,7 @@ export function loadCart(
   } catch {
     return {
       items: [],
+      couponCode: null,
     }
   }
 }
@@ -336,12 +394,27 @@ export function mergeCarts(
     )
   }
 
+  /*
+   * Se o usuário autenticado
+   * já possui cupom aplicado,
+   * ele tem prioridade.
+   *
+   * Caso contrário, preservamos
+   * o cupom do carrinho guest.
+   */
+  const mergedCouponCode =
+    targetCart.couponCode ??
+    sourceCart.couponCode
+
   const mergedCart =
     normalizeCart({
       items:
         Array.from(
           mergedItems.values(),
         ),
+
+      couponCode:
+        mergedCouponCode,
     })
 
   saveCart(

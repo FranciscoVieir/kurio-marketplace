@@ -29,18 +29,24 @@ export function CartSummary() {
   const {
     items,
     isEmpty,
+    couponCode:
+      appliedCoupon,
+    applyCoupon,
+    removeCoupon,
   } = useCart()
 
+  /*
+   * Esse estado representa apenas
+   * o que está sendo digitado.
+   *
+   * O cupom efetivamente aplicado
+   * pertence ao CartContext.
+   */
   const [
-    couponCode,
-    setCouponCode,
-  ] = useState('')
-
-  const [
-    appliedCoupon,
-    setAppliedCoupon,
-  ] = useState<string | null>(
-    null,
+    couponInput,
+    setCouponInput,
+  ] = useState(
+    appliedCoupon ?? '',
   )
 
   const [
@@ -129,7 +135,7 @@ export function CartSummary() {
 
   function handleApplyCoupon() {
     const normalizedCode =
-      couponCode
+      couponInput
         .trim()
         .toUpperCase()
 
@@ -148,10 +154,6 @@ export function CartSummary() {
         normalizedCode
       ]
     ) {
-      setAppliedCoupon(
-        null,
-      )
-
       setCouponError(
         'Código promocional inválido.',
       )
@@ -159,11 +161,11 @@ export function CartSummary() {
       return
     }
 
-    setAppliedCoupon(
+    applyCoupon(
       normalizedCode,
     )
 
-    setCouponCode(
+    setCouponInput(
       normalizedCode,
     )
 
@@ -173,7 +175,7 @@ export function CartSummary() {
   }
 
   function handleUseAvailableCoupon() {
-    setCouponCode(
+    setCouponInput(
       'KURIO10',
     )
 
@@ -183,11 +185,9 @@ export function CartSummary() {
   }
 
   function handleRemoveCoupon() {
-    setAppliedCoupon(
-      null,
-    )
+    removeCoupon()
 
-    setCouponCode(
+    setCouponInput(
       '',
     )
 
@@ -322,12 +322,12 @@ export function CartSummary() {
                 id="coupon-code"
                 type="text"
                 value={
-                  couponCode
+                  couponInput
                 }
                 onChange={(
                   event,
                 ) => {
-                  setCouponCode(
+                  setCouponInput(
                     event.target
                       .value,
                   )
@@ -354,6 +354,7 @@ export function CartSummary() {
                   isEmpty
                 }
                 placeholder="Digite o código..."
+                autoComplete="off"
                 className="
                   h-[38px]
                   rounded-r-none
@@ -584,13 +585,13 @@ export function CartSummary() {
             className={
               appliedCoupon
                 ? `
-                  font-medium
-                  text-[var(--color-text-accent)]
-                `
+                    font-medium
+                    text-[var(--color-text-accent)]
+                  `
                 : `
-                  font-medium
-                  text-[var(--color-foreground-kurio)]
-                `
+                    font-medium
+                    text-[var(--color-foreground-kurio)]
+                  `
             }
           >
             (-){' '}

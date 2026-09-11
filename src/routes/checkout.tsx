@@ -10,14 +10,30 @@ import {
 } from '@tanstack/react-router'
 
 import axios from 'axios'
+import {
+  Check,
+  ChevronRight,
+  CircleAlert,
+  LoaderCircle,
+  RefreshCw,
+  Wallet,
+} from 'lucide-react'
 
+import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { PageContainer } from '@/components/layout/page-container'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useCart } from '@/features/cart/hooks/use-cart'
 import { CollectorProfileForm } from '@/features/checkout/components/collector-profile-form'
-import { WalletProviderSelector } from '@/features/checkout/components/wallet-provider-selector'
 import { useCheckoutQuote } from '@/features/checkout/hooks/use-checkout-quote'
 import { useCreateOrder } from '@/features/checkout/hooks/use-create-order'
+import { BenefitsSection } from '@/features/home/components/benefits-section'
 import { useWallets } from '@/features/wallets/hooks/use-wallets'
 
 import type {
@@ -77,10 +93,69 @@ function createIdempotencyKey() {
   return `checkout_${crypto.randomUUID()}`
 }
 
+function formatNetwork(
+  network: string,
+) {
+  switch (
+    network.toLowerCase()
+  ) {
+    case 'ethereum':
+      return 'Ethereum'
+
+    case 'polygon':
+      return 'Polygon'
+
+    case 'solana':
+      return 'Solana'
+
+    default:
+      return network
+  }
+}
+
+function formatWalletProvider(
+  provider: string,
+) {
+  switch (
+    provider.toLowerCase()
+  ) {
+    case 'metamask':
+      return 'MetaMask'
+
+    case 'coinbase':
+      return 'Coinbase Wallet'
+
+    case 'walletconnect':
+      return 'WalletConnect'
+
+    default:
+      return provider
+  }
+}
+
+function formatWalletAddress(
+  address: string,
+) {
+  if (
+    address.length <= 16
+  ) {
+    return address
+  }
+
+  return `${address.slice(
+    0,
+    8,
+  )}...${address.slice(-6)}`
+}
+
 function getOrderErrorMessage(
   error: unknown,
 ) {
-  if (!axios.isAxiosError<OrderErrorResponse>(error)) {
+  if (
+    !axios.isAxiosError<OrderErrorResponse>(
+      error,
+    )
+  ) {
     return 'Não foi possível concluir a compra. Tente novamente.'
   }
 
@@ -153,34 +228,190 @@ function getOrderErrorMessage(
   }
 }
 
+function CheckoutSkeleton() {
+  return (
+    <div
+      className="
+        grid
+        grid-cols-[minmax(0,1fr)_320px]
+        items-start
+        gap-12
+      "
+    >
+      <div>
+        <div
+          className="
+            h-8.5
+            w-62.5
+            rounded-[5px]
+            bg-[var(--color-surface-card)]
+            kurio-shimmer
+          "
+        />
+
+        <div
+          className="
+            mt-2.5
+            h-4.5
+            w-97.5
+            max-w-full
+            rounded-sm
+            bg-[var(--color-surface-card)]
+            kurio-shimmer
+          "
+        />
+
+        <div
+          className="
+            mt-7
+            grid
+            grid-cols-2
+            gap-x-6
+            gap-y-5
+          "
+        >
+          {Array.from({
+            length: 10,
+          }).map(
+            (_, index) => (
+              <div
+                key={index}
+              >
+                <div
+                  className="
+                    h-[14px]
+                    w-30
+                    rounded-[3px]
+                    bg-[var(--color-surface-card)]
+                    kurio-shimmer
+                  "
+                />
+
+                <div
+                  className="
+                    mt-2
+                    h-10
+                    w-full
+                    rounded-md
+                    bg-[var(--color-surface-card)]
+                    kurio-shimmer
+                  "
+                />
+              </div>
+            ),
+          )}
+        </div>
+
+        <div
+          className="
+            mt-6
+            h-27.5
+            w-full
+            rounded-md
+            bg-[var(--color-surface-card)]
+            kurio-shimmer
+          "
+        />
+      </div>
+
+      <div>
+        <div
+          className="
+            h-5.5
+            w-25
+            rounded-sm
+            bg-[var(--color-surface-card)]
+            kurio-shimmer
+          "
+        />
+
+        <div
+          className="
+            mt-4.5
+            space-y-[8px]
+          "
+        >
+          {Array.from({
+            length: 3,
+          }).map(
+            (_, index) => (
+              <div
+                key={index}
+                className="
+                  h-16.5
+                  w-full
+                  rounded-md
+                  bg-[var(--color-surface-card)]
+                  kurio-shimmer
+                "
+              />
+            ),
+          )}
+        </div>
+
+        <div
+          className="
+            mt-5
+            h-32
+            w-full
+            rounded-md
+            bg-[var(--color-surface-card)]
+            kurio-shimmer
+          "
+        />
+
+        <div
+          className="
+            mt-5.5
+            h-40
+            w-full
+            rounded-md
+            bg-[var(--color-surface-card)]
+            kurio-shimmer
+          "
+        />
+      </div>
+    </div>
+  )
+}
+
 export function CheckoutPage() {
-  const navigate = useNavigate()
+  const navigate =
+    useNavigate()
 
   const {
     items,
     isEmpty,
     clearCart,
+    couponCode,
   } = useCart()
 
   const {
     data: quote,
-    isPending: isQuotePending,
-    isError: isQuoteError,
+    isPending:
+      isQuotePending,
+    isError:
+      isQuoteError,
     mutate: createQuote,
     reset: resetQuote,
   } = useCheckoutQuote()
 
   const {
-    isPending: isOrderPending,
+    isPending:
+      isOrderPending,
     mutate: submitOrder,
   } = useCreateOrder()
 
   const {
     data: wallets = [],
-    isPending: isWalletsPending,
+    isPending:
+      isWalletsPending,
   } = useWallets()
 
-  const [profile, setProfile] =
+  const [
+    profile,
+    setProfile,
+  ] =
     useState<CollectorProfileInput>(
       INITIAL_COLLECTOR_PROFILE,
     )
@@ -188,26 +419,32 @@ export function CheckoutPage() {
   const [
     walletProvider,
     setWalletProvider,
-  ] = useState<CheckoutWalletProvider>(
-    'metamask',
-  )
+  ] =
+    useState<CheckoutWalletProvider>(
+      'metamask',
+    )
 
   const [
     selectedWalletId,
     setSelectedWalletId,
-  ] = useState('')
+  ] =
+    useState('')
 
   const [
     walletConnectionStatus,
     setWalletConnectionStatus,
-  ] = useState<WalletConnectionStatus>(
-    'disconnected',
-  )
+  ] =
+    useState<WalletConnectionStatus>(
+      'disconnected',
+    )
 
   const [
     submitError,
     setSubmitError,
-  ] = useState<string | null>(null)
+  ] =
+    useState<string | null>(
+      null,
+    )
 
   const hasRequestedQuote =
     useRef(false)
@@ -219,7 +456,9 @@ export function CheckoutPage() {
     useRef(false)
 
   const idempotencyKeyRef =
-    useRef<string | null>(null)
+    useRef<string | null>(
+      null,
+    )
 
   const compatibleWallets =
     quote
@@ -245,16 +484,29 @@ export function CheckoutPage() {
       return
     }
 
-    hasRequestedQuote.current = true
+    hasRequestedQuote.current =
+      true
 
     createQuote({
-      items: items.map((item) => ({
-        nftId: item.nftId,
-        quantity: item.quantity,
-        version: item.version,
-      })),
+      items: items.map(
+        (item) => ({
+          nftId:
+            item.nftId,
+
+          quantity:
+            item.quantity,
+
+          version:
+            item.version,
+        }),
+      ),
+
+      couponCode:
+        couponCode ??
+        undefined,
     })
   }, [
+    couponCode,
     createQuote,
     isEmpty,
     items,
@@ -268,12 +520,19 @@ export function CheckoutPage() {
       return
     }
 
-    hasInitializedNetwork.current = true
+    hasInitializedNetwork.current =
+      true
 
-    setProfile((currentProfile) => ({
-      ...currentProfile,
-      network: quote.network,
-    }))
+    setProfile(
+      (
+        currentProfile,
+      ) => ({
+        ...currentProfile,
+
+        network:
+          quote.network,
+      }),
+    )
   }, [quote])
 
   useEffect(() => {
@@ -299,18 +558,23 @@ export function CheckoutPage() {
           quote.network,
       )
 
-    if (!preferredWallet) {
+    if (
+      !preferredWallet
+    ) {
       return
     }
 
-    hasInitializedWallet.current = true
+    hasInitializedWallet.current =
+      true
 
     setSelectedWalletId(
       preferredWallet.id,
     )
 
     setProfile(
-      (currentProfile) => ({
+      (
+        currentProfile,
+      ) => ({
         ...currentProfile,
 
         displayName:
@@ -363,8 +627,12 @@ export function CheckoutPage() {
   ])
 
   function handleWalletSelection(
-    walletId: string,
+    walletId: string | null,
   ) {
+    if (walletId === null) {
+      return
+    }
+
     setSelectedWalletId(
       walletId,
     )
@@ -375,7 +643,9 @@ export function CheckoutPage() {
 
     const wallet =
       wallets.find(
-        (candidate) =>
+        (
+          candidate,
+        ) =>
           candidate.id ===
           walletId,
       )
@@ -385,7 +655,9 @@ export function CheckoutPage() {
     }
 
     setProfile(
-      (currentProfile) => ({
+      (
+        currentProfile,
+      ) => ({
         ...currentProfile,
 
         displayName:
@@ -434,12 +706,15 @@ export function CheckoutPage() {
     }
 
     setSubmitError(null)
+
     idempotencyKeyRef.current =
       null
   }
 
   function handleConnectWallet() {
-    if (!selectedWallet) {
+    if (
+      !selectedWallet
+    ) {
       setSubmitError(
         'Selecione uma carteira cadastrada antes de conectar.',
       )
@@ -451,10 +726,22 @@ export function CheckoutPage() {
       'connected',
     )
 
-    setSubmitError(null)
+    setSubmitError(
+      null,
+    )
   }
 
   function handleRefuseWalletConnection() {
+    if (
+      !selectedWallet
+    ) {
+      setSubmitError(
+        'Selecione uma carteira antes de simular a recusa.',
+      )
+
+      return
+    }
+
     setWalletConnectionStatus(
       'refused',
     )
@@ -469,23 +756,38 @@ export function CheckoutPage() {
       'disconnected',
     )
 
-    setSubmitError(null)
+    setSubmitError(
+      null,
+    )
   }
 
   function handleRetryQuote() {
     resetQuote()
 
-    setSubmitError(null)
+    setSubmitError(
+      null,
+    )
 
     idempotencyKeyRef.current =
       null
 
     createQuote({
-      items: items.map((item) => ({
-        nftId: item.nftId,
-        quantity: item.quantity,
-        version: item.version,
-      })),
+      items: items.map(
+        (item) => ({
+          nftId:
+            item.nftId,
+
+          quantity:
+            item.quantity,
+
+          version:
+            item.version,
+        }),
+      ),
+
+      couponCode:
+        couponCode ??
+        undefined,
     })
   }
 
@@ -505,7 +807,11 @@ export function CheckoutPage() {
       return
     }
 
-    if (!isProfileValid(profile)) {
+    if (
+      !isProfileValid(
+        profile,
+      )
+    ) {
       setSubmitError(
         'Preencha todos os campos obrigatórios antes de confirmar a compra.',
       )
@@ -518,13 +824,17 @@ export function CheckoutPage() {
       quote.network
     ) {
       setSubmitError(
-        `A rede selecionada deve ser ${quote.network}.`,
+        `A rede selecionada deve ser ${formatNetwork(
+          quote.network,
+        )}.`,
       )
 
       return
     }
 
-    setSubmitError(null)
+    setSubmitError(
+      null,
+    )
 
     if (
       !idempotencyKeyRef.current
@@ -548,8 +858,12 @@ export function CheckoutPage() {
           idempotencyKeyRef.current,
       },
       {
-        onSuccess: (order) => {
-          setSubmitError(null)
+        onSuccess: (
+          order,
+        ) => {
+          setSubmitError(
+            null,
+          )
 
           clearCart()
 
@@ -563,7 +877,9 @@ export function CheckoutPage() {
           })
         },
 
-        onError: (error) => {
+        onError: (
+          error,
+        ) => {
           setSubmitError(
             getOrderErrorMessage(
               error,
@@ -575,81 +891,166 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="
+        min-h-screen
+        bg-background
+      "
+    >
       <Header />
 
       <main>
-        <PageContainer className="pt-6">
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <PageContainer
+          className="
+            pt-5
+          "
+        >
+          <nav
+            aria-label="Breadcrumb"
+            className="
+              flex
+              items-center
+              gap-1.75
+              text-xs
+              leading-4
+              text-[var(--color-text-secondary)]
+            "
+          >
             <Link
               to="/"
-              className="transition-colors hover:text-[var(--color-text-accent)]"
+              className="
+                transition-colors
+                hover:text-[var(--color-text-accent)]
+              "
             >
               Início
             </Link>
 
-            <span>/</span>
+            <ChevronRight
+              size={12}
+              strokeWidth={1.7}
+              aria-hidden="true"
+            />
 
-            <span>Mercado</span>
+            <Link
+              to="/"
+              hash="catalog"
+              className="
+                transition-colors
+                hover:text-[var(--color-text-accent)]
+              "
+            >
+              Mercado
+            </Link>
 
-            <span>/</span>
+            <ChevronRight
+              size={12}
+              strokeWidth={1.7}
+              aria-hidden="true"
+            />
 
-            <span className="text-foreground">
+            <span
+              className="
+                text-[var(--color-foreground-kurio)]
+              "
+            >
               Pagamento
             </span>
-          </div>
+          </nav>
         </PageContainer>
 
-        <PageContainer className="py-10">
+        <PageContainer
+          className="
+            pb-18
+            pt-8.5
+          "
+        >
           {isEmpty && (
             <div
               className="
+                flex
+                min-h-85
+                flex-col
+                items-center
+                justify-center
+                rounded-xl
                 border
                 border-[var(--color-border-kurio)]
                 bg-[var(--color-surface-card)]
-                p-8
+                px-7
+                text-center
               "
             >
-              <h1 className="text-lg font-bold text-foreground">
+              <div
+                className="
+                  flex
+                  h-13.5
+                  w-13.5
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-[var(--color-ink)]
+                  text-[var(--color-text-accent)]
+                "
+              >
+                <Wallet
+                  size={23}
+                  strokeWidth={1.8}
+                />
+              </div>
+
+              <h1
+                className="
+                  mt-4.5
+                  text-xl
+                  font-bold
+                  leading-[26px]
+                  text-[var(--color-foreground-kurio)]
+                "
+              >
                 Seu carrinho está vazio
               </h1>
 
-              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-                Adicione NFTs ao carrinho antes de iniciar o pagamento.
+              <p
+                className="
+                  mt-2
+                  max-w-105
+                  text-[13px]
+                  leading-[21px]
+                  text-[var(--color-text-secondary)]
+                "
+              >
+                Adicione NFTs ao carrinho
+                antes de iniciar o pagamento.
               </p>
 
               <Link
                 to="/"
+                hash="catalog"
                 className="
-                  mt-6
-                  inline-flex h-9
-                  items-center justify-center
+                  mt-5.5
+                  flex
+                  h-10
+                  items-center
+                  justify-center
+                  rounded-md
                   bg-[var(--color-primary-kurio)]
-                  px-5
-                  text-[11px] font-bold
+                  px-5.5
+                  text-xs
+                  font-bold
                   text-[var(--color-ink)]
+                  transition-opacity
+                  hover:opacity-90
                 "
               >
-                Explorar NFTs
+                EXPLORAR NFTs
               </Link>
             </div>
           )}
 
           {!isEmpty &&
             isQuotePending && (
-              <div className="py-20 text-center">
-                <p className="text-sm font-bold text-foreground">
-                  Validando seu
-                  carrinho...
-                </p>
-
-                <p className="mt-2 text-[11px] text-[var(--color-text-secondary)]">
-                  Estamos verificando
-                  preços e
-                  disponibilidade dos
-                  NFTs.
-                </p>
-              </div>
+              <CheckoutSkeleton />
             )}
 
           {!isEmpty &&
@@ -657,50 +1058,116 @@ export function CheckoutPage() {
               <div
                 role="alert"
                 className="
+                  flex
+                  min-h-77.5
+                  flex-col
+                  items-center
+                  justify-center
+                  rounded-xl
                   border
-                  border-destructive
+                  border-destructive/40
                   bg-[var(--color-surface-card)]
-                  p-6
+                  px-7
+                  text-center
                 "
               >
-                <h1 className="text-base font-bold text-foreground">
-                  Não foi possível
-                  validar o carrinho
+                <div
+                  className="
+                    flex
+                    h-12.5
+                    w-12.5
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-destructive/10
+                    text-destructive
+                  "
+                >
+                  <CircleAlert
+                    size={22}
+                    strokeWidth={1.8}
+                  />
+                </div>
+
+                <h1
+                  className="
+                    mt-4
+                    text-[19px]
+                    font-bold
+                    leading-[25px]
+                    text-[var(--color-foreground-kurio)]
+                  "
+                >
+                  Não foi possível validar
+                  o carrinho
                 </h1>
 
-                <p className="mt-2 text-[11px] text-[var(--color-text-secondary)]">
-                  Um ou mais NFTs podem
-                  ter sido alterados ou
-                  ficado indisponíveis.
+                <p
+                  className="
+                    mt-2
+                    max-w-112.5
+                    text-xs
+                    leading-5
+                    text-[var(--color-text-secondary)]
+                  "
+                >
+                  Um ou mais NFTs podem ter
+                  sido alterados ou ficado
+                  indisponíveis.
                 </p>
 
-                <div className="mt-5 flex gap-3">
+                <div
+                  className="
+                    mt-5.5
+                    flex
+                    gap-2.5
+                  "
+                >
                   <button
                     type="button"
                     onClick={
                       handleRetryQuote
                     }
                     className="
-                      h-9
+                      flex
+                      h-10
+                      items-center
+                      justify-center
+                      gap-1.75
+                      rounded-md
                       bg-[var(--color-primary-kurio)]
-                      px-5
-                      text-[11px] font-bold
+                      px-4.5
+                      text-[11px]
+                      font-bold
                       text-[var(--color-ink)]
+                      transition-opacity
+                      hover:opacity-90
                     "
                   >
+                    <RefreshCw
+                      size={14}
+                    />
+
                     Tentar novamente
                   </button>
 
                   <Link
                     to="/cart"
                     className="
-                      flex h-9
-                      items-center justify-center
+                      flex
+                      h-10
+                      items-center
+                      justify-center
+                      rounded-md
                       border
                       border-[var(--color-border-kurio)]
-                      px-5
+                      px-4.5
                       text-[11px]
-                      text-foreground
+                      font-medium
+                      text-[var(--color-foreground-kurio)]
+                      transition-colors
+                      hover:border-[var(--color-primary-kurio)]
+                      hover:text-[var(--color-text-accent)]
                     "
                   >
                     Voltar ao carrinho
@@ -712,192 +1179,137 @@ export function CheckoutPage() {
           {!isEmpty &&
             quote && (
               <section>
-                <div className="grid grid-cols-[minmax(0,1fr)_320px] items-start gap-12">
-                  <div>
-                    <h1 className="text-xl font-bold text-foreground">
-                      Perfil do
-                      colecionador
+                <div
+                  className="
+                    grid
+                    grid-cols-[minmax(0,1fr)_320px]
+                    items-start
+                    gap-12
+                  "
+                >
+                  <div
+                    className="
+                      min-w-0
+                    "
+                  >
+                    <h1
+                      className="
+                        text-[28px]
+                        font-bold
+                        leading-[34px]
+                        tracking-[-0.02em]
+                        text-[var(--color-foreground-kurio)]
+                      "
+                    >
+                      Perfil do colecionador
                     </h1>
 
-                    <p className="mt-2 text-[11px] text-[var(--color-text-secondary)]">
+                    <p
+                      className="
+                        mt-1.75
+                        text-[13px]
+                        leading-5
+                        text-[var(--color-text-secondary)]
+                      "
+                    >
                       Preencha os dados
-                      necessários para
-                      concluir sua
-                      compra.
+                      necessários para concluir
+                      sua compra.
                     </p>
 
-                    <div className="mt-6 border border-[var(--color-border-kurio)] bg-[var(--color-surface-card)] p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h2 className="text-[12px] font-bold text-foreground">
-                            Carteira cadastrada
-                          </h2>
-
-                          <p className="mt-1 text-[10px] text-[var(--color-text-secondary)]">
-                            Escolha uma carteira compatível com a rede da cotação e simule a conexão antes de pagar.
-                          </p>
-                        </div>
-
-                        <span
-                          aria-live="polite"
-                          className="text-[9px] font-bold uppercase text-[var(--color-text-secondary)]"
-                        >
-                          {walletConnectionStatus ===
-                          'connected'
-                            ? 'Conectada'
-                            : walletConnectionStatus ===
-                                'refused'
-                              ? 'Recusada'
-                              : 'Desconectada'}
-                        </span>
-                      </div>
-
-                      <label className="mt-4 block text-[10px] font-bold text-foreground">
-                        Carteira
-                      </label>
-
-                      <select
+                    <div
+                      className="
+                        mt-6.5
+                      "
+                    >
+                      <CollectorProfileForm
                         value={
-                          selectedWalletId
+                          profile
                         }
-                        onChange={(event) => {
-                          handleWalletSelection(
-                            event.target.value,
+                        onChange={(
+                          nextProfile,
+                        ) => {
+                          setProfile(
+                            nextProfile,
                           )
+
+                          if (
+                            submitError
+                          ) {
+                            setSubmitError(
+                              null,
+                            )
+                          }
                         }}
                         disabled={
-                          isWalletsPending ||
                           isOrderPending
                         }
-                        className="mt-2 h-10 w-full border border-[var(--color-border-kurio)] bg-background px-3 text-[11px] text-foreground outline-none"
-                      >
-                        <option value="">
-                          {isWalletsPending
-                            ? 'Carregando carteiras...'
-                            : compatibleWallets.length >
-                                0
-                              ? 'Selecione uma carteira'
-                              : 'Nenhuma carteira compatível'}
-                        </option>
-
-                        {compatibleWallets.map(
-                          (wallet) => (
-                            <option
-                              key={
-                                wallet.id
-                              }
-                              value={
-                                wallet.id
-                              }
-                            >
-                              {
-                                wallet.nickname
-                              }{' '}
-                              ·{' '}
-                              {
-                                wallet.network
-                              }{' '}
-                              ·{' '}
-                              {
-                                wallet.address
-                              }
-                            </option>
-                          ),
-                        )}
-                      </select>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {walletConnectionStatus !==
-                        'connected' ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={
-                                handleConnectWallet
-                              }
-                              disabled={
-                                !selectedWallet ||
-                                isOrderPending
-                              }
-                              className="h-8 bg-[var(--color-primary-kurio)] px-4 text-[10px] font-bold text-[var(--color-ink)] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Conectar carteira
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={
-                                handleRefuseWalletConnection
-                              }
-                              disabled={
-                                !selectedWallet ||
-                                isOrderPending
-                              }
-                              className="h-8 border border-[var(--color-border-kurio)] px-4 text-[10px] font-bold text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Simular recusa
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={
-                              handleDisconnectWallet
-                            }
-                            disabled={
-                              isOrderPending
-                            }
-                            className="h-8 border border-[var(--color-border-kurio)] px-4 text-[10px] font-bold text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            Desconectar
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
-                      <CollectorProfileForm
-                      value={profile}
-                      onChange={(
-                        nextProfile,
-                      ) => {
-                        setProfile(
-                          nextProfile,
-                        )
-
-                        if (
-                          submitError
-                        ) {
-                          setSubmitError(
-                            null,
-                          )
-                        }
-                      }}
-                      disabled={
-                        isOrderPending
-                      }
-                    />
+                      />
                     </div>
                   </div>
 
-                  <aside>
-                    <h2 className="text-base font-bold text-foreground">
+                  <aside
+                    className="
+                      min-w-0
+                    "
+                  >
+                    <h2
+                      className="
+                        text-base
+                        font-bold
+                        leading-[22px]
+                        text-[var(--color-foreground-kurio)]
+                      "
+                    >
                       Seus NFTs
                     </h2>
 
-                    <div className="mt-5 space-y-4">
+                    <div
+                      className="
+                        mt-3.25
+                        flex
+                        items-center
+                        justify-between
+                        border-b
+                        border-[var(--color-border-kurio)]
+                        pb-2
+                        text-[10px]
+                        leading-[15px]
+                        text-[var(--color-text-secondary)]
+                      "
+                    >
+                      <span>
+                        NFTs
+                      </span>
+
+                      <span>
+                        Subtotal
+                      </span>
+                    </div>
+
+                    <div
+                      className="
+                        mt-2
+                        space-y-[8px]
+                      "
+                    >
                       {quote.items.map(
-                        (item) => (
+                        (
+                          item,
+                        ) => (
                           <div
                             key={
                               item.nftId
                             }
                             className="
-                              flex items-center
-                              gap-3
-                              border-b
-                              border-[var(--color-border-kurio)]
-                              pb-4
+                              flex
+                              min-h-16.5
+                              items-center
+                              gap-2.5
+                              rounded-md
+                              bg-[var(--color-surface-card)]
+                              px-2
+                              py-1.75
                             "
                           >
                             <img
@@ -907,17 +1319,44 @@ export function CheckoutPage() {
                               alt={
                                 item.name
                               }
-                              className="size-14 rounded-[6px] object-cover"
+                              className="
+                                h-13
+                                w-13
+                                shrink-0
+                                rounded-[5px]
+                                object-cover
+                              "
                             />
 
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[11px] font-bold text-foreground">
+                            <div
+                              className="
+                                min-w-0
+                                flex-1
+                              "
+                            >
+                              <p
+                                className="
+                                  truncate
+                                  text-xs
+                                  font-bold
+                                  leading-[17px]
+                                  text-[var(--color-foreground-kurio)]
+                                "
+                              >
                                 {
                                   item.name
                                 }
                               </p>
 
-                              <p className="mt-1 text-[9px] text-[var(--color-text-secondary)]">
+                              <p
+                                className="
+                                  mt-0.5
+                                  truncate
+                                  text-[10px]
+                                  leading-[15px]
+                                  text-[var(--color-text-secondary)]
+                                "
+                              >
                                 {
                                   item.tokenId
                                 }{' '}
@@ -928,7 +1367,15 @@ export function CheckoutPage() {
                               </p>
                             </div>
 
-                            <span className="text-[10px] font-bold text-foreground">
+                            <span
+                              className="
+                                shrink-0
+                                text-[11px]
+                                font-bold
+                                leading-4
+                                text-[var(--color-text-accent)]
+                              "
+                            >
                               {
                                 item.subtotalEth
                               }{' '}
@@ -939,13 +1386,95 @@ export function CheckoutPage() {
                       )}
                     </div>
 
-                    <div className="mt-5 space-y-2.5 text-[10px]">
-                      <div className="flex justify-between gap-4">
-                        <span>
+                    {couponCode && (
+                      <div
+                        className="
+                          mt-3.25
+                          flex
+                          items-center
+                          justify-between
+                          rounded-[5px]
+                          border
+                          border-[var(--color-primary-kurio)]/35
+                          bg-[var(--color-primary-kurio)]/8
+                          px-2.5
+                          py-2
+                        "
+                      >
+                        <div>
+                          <p
+                            className="
+                              text-[9px]
+                              uppercase
+                              leading-[13px]
+                              text-[var(--color-text-secondary)]
+                            "
+                          >
+                            Cupom aplicado
+                          </p>
+
+                          <p
+                            className="
+                              mt-0.25
+                              text-[11px]
+                              font-bold
+                              leading-4
+                              text-[var(--color-text-accent)]
+                            "
+                          >
+                            {
+                              couponCode
+                            }
+                          </p>
+                        </div>
+
+                        <span
+                          className="
+                            rounded-sm
+                            bg-[var(--color-primary-kurio)]
+                            px-1.5
+                            py-0.5
+                            text-[8px]
+                            font-bold
+                            leading-[12px]
+                            text-[var(--color-ink)]
+                          "
+                        >
+                          APLICADO
+                        </span>
+                      </div>
+                    )}
+
+                    <div
+                      className="
+                        mt-4
+                        space-y-[10px]
+                        text-[11px]
+                        leading-4
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                        "
+                      >
+                        <span
+                          className="
+                            text-[var(--color-text-secondary)]
+                          "
+                        >
                           Subtotal
                         </span>
 
-                        <span>
+                        <span
+                          className="
+                            font-medium
+                            text-[var(--color-foreground-kurio)]
+                          "
+                        >
                           {
                             quote.subtotalEth
                           }{' '}
@@ -953,12 +1482,35 @@ export function CheckoutPage() {
                         </span>
                       </div>
 
-                      <div className="flex justify-between gap-4">
-                        <span>
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                        "
+                      >
+                        <span
+                          className="
+                            text-[var(--color-text-secondary)]
+                          "
+                        >
                           Desconto
                         </span>
 
-                        <span>
+                        <span
+                          className={`
+                            font-medium
+                            ${
+                              Number(
+                                quote.discountEth,
+                              ) >
+                              0
+                                ? 'text-[var(--color-text-accent)]'
+                                : 'text-[var(--color-foreground-kurio)]'
+                            }
+                          `}
+                        >
                           (-){' '}
                           {
                             quote.discountEth
@@ -967,35 +1519,75 @@ export function CheckoutPage() {
                         </span>
                       </div>
 
-                      <div className="flex justify-between gap-4">
-                        <span>
+                      <div
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                        "
+                      >
+                        <span
+                          className="
+                            text-[var(--color-text-secondary)]
+                          "
+                        >
                           Taxa de rede
                         </span>
 
-                        <span>
+                        <span
+                          className="
+                            font-medium
+                            text-[var(--color-foreground-kurio)]
+                          "
+                        >
                           {
                             quote.networkFeeEth
                           }{' '}
                           ETH
                         </span>
                       </div>
+
+                      <p
+                        className="
+                          text-right
+                          text-[9px]
+                          leading-[13px]
+                          text-[var(--color-text-accent)]
+                        "
+                      >
+                        Taxa estimada
+                      </p>
                     </div>
 
                     <div
                       className="
-                        mt-4
-                        flex items-center
+                        mt-3.5
+                        flex
+                        items-center
                         justify-between
                         border-t
                         border-[var(--color-border-kurio)]
-                        pt-4
+                        pt-3.25
                       "
                     >
-                      <span className="text-[11px] font-bold">
+                      <span
+                        className="
+                          text-[13px]
+                          font-bold
+                          text-[var(--color-foreground-kurio)]
+                        "
+                      >
                         Total
                       </span>
 
-                      <span className="text-[13px] font-bold text-[var(--color-text-accent)]">
+                      <span
+                        className="
+                          text-[15px]
+                          font-bold
+                          text-[var(--color-text-accent)]
+                        "
+                      >
                         {
                           quote.totalEth
                         }{' '}
@@ -1003,29 +1595,438 @@ export function CheckoutPage() {
                       </span>
                     </div>
 
-                    <div className="mt-7">
-                      <WalletProviderSelector
-                        value={
-                          walletProvider
-                        }
-                        onChange={
-                          setWalletProvider
-                        }
-                        disabled={
-                          isOrderPending
-                        }
-                      />
+                    <div
+                      className="
+                        mt-5.75
+                      "
+                    >
+                      <h3
+                        className="
+                          text-sm
+                          font-bold
+                          leading-[19px]
+                          text-[var(--color-foreground-kurio)]
+                        "
+                      >
+                        Carteira e rede
+                      </h3>
+
+                      <p
+                        className="
+                          mt-1
+                          text-[10px]
+                          leading-4
+                          text-[var(--color-text-secondary)]
+                        "
+                      >
+                        Selecione uma carteira
+                        cadastrada compatível com{' '}
+                        {formatNetwork(
+                          quote.network,
+                        )}
+                        .
+                      </p>
+
+                      <div
+                        className="
+                          mt-2.5
+                        "
+                      >
+                        <Select
+                          value={
+                            selectedWalletId
+                          }
+                          onValueChange={
+                            handleWalletSelection
+                          }
+                          disabled={
+                            isWalletsPending ||
+                            isOrderPending
+                          }
+                        >
+                          <SelectTrigger
+                            className="
+                              h-10
+                              w-full
+                              rounded-md
+                              border-[var(--color-border-kurio)]
+                              bg-transparent
+                              px-2.75
+                              text-[11px]
+                              text-[var(--color-foreground-kurio)]
+                              shadow-none
+                              focus-visible:border-[var(--color-primary-kurio)]
+                              focus-visible:ring-[var(--color-primary-kurio)]/15
+                            "
+                          >
+                            <SelectValue
+                              placeholder={
+                                isWalletsPending
+                                  ? 'Carregando carteiras...'
+                                  : compatibleWallets.length >
+                                      0
+                                    ? 'Selecione uma carteira'
+                                    : 'Nenhuma carteira compatível'
+                              }
+                            />
+                          </SelectTrigger>
+
+                          <SelectContent
+                            className="
+                              border-[var(--color-border-kurio)]
+                              bg-[var(--color-surface-card)]
+                              text-[var(--color-foreground-kurio)]
+                            "
+                          >
+                            {compatibleWallets.map(
+                              (
+                                wallet,
+                              ) => (
+                                <SelectItem
+                                  key={
+                                    wallet.id
+                                  }
+                                  value={
+                                    wallet.id
+                                  }
+                                  className="
+                                    text-[11px]
+                                  "
+                                >
+                                  {
+                                    wallet.nickname
+                                  }{' '}
+                                  ·{' '}
+                                  {formatNetwork(
+                                    wallet.network,
+                                  )}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {selectedWallet ? (
+                        <div
+                          className="
+                            mt-2.25
+                            rounded-md
+                            border
+                            border-[var(--color-border-kurio)]
+                            bg-[var(--color-surface-card)]
+                            px-2.75
+                            py-2.5
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              items-start
+                              justify-between
+                              gap-2.5
+                            "
+                          >
+                            <div
+                              className="
+                                flex
+                                min-w-0
+                                items-start
+                                gap-2.25
+                              "
+                            >
+                              <div
+                                className="
+                                  flex
+                                  h-7.5
+                                  w-7.5
+                                  shrink-0
+                                  items-center
+                                  justify-center
+                                  rounded-full
+                                  bg-[var(--color-primary-kurio)]/12
+                                  text-[var(--color-text-accent)]
+                                "
+                              >
+                                <Wallet
+                                  size={15}
+                                  strokeWidth={1.8}
+                                />
+                              </div>
+
+                              <div
+                                className="
+                                  min-w-0
+                                "
+                              >
+                                <p
+                                  className="
+                                    truncate
+                                    text-[11px]
+                                    font-bold
+                                    leading-4
+                                    text-[var(--color-foreground-kurio)]
+                                  "
+                                >
+                                  {
+                                    selectedWallet.nickname
+                                  }
+                                </p>
+
+                                <p
+                                  className="
+                                    mt-0.5
+                                    text-[9px]
+                                    leading-[14px]
+                                    text-[var(--color-text-secondary)]
+                                  "
+                                >
+                                  {formatWalletProvider(
+                                    selectedWallet.provider,
+                                  )}{' '}
+                                  ·{' '}
+                                  {formatNetwork(
+                                    selectedWallet.network,
+                                  )}
+                                </p>
+
+                                <p
+                                  className="
+                                    mt-0.25
+                                    truncate
+                                    font-mono
+                                    text-[9px]
+                                    leading-[14px]
+                                    text-[var(--color-text-secondary)]
+                                  "
+                                >
+                                  {formatWalletAddress(
+                                    selectedWallet.address,
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            <span
+                              aria-live="polite"
+                              className={`
+                                shrink-0
+                                rounded-sm
+                                px-1.5
+                                py-0.75
+                                text-[8px]
+                                font-bold
+                                uppercase
+                                leading-[11px]
+                                ${
+                                  walletConnectionStatus ===
+                                  'connected'
+                                    ? `
+                                        bg-[var(--color-primary-kurio)]/15
+                                        text-[var(--color-text-accent)]
+                                      `
+                                    : walletConnectionStatus ===
+                                        'refused'
+                                      ? `
+                                          bg-destructive/10
+                                          text-destructive
+                                        `
+                                      : `
+                                          bg-[var(--color-ink)]
+                                          text-[var(--color-text-secondary)]
+                                        `
+                                }
+                              `}
+                            >
+                              {walletConnectionStatus ===
+                              'connected'
+                                ? 'Conectada'
+                                : walletConnectionStatus ===
+                                    'refused'
+                                  ? 'Recusada'
+                                  : 'Desconectada'}
+                            </span>
+                          </div>
+
+                          <div
+                            className="
+                              mt-2.5
+                              flex
+                              gap-1.75
+                            "
+                          >
+                            {walletConnectionStatus !==
+                            'connected' ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={
+                                    handleConnectWallet
+                                  }
+                                  disabled={
+                                    isOrderPending
+                                  }
+                                  className="
+                                    flex
+                                    h-8.5
+                                    flex-1
+                                    items-center
+                                    justify-center
+                                    gap-1.5
+                                    rounded-[5px]
+                                    bg-[var(--color-primary-kurio)]
+                                    px-2.5
+                                    text-[10px]
+                                    font-bold
+                                    text-[var(--color-ink)]
+                                    transition-opacity
+                                    hover:opacity-90
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-50
+                                  "
+                                >
+                                  <Check
+                                    size={13}
+                                    strokeWidth={2}
+                                  />
+
+                                  Conectar
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={
+                                    handleRefuseWalletConnection
+                                  }
+                                  disabled={
+                                    isOrderPending
+                                  }
+                                  className="
+                                    h-8.5
+                                    rounded-[5px]
+                                    border
+                                    border-[var(--color-border-kurio)]
+                                    px-2.5
+                                    text-[9px]
+                                    font-medium
+                                    text-[var(--color-text-secondary)]
+                                    transition-colors
+                                    hover:border-[var(--color-primary-kurio)]
+                                    hover:text-[var(--color-text-accent)]
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-50
+                                  "
+                                >
+                                  Simular recusa
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={
+                                  handleDisconnectWallet
+                                }
+                                disabled={
+                                  isOrderPending
+                                }
+                                className="
+                                  h-8.5
+                                  w-full
+                                  rounded-[5px]
+                                  border
+                                  border-[var(--color-border-kurio)]
+                                  text-[10px]
+                                  font-medium
+                                  text-[var(--color-foreground-kurio)]
+                                  transition-colors
+                                  hover:border-[var(--color-primary-kurio)]
+                                  hover:text-[var(--color-text-accent)]
+                                  disabled:cursor-not-allowed
+                                  disabled:opacity-50
+                                "
+                              >
+                                Desconectar carteira
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        !isWalletsPending && (
+                          <div
+                            className="
+                              mt-2.25
+                              rounded-md
+                              border
+                              border-[var(--color-border-kurio)]
+                              bg-[var(--color-surface-card)]
+                              px-2.75
+                              py-2.5
+                            "
+                          >
+                            <p
+                              className="
+                                text-[10px]
+                                leading-4
+                                text-[var(--color-text-secondary)]
+                              "
+                            >
+                              Nenhuma carteira
+                              cadastrada é compatível
+                              com a rede{' '}
+                              <strong
+                                className="
+                                  font-bold
+                                  text-[var(--color-foreground-kurio)]
+                                "
+                              >
+                                {formatNetwork(
+                                  quote.network,
+                                )}
+                              </strong>
+                              .
+                            </p>
+                          </div>
+                        )
+                      )}
                     </div>
 
                     {submitError && (
-                      <p
+                      <div
                         role="alert"
-                        className="mt-4 text-[10px] text-destructive"
+                        className="
+                          mt-3
+                          flex
+                          items-start
+                          gap-1.75
+                          rounded-[5px]
+                          border
+                          border-destructive/30
+                          bg-destructive/5
+                          px-2.25
+                          py-2
+                        "
                       >
-                        {
-                          submitError
-                        }
-                      </p>
+                        <CircleAlert
+                          size={13}
+                          className="
+                            mt-0.25
+                            shrink-0
+                            text-destructive
+                          "
+                        />
+
+                        <p
+                          className="
+                            text-[10px]
+                            leading-[15px]
+                            text-destructive
+                          "
+                        >
+                          {
+                            submitError
+                          }
+                        </p>
+                      </div>
                     )}
 
                     <button
@@ -1034,29 +2035,67 @@ export function CheckoutPage() {
                         handleConfirmPurchase
                       }
                       disabled={
-                        isOrderPending
+                        isOrderPending ||
+                        !selectedWallet ||
+                        walletConnectionStatus !==
+                          'connected'
                       }
                       className="
-                        mt-5
-                        h-10 w-full
+                        mt-3.5
+                        flex
+                        h-10
+                        w-full
+                        items-center
+                        justify-center
+                        gap-1.75
+                        rounded-md
                         bg-[var(--color-primary-kurio)]
-                        text-[11px] font-bold
+                        text-[11px]
+                        font-bold
                         text-[var(--color-ink)]
                         transition-opacity
+                        hover:opacity-90
                         disabled:cursor-not-allowed
-                        disabled:opacity-50
+                        disabled:opacity-45
                       "
                     >
-                      {isOrderPending
-                        ? 'Confirmando compra...'
-                        : 'Confirmar compra'}
+                      {isOrderPending ? (
+                        <>
+                          <LoaderCircle
+                            size={14}
+                            className="
+                              animate-spin
+                            "
+                          />
+
+                          Confirmando compra...
+                        </>
+                      ) : walletConnectionStatus !==
+                        'connected' ? (
+                        'Conecte a carteira'
+                      ) : (
+                        'Confirmar compra'
+                      )}
                     </button>
                   </aside>
                 </div>
               </section>
             )}
         </PageContainer>
+
+        {!isEmpty &&
+          quote && (
+            <div
+              className="
+                pb-18
+              "
+            >
+              <BenefitsSection />
+            </div>
+          )}
       </main>
+
+      <Footer />
     </div>
   )
 }
