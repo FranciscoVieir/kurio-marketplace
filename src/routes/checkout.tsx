@@ -488,6 +488,63 @@ export function CheckoutPage() {
       null,
     )
 
+  /*
+   * A quote representa o snapshot validado
+   * pelo backend no início do checkout.
+   *
+   * Eventos nft.updated atualizam o snapshot
+   * mantido pelo carrinho. Se preço, estoque,
+   * quantidade ou versão deixarem de coincidir,
+   * a quote antiga não pode mais ser confirmada.
+   *
+   * Depois que uma tentativa de pedido já começou,
+   * mantemos a mesma quote/chave de idempotência.
+   * Isso é necessário para recuperar corretamente
+   * o mesmo pedido após timeout, sem criar outro.
+   */
+  const changedQuoteItems =
+    quote
+      ? items.filter(
+          (item) => {
+            const quotedItem =
+              quote.items.find(
+                (
+                  candidate,
+                ) =>
+                  candidate.nftId ===
+                  item.nftId,
+              )
+
+            if (!quotedItem) {
+              return true
+            }
+
+            return (
+              quotedItem.quantity !==
+                item.quantity ||
+              quotedItem.version !==
+                item.version ||
+              quotedItem.unitPriceEth !==
+                item.priceEth ||
+              quotedItem.availableQuantity !==
+                item.availableQuantity
+            )
+          },
+        )
+      : []
+
+  const quoteNeedsRevalidation =
+    Boolean(
+      quote &&
+        (
+          quote.items.length !==
+            items.length ||
+          changedQuoteItems.length >
+            0
+        ) &&
+        !idempotencyKeyRef.current,
+    )
+
   const compatibleWallets =
     quote
       ? wallets.filter(
@@ -957,6 +1014,16 @@ export function CheckoutPage() {
 
   function handleConfirmPurchase() {
     if (!quote) {
+      return
+    }
+
+    if (
+      quoteNeedsRevalidation
+    ) {
+      setSubmitError(
+        'A cotação está desatualizada. Revalide preço e disponibilidade antes de confirmar a compra.',
+      )
+
       return
     }
 
@@ -1895,6 +1962,138 @@ export function CheckoutPage() {
                     </div>
                   </div>
 
+                  {quoteNeedsRevalidation && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="
+                        mt-[14px]
+                        rounded-[10px]
+                        border
+                        border-[var(--color-primary-kurio)]/40
+                        bg-[var(--color-primary-kurio)]/8
+                        px-[12px]
+                        py-[11px]
+                      "
+                    >
+                      <div
+                        className="
+                          flex
+                          items-start
+                          gap-[8px]
+                        "
+                      >
+                        <RefreshCw
+                          size={14}
+                          className="
+                            mt-[2px]
+                            shrink-0
+                            text-[var(--color-text-accent)]
+                          "
+                        />
+
+                        <div
+                          className="
+                            min-w-0
+                            flex-1
+                          "
+                        >
+                          <p
+                            className="
+                              text-[12px]
+                              font-bold
+                              leading-[17px]
+                              text-[var(--color-foreground-kurio)]
+                            "
+                          >
+                            Preço ou disponibilidade
+                            atualizados
+                          </p>
+
+                          <p
+                            className="
+                              mt-[3px]
+                              text-[11px]
+                              leading-[17px]
+                              text-[var(--color-text-secondary)]
+                            "
+                          >
+                            A cotação exibida foi
+                            criada antes dessa
+                            alteração. Revalide para
+                            atualizar o resumo antes
+                            de confirmar.
+                          </p>
+
+                          {changedQuoteItems.map(
+                            (item) => (
+                              <p
+                                key={
+                                  item.nftId
+                                }
+                                className="
+                                  mt-[5px]
+                                  text-[10px]
+                                  leading-[15px]
+                                  text-[var(--color-text-accent)]
+                                "
+                              >
+                                {item.name}:{' '}
+                                {item.priceEth}{' '}
+                                ETH ·{' '}
+                                {
+                                  item.availableQuantity
+                                }{' '}
+                                disponíveis
+                              </p>
+                            ),
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={
+                          handleRetryQuote
+                        }
+                        disabled={
+                          isQuotePending
+                        }
+                        className="
+                          mt-[10px]
+                          flex
+                          h-[36px]
+                          w-full
+                          items-center
+                          justify-center
+                          gap-[6px]
+                          rounded-[18px]
+                          border
+                          border-[var(--color-primary-kurio)]/45
+                          bg-[var(--color-primary-kurio)]
+                          text-[11px]
+                          font-bold
+                          text-[var(--color-ink)]
+                          transition-opacity
+                          active:opacity-80
+                          disabled:cursor-not-allowed
+                          disabled:opacity-45
+                        "
+                      >
+                        <RefreshCw
+                          size={13}
+                          className={
+                            isQuotePending
+                              ? 'animate-spin'
+                              : undefined
+                          }
+                        />
+
+                        Revalidar cotação
+                      </button>
+                    </div>
+                  )}
+
                   {/* Erro */}
                   {submitError && (
                     <div
@@ -1950,6 +2149,8 @@ export function CheckoutPage() {
                       }
                       disabled={
                         isOrderPending ||
+                        isQuotePending ||
+                        quoteNeedsRevalidation ||
                         !selectedWallet
                       }
                       className="
@@ -2409,6 +2610,137 @@ export function CheckoutPage() {
                       </span>
                     </div>
 
+                    {quoteNeedsRevalidation && (
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className="
+                          mt-3.5
+                          rounded-md
+                          border
+                          border-[var(--color-primary-kurio)]/40
+                          bg-[var(--color-primary-kurio)]/8
+                          px-2.75
+                          py-2.5
+                        "
+                      >
+                        <div
+                          className="
+                            flex
+                            items-start
+                            gap-2
+                          "
+                        >
+                          <RefreshCw
+                            size={14}
+                            className="
+                              mt-0.5
+                              shrink-0
+                              text-[var(--color-text-accent)]
+                            "
+                          />
+
+                          <div
+                            className="
+                              min-w-0
+                              flex-1
+                            "
+                          >
+                            <p
+                              className="
+                                text-[11px]
+                                font-bold
+                                leading-4
+                                text-[var(--color-foreground-kurio)]
+                              "
+                            >
+                              Preço ou disponibilidade
+                              atualizados
+                            </p>
+
+                            <p
+                              className="
+                                mt-1
+                                text-[10px]
+                                leading-[15px]
+                                text-[var(--color-text-secondary)]
+                              "
+                            >
+                              A cotação atual está
+                              desatualizada. Revalide
+                              para recalcular o resumo
+                              antes de confirmar.
+                            </p>
+
+                            {changedQuoteItems.map(
+                              (item) => (
+                                <p
+                                  key={
+                                    item.nftId
+                                  }
+                                  className="
+                                    mt-1
+                                    text-[9px]
+                                    leading-[14px]
+                                    text-[var(--color-text-accent)]
+                                  "
+                                >
+                                  {item.name}:{' '}
+                                  {item.priceEth}{' '}
+                                  ETH ·{' '}
+                                  {
+                                    item.availableQuantity
+                                  }{' '}
+                                  disponíveis
+                                </p>
+                              ),
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={
+                            handleRetryQuote
+                          }
+                          disabled={
+                            isQuotePending
+                          }
+                          className="
+                            mt-2.5
+                            flex
+                            h-9
+                            w-full
+                            items-center
+                            justify-center
+                            gap-1.5
+                            rounded-md
+                            border
+                            border-[var(--color-primary-kurio)]/45
+                            bg-[var(--color-primary-kurio)]
+                            text-[10px]
+                            font-bold
+                            text-[var(--color-ink)]
+                            transition-opacity
+                            hover:opacity-90
+                            disabled:cursor-not-allowed
+                            disabled:opacity-45
+                          "
+                        >
+                          <RefreshCw
+                            size={12}
+                            className={
+                              isQuotePending
+                                ? 'animate-spin'
+                                : undefined
+                            }
+                          />
+
+                          Revalidar cotação
+                        </button>
+                      </div>
+                    )}
+
                     <div
                       className="
                         mt-5.75
@@ -2850,6 +3182,8 @@ export function CheckoutPage() {
                       }
                       disabled={
                         isOrderPending ||
+                        isQuotePending ||
+                        quoteNeedsRevalidation ||
                         !selectedWallet ||
                         walletConnectionStatus !==
                           'connected'
