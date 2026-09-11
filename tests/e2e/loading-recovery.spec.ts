@@ -149,7 +149,7 @@ test.describe(
 
             if (
               url.pathname ===
-              '/api/nfts' &&
+                '/api/nfts' &&
               response
                 .request()
                 .method() ===
@@ -200,13 +200,17 @@ test.describe(
          * retry: 1 realmente produziu
          * duas falhas antes do estado
          * de erro ser apresentado.
+         *
+         * Não validamos o array inteiro
+         * porque outros refetches válidos
+         * podem ocorrer em background.
          */
         expect(
-          catalogStatuses,
-        ).toEqual([
-          503,
-          503,
-        ])
+          catalogStatuses.filter(
+            (status) =>
+              status === 503,
+          ),
+        ).toHaveLength(2)
 
         const retryButton =
           errorFeedback.getByRole(
@@ -228,7 +232,7 @@ test.describe(
          * O contador do cenário já
          * consumiu as duas falhas.
          *
-         * A terceira request deve usar
+         * A nova tentativa deve usar
          * o handler normal e retornar
          * sucesso.
          */
@@ -246,13 +250,31 @@ test.describe(
           errorFeedback,
         ).toBeHidden()
 
+        /*
+         * Continua exigindo exatamente
+         * duas respostas 503...
+         */
         expect(
-          catalogStatuses,
-        ).toEqual([
-          503,
-          503,
-          200,
-        ])
+          catalogStatuses.filter(
+            (status) =>
+              status === 503,
+          ),
+        ).toHaveLength(2)
+
+        /*
+         * ...e pelo menos uma resposta
+         * 200 após a recuperação.
+         *
+         * Refetches adicionais com 200
+         * são válidos e não representam
+         * falha funcional.
+         */
+        expect(
+          catalogStatuses.some(
+            (status) =>
+              status === 200,
+          ),
+        ).toBe(true)
       },
     )
   },
