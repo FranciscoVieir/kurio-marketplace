@@ -49,13 +49,43 @@ export function ProfileFavoritesPage() {
     0
   ) {
     return (
-      <section className="w-full max-w-225">
+      <section
+        className="
+          w-full
+          max-w-225
+
+          max-md:mx-auto
+          max-md:max-w-[366px]
+        "
+      >
         <div>
-          <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
+          <h1
+            className="
+              text-xl
+              font-semibold
+              leading-7
+              text-[var(--color-foreground-kurio)]
+
+              max-md:text-[20px]
+              max-md:font-bold
+              max-md:leading-[24px]
+            "
+          >
             Lista de interesse
           </h1>
 
-          <p className="mt-1.5 text-xs leading-5 text-[var(--color-text-secondary)]">
+          <p
+            className="
+              mt-1.5
+              text-xs
+              leading-5
+              text-[var(--color-text-secondary)]
+
+              max-md:mt-[6px]
+              max-md:text-[13px]
+              max-md:leading-[20px]
+            "
+          >
             NFTs que você salvou para acompanhar depois.
           </p>
         </div>
@@ -75,6 +105,12 @@ export function ProfileFavoritesPage() {
             px-6
             py-10
             text-center
+
+            max-md:mt-[24px]
+            max-md:min-h-[280px]
+            max-md:rounded-[14px]
+            max-md:px-[20px]
+            max-md:py-[32px]
           "
         >
           <div
@@ -87,6 +123,8 @@ export function ProfileFavoritesPage() {
               border
               border-[rgba(210,138,76,0.24)]
               bg-[rgba(210,138,76,0.08)]
+
+              max-md:size-[52px]
             "
           >
             <Heart
@@ -96,11 +134,35 @@ export function ProfileFavoritesPage() {
             />
           </div>
 
-          <h2 className="mt-5 text-base font-semibold text-[var(--color-foreground-kurio)]">
+          <h2
+            className="
+              mt-5
+              text-base
+              font-semibold
+              text-[var(--color-foreground-kurio)]
+
+              max-md:mt-[18px]
+              max-md:text-[16px]
+              max-md:font-bold
+              max-md:leading-[22px]
+            "
+          >
             Sua lista está vazia
           </h2>
 
-          <p className="mt-2 max-w-sm text-xs leading-5 text-[var(--color-text-secondary)]">
+          <p
+            className="
+              mt-2
+              max-w-sm
+              text-xs
+              leading-5
+              text-[var(--color-text-secondary)]
+
+              max-md:max-w-[280px]
+              max-md:text-[13px]
+              max-md:leading-[20px]
+            "
+          >
             Favorite NFTs no marketplace para encontrá-los rapidamente aqui.
           </p>
 
@@ -124,6 +186,14 @@ export function ProfileFavoritesPage() {
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[var(--color-primary-kurio)]/30
+
+              max-md:mt-[22px]
+              max-md:h-[48px]
+              max-md:w-full
+              max-md:max-w-[260px]
+              max-md:rounded-[24px]
+              max-md:text-[14px]
+              max-md:font-bold
             "
           >
             Explorar NFTs
@@ -137,10 +207,42 @@ export function ProfileFavoritesPage() {
     return (
       <section
         aria-label="Carregando lista de interesse"
-        className="w-full max-w-225"
+        className="
+          w-full
+          max-w-225
+
+          max-md:mx-auto
+          max-md:max-w-[366px]
+        "
       >
-        <div className="h-7 w-48 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
-        <div className="mt-2 h-4 w-64 animate-pulse rounded-sm bg-[var(--color-surface-card)]" />
+        <div
+          className="
+            h-7
+            w-48
+            animate-pulse
+            rounded-md
+            bg-[var(--color-surface-card)]
+
+            max-md:h-[24px]
+            max-md:w-[180px]
+            max-md:rounded-[8px]
+          "
+        />
+
+        <div
+          className="
+            mt-2
+            h-4
+            w-64
+            animate-pulse
+            rounded-sm
+            bg-[var(--color-surface-card)]
+
+            max-md:mt-[8px]
+            max-md:w-[220px]
+            max-md:max-w-full
+          "
+        />
 
         <div
           className="
@@ -149,6 +251,10 @@ export function ProfileFavoritesPage() {
             gap-5
             sm:grid-cols-2
             xl:grid-cols-3
+
+            max-md:mt-[24px]
+            max-md:grid-cols-1
+            max-md:gap-[14px]
           "
         >
           {Array.from({
@@ -163,11 +269,21 @@ export function ProfileFavoritesPage() {
                   border
                   border-[var(--color-border-kurio)]
                   bg-[var(--color-surface-card)]
+
+                  max-md:rounded-[14px]
                 "
               >
                 <div className="aspect-square w-full animate-pulse bg-[var(--color-border-kurio)]" />
 
-                <div className="space-y-4 p-4">
+                <div
+                  className="
+                    space-y-4
+                    p-4
+
+                    max-md:space-y-[14px]
+                    max-md:p-[14px]
+                  "
+                >
                   <div className="space-y-2">
                     <div className="h-4 w-2/3 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
                     <div className="h-3 w-1/2 animate-pulse rounded-sm bg-[var(--color-border-kurio)]" />
@@ -194,7 +310,15 @@ export function ProfileFavoritesPage() {
 
   if (isError) {
     return (
-      <section className="w-full max-w-225">
+      <section
+        className="
+          w-full
+          max-w-225
+
+          max-md:mx-auto
+          max-md:max-w-[366px]
+        "
+      >
         <div
           role="alert"
           className="
@@ -204,6 +328,10 @@ export function ProfileFavoritesPage() {
             bg-red-400/5
             px-5
             py-4
+
+            max-md:rounded-[14px]
+            max-md:px-[16px]
+            max-md:py-[14px]
           "
         >
           <div className="flex items-start gap-3">
@@ -212,12 +340,31 @@ export function ProfileFavoritesPage() {
               className="mt-0.5 shrink-0 text-red-400"
             />
 
-            <div>
-              <p className="text-sm font-semibold text-[var(--color-foreground-kurio)]">
+            <div className="min-w-0">
+              <p
+                className="
+                  text-sm
+                  font-semibold
+                  text-[var(--color-foreground-kurio)]
+
+                  max-md:text-[14px]
+                  max-md:leading-[20px]
+                "
+              >
                 Não foi possível carregar sua lista de interesse
               </p>
 
-              <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">
+              <p
+                className="
+                  mt-1
+                  text-xs
+                  leading-5
+                  text-[var(--color-text-secondary)]
+
+                  max-md:text-[13px]
+                  max-md:leading-[20px]
+                "
+              >
                 Tente novamente em alguns instantes.
               </p>
             </div>
@@ -228,13 +375,43 @@ export function ProfileFavoritesPage() {
   }
 
   return (
-    <section className="w-full max-w-225">
+    <section
+      className="
+        w-full
+        max-w-225
+
+        max-md:mx-auto
+        max-md:max-w-[366px]
+      "
+    >
       <div>
-        <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
+        <h1
+          className="
+            text-xl
+            font-semibold
+            leading-7
+            text-[var(--color-foreground-kurio)]
+
+            max-md:text-[20px]
+            max-md:font-bold
+            max-md:leading-[24px]
+          "
+        >
           Lista de interesse
         </h1>
 
-        <p className="mt-1.5 text-xs leading-5 text-[var(--color-text-secondary)]">
+        <p
+          className="
+            mt-1.5
+            text-xs
+            leading-5
+            text-[var(--color-text-secondary)]
+
+            max-md:mt-[6px]
+            max-md:text-[13px]
+            max-md:leading-[20px]
+          "
+        >
           {favoriteIds.length}{' '}
           {favoriteIds.length ===
           1
@@ -250,6 +427,10 @@ export function ProfileFavoritesPage() {
           gap-5
           sm:grid-cols-2
           xl:grid-cols-3
+
+          max-md:mt-[24px]
+          max-md:grid-cols-1
+          max-md:gap-[14px]
         "
       >
         {nfts.map(
@@ -281,6 +462,8 @@ export function ProfileFavoritesPage() {
                   bg-[var(--color-surface-card)]
                   transition
                   hover:border-[rgba(210,138,76,0.28)]
+
+                  max-md:rounded-[14px]
                 "
               >
                 <div className="relative overflow-hidden">
@@ -340,6 +523,10 @@ export function ProfileFavoritesPage() {
                       backdrop-blur-sm
                       hover:bg-[rgba(20,13,10,0.9)]
                       hover:text-[var(--color-text-accent)]
+
+                      max-md:right-[12px]
+                      max-md:top-[12px]
+                      max-md:size-[36px]
                     "
                   >
                     <Heart
@@ -350,7 +537,13 @@ export function ProfileFavoritesPage() {
                   </Button>
                 </div>
 
-                <div className="p-4">
+                <div
+                  className="
+                    p-4
+
+                    max-md:p-[14px]
+                  "
+                >
                   <div className="min-w-0">
                     <Link
                       to="/nft/$nftId"
@@ -370,6 +563,10 @@ export function ProfileFavoritesPage() {
                         focus-visible:outline-none
                         focus-visible:ring-1
                         focus-visible:ring-[var(--color-primary-kurio)]
+
+                        max-md:text-[15px]
+                        max-md:font-bold
+                        max-md:leading-[20px]
                       "
                     >
                       {
@@ -377,20 +574,64 @@ export function ProfileFavoritesPage() {
                       }
                     </Link>
 
-                    <p className="mt-1 truncate text-[11px] leading-4 text-[var(--color-text-secondary)]">
+                    <p
+                      className="
+                        mt-1
+                        truncate
+                        text-[11px]
+                        leading-4
+                        text-[var(--color-text-secondary)]
+
+                        max-md:text-[12px]
+                        max-md:leading-[16px]
+                      "
+                    >
                       {
                         nft.collection
                       }
                     </p>
                   </div>
 
-                  <div className="mt-5 flex items-end justify-between gap-3">
+                  <div
+                    className="
+                      mt-5
+                      flex
+                      items-end
+                      justify-between
+                      gap-3
+
+                      max-md:mt-[16px]
+                    "
+                  >
                     <div>
-                      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--color-text-secondary)]">
+                      <p
+                        className="
+                          text-[10px]
+                          font-medium
+                          uppercase
+                          tracking-[0.08em]
+                          text-[var(--color-text-secondary)]
+
+                          max-md:text-[10px]
+                          max-md:leading-[14px]
+                        "
+                      >
                         Preço
                       </p>
 
-                      <p className="mt-1 text-base font-semibold leading-6 text-[var(--color-text-accent)]">
+                      <p
+                        className="
+                          mt-1
+                          text-base
+                          font-semibold
+                          leading-6
+                          text-[var(--color-text-accent)]
+
+                          max-md:text-[16px]
+                          max-md:font-bold
+                          max-md:leading-[20px]
+                        "
+                      >
                         {
                           nft.priceEth
                         }{' '}
@@ -410,6 +651,11 @@ export function ProfileFavoritesPage() {
                         uppercase
                         tracking-[0.06em]
                         text-[var(--color-text-secondary)]
+
+                        max-md:rounded-[12px]
+                        max-md:px-[9px]
+                        max-md:py-[5px]
+                        max-md:text-[10px]
                       "
                     >
                       {
@@ -445,6 +691,12 @@ export function ProfileFavoritesPage() {
                       hover:opacity-90
                       disabled:cursor-not-allowed
                       disabled:opacity-40
+
+                      max-md:mt-[14px]
+                      max-md:h-[48px]
+                      max-md:rounded-[24px]
+                      max-md:text-[14px]
+                      max-md:font-bold
                     "
                   >
                     <ShoppingCart

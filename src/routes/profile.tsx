@@ -129,6 +129,12 @@ const inputClassName = `
   focus-visible:ring-[var(--color-primary-kurio)]/15
   disabled:cursor-not-allowed
   disabled:opacity-50
+
+  max-md:h-[44px]
+  max-md:rounded-[10px]
+  max-md:px-[14px]
+  max-md:text-[14px]
+  max-md:leading-[20px]
 `
 
 type FieldProps = {
@@ -144,7 +150,20 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-medium leading-4 text-[var(--color-foreground-kurio)]">
+      <span
+        className="
+          mb-2
+          block
+          text-xs
+          font-medium
+          leading-4
+          text-[var(--color-foreground-kurio)]
+
+          max-md:mb-[7px]
+          max-md:text-[13px]
+          max-md:leading-[18px]
+        "
+      >
         {label}
 
         {required && (
@@ -221,6 +240,9 @@ function PasswordField({
             text-[var(--color-text-secondary)]
             transition
             hover:text-[var(--color-foreground-kurio)]
+
+            max-md:h-[44px]
+            max-md:w-[44px]
           "
         >
           {visible ? (
@@ -665,18 +687,56 @@ export function ProfilePage() {
     return (
       <section
         aria-label="Carregando perfil"
-        className="w-full max-w-225"
-      >
-        <div className="h-7 w-48 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+        className="
+          w-full
+          max-w-225
 
-        <div className="mt-7 grid gap-x-6 gap-y-4 md:grid-cols-2">
+          max-md:max-w-none
+          max-md:pb-[32px]
+        "
+      >
+        <div
+          className="
+            h-7
+            w-48
+            animate-pulse
+            rounded-md
+            bg-[var(--color-surface-card)]
+
+            max-md:h-[24px]
+            max-md:w-[190px]
+          "
+        />
+
+        <div
+          className="
+            mt-7
+            grid
+            gap-x-6
+            gap-y-4
+            md:grid-cols-2
+
+            max-md:mt-[24px]
+            max-md:gap-y-[16px]
+          "
+        >
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
               className="space-y-2"
             >
               <div className="h-4 w-24 animate-pulse rounded-sm bg-[var(--color-surface-card)]" />
-              <div className="h-10 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+              <div
+                className="
+                  h-10
+                  animate-pulse
+                  rounded-md
+                  bg-[var(--color-surface-card)]
+
+                  max-md:h-[44px]
+                  max-md:rounded-[10px]
+                "
+              />
             </div>
           ))}
         </div>
@@ -696,8 +756,27 @@ export function ProfilePage() {
   }
 
   return (
-    <section className="w-full max-w-225">
-      <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
+    <section
+      className="
+        w-full
+        max-w-225
+
+        max-md:max-w-none
+        max-md:pb-[36px]
+      "
+    >
+      <h1
+        className="
+          text-xl
+          font-semibold
+          leading-7
+          text-[var(--color-foreground-kurio)]
+
+          max-md:text-[20px]
+          max-md:font-bold
+          max-md:leading-[24px]
+        "
+      >
         Perfil do colecionador
       </h1>
 
@@ -705,9 +784,22 @@ export function ProfilePage() {
         onSubmit={
           handleProfileSubmit
         }
-        className="mt-6"
+        className="
+          mt-6
+
+          max-md:mt-[20px]
+        "
       >
-        <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+        <div
+          className="
+            grid
+            gap-x-6
+            gap-y-4
+            md:grid-cols-2
+
+            max-md:gap-y-[16px]
+          "
+        >
           <Field
             label="Nome de exibição"
             required
@@ -808,6 +900,11 @@ export function ProfilePage() {
                   text-[11px]
                   font-medium
                   text-[var(--color-text-secondary)]
+
+                  max-md:h-[44px]
+                  max-md:rounded-r-[10px]
+                  max-md:px-[14px]
+                  max-md:text-[13px]
                 "
               >
                 .eth
@@ -835,7 +932,17 @@ export function ProfilePage() {
           </Field>
 
           <Field label="Avatar">
-            <div className="flex min-h-14 items-center gap-4">
+            <div
+              className="
+                flex
+                min-h-14
+                items-center
+                gap-4
+
+                max-md:min-h-[64px]
+                max-md:gap-[14px]
+              "
+            >
               <div
                 className="
                   flex
@@ -850,6 +957,9 @@ export function ProfilePage() {
                   bg-[var(--color-surface-card)]
                   text-xs
                   text-[var(--color-text-secondary)]
+
+                  max-md:size-[64px]
+                  max-md:text-[13px]
                 "
               >
                 {profileForm.avatar ? (
@@ -873,13 +983,38 @@ export function ProfilePage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-3
+
+                  max-md:flex-wrap
+                  max-md:gap-[8px]
+                "
+              >
                 <button
                   type="button"
                   onClick={() => {
                     fileInputRef.current?.click()
                   }}
-                  className="text-[11px] text-[var(--color-text-accent)] transition hover:opacity-70"
+                  className="
+                    text-[11px]
+                    text-[var(--color-text-accent)]
+                    transition
+                    hover:opacity-70
+
+                    max-md:flex
+                    max-md:h-[36px]
+                    max-md:items-center
+                    max-md:justify-center
+                    max-md:rounded-full
+                    max-md:border
+                    max-md:border-[var(--color-primary-kurio)]/50
+                    max-md:px-[14px]
+                    max-md:text-[12px]
+                    max-md:font-semibold
+                  "
                 >
                   Alterar
                 </button>
@@ -890,7 +1025,22 @@ export function ProfilePage() {
                     onClick={
                       removeAvatar
                     }
-                    className="text-[11px] text-[var(--color-text-secondary)] transition hover:text-red-400"
+                    className="
+                      text-[11px]
+                      text-[var(--color-text-secondary)]
+                      transition
+                      hover:text-red-400
+
+                      max-md:flex
+                      max-md:h-[36px]
+                      max-md:items-center
+                      max-md:justify-center
+                      max-md:rounded-full
+                      max-md:border
+                      max-md:border-[var(--color-border-kurio)]
+                      max-md:px-[14px]
+                      max-md:text-[12px]
+                    "
                   >
                     Remover
                   </button>
@@ -942,6 +1092,13 @@ export function ProfilePage() {
             hover:opacity-90
             disabled:cursor-not-allowed
             disabled:opacity-50
+
+            max-md:h-[48px]
+            max-md:w-full
+            max-md:rounded-[40px]
+            max-md:px-[20px]
+            max-md:text-[15px]
+            max-md:font-bold
           "
         >
           {updateProfile.isPending
@@ -955,11 +1112,24 @@ export function ProfilePage() {
           my-8
           h-px
           bg-[var(--color-border-kurio)]
+
+          max-md:my-[28px]
         "
       />
 
       <section>
-        <h2 className="text-base font-semibold leading-6 text-[var(--color-foreground-kurio)]">
+        <h2
+          className="
+            text-base
+            font-semibold
+            leading-6
+            text-[var(--color-foreground-kurio)]
+
+            max-md:text-[18px]
+            max-md:font-bold
+            max-md:leading-[22px]
+          "
+        >
           Alterar senha
         </h2>
 
@@ -967,7 +1137,13 @@ export function ProfilePage() {
           onSubmit={
             handlePasswordSubmit
           }
-          className="mt-5 max-w-107.5"
+          className="
+            mt-5
+            max-w-107.5
+
+            max-md:mt-[18px]
+            max-md:max-w-none
+          "
         >
           <div className="space-y-4">
             <PasswordField
@@ -1073,6 +1249,13 @@ export function ProfilePage() {
               hover:opacity-90
               disabled:cursor-not-allowed
               disabled:opacity-50
+
+              max-md:h-[48px]
+              max-md:w-full
+              max-md:rounded-[40px]
+              max-md:px-[20px]
+              max-md:text-[15px]
+              max-md:font-bold
             "
           >
             {changePassword.isPending

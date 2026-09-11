@@ -304,9 +304,22 @@ function WalletForm({
       onSubmit={
         handleSubmit
       }
-      className="mt-5"
+      className="
+        mt-5
+
+        max-md:mt-[20px]
+      "
     >
-      <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+      <div
+        className="
+          grid
+          gap-x-6
+          gap-y-4
+          md:grid-cols-2
+
+          max-md:gap-y-[16px]
+        "
+      >
         <Field
           label="Nome de exibição"
           required
@@ -570,6 +583,11 @@ function WalletForm({
                 text-[11px]
                 font-medium
                 text-[var(--color-text-secondary)]
+
+                max-md:h-[44px]
+                max-md:rounded-r-[10px]
+                max-md:px-[14px]
+                max-md:text-[12px]
               "
             >
               .eth
@@ -594,7 +612,19 @@ function WalletForm({
         </div>
       )}
 
-      <div className="mt-5 flex items-center gap-3">
+      <div
+        className="
+          mt-5
+          flex
+          items-center
+          gap-3
+
+          max-md:mt-[20px]
+          max-md:flex-col
+          max-md:items-stretch
+          max-md:gap-[10px]
+        "
+      >
         <Button
           type="submit"
           disabled={
@@ -610,6 +640,12 @@ function WalletForm({
             text-[var(--color-ink)]
             hover:bg-[var(--color-primary-kurio)]
             hover:opacity-90
+
+            max-md:h-[48px]
+            max-md:w-full
+            max-md:rounded-[24px]
+            max-md:text-[14px]
+            max-md:font-bold
           "
         >
           {saveWallet.isPending
@@ -636,6 +672,14 @@ function WalletForm({
               text-[var(--color-text-secondary)]
               hover:bg-transparent
               hover:text-red-400
+
+              max-md:h-[44px]
+              max-md:w-full
+              max-md:justify-center
+              max-md:rounded-[22px]
+              max-md:border
+              max-md:border-[var(--color-border-kurio)]
+              max-md:text-[13px]
             "
           >
             <Trash2
@@ -663,7 +707,20 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-medium leading-4 text-[var(--color-foreground-kurio)]">
+      <span
+        className="
+          mb-2
+          block
+          text-xs
+          font-medium
+          leading-4
+          text-[var(--color-foreground-kurio)]
+
+          max-md:mb-[7px]
+          max-md:text-[13px]
+          max-md:leading-[16px]
+        "
+      >
         {label}
 
         {required && (
@@ -694,6 +751,12 @@ const inputClassName = `
   focus-visible:ring-[var(--color-primary-kurio)]/15
   disabled:cursor-not-allowed
   disabled:opacity-50
+
+  max-md:h-[44px]
+  max-md:rounded-[10px]
+  max-md:px-[14px]
+  max-md:text-[13px]
+  max-md:leading-[20px]
 `
 
 export function ProfileWalletsPage() {
@@ -782,18 +845,68 @@ export function ProfileWalletsPage() {
     return (
       <section
         aria-label="Carregando carteiras"
-        className="w-full max-w-225"
-      >
-        <div className="h-7 w-48 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+        className="
+          w-full
+          max-w-225
 
-        <div className="mt-6 grid gap-x-6 gap-y-4 md:grid-cols-2">
+          max-md:mx-auto
+          max-md:max-w-[366px]
+        "
+      >
+        <div
+          className="
+            h-7
+            w-48
+            animate-pulse
+            rounded-md
+            bg-[var(--color-surface-card)]
+
+            max-md:h-[24px]
+            max-md:w-[180px]
+            max-md:rounded-[8px]
+          "
+        />
+
+        <div
+          className="
+            mt-6
+            grid
+            gap-x-6
+            gap-y-4
+            md:grid-cols-2
+
+            max-md:mt-[20px]
+            max-md:gap-y-[16px]
+          "
+        >
           {Array.from({ length: 8 }).map((_, index) => (
             <div
               key={index}
               className="space-y-2"
             >
-              <div className="h-4 w-28 animate-pulse rounded-sm bg-[var(--color-surface-card)]" />
-              <div className="h-10 animate-pulse rounded-md bg-[var(--color-surface-card)]" />
+              <div
+                className="
+                  h-4
+                  w-28
+                  animate-pulse
+                  rounded-sm
+                  bg-[var(--color-surface-card)]
+
+                  max-md:h-[16px]
+                "
+              />
+
+              <div
+                className="
+                  h-10
+                  animate-pulse
+                  rounded-md
+                  bg-[var(--color-surface-card)]
+
+                  max-md:h-[44px]
+                  max-md:rounded-[10px]
+                "
+              />
             </div>
           ))}
         </div>
@@ -803,28 +916,87 @@ export function ProfileWalletsPage() {
 
   if (isError) {
     return (
-      <p className="text-xs text-red-400">
+      <p
+        className="
+          text-xs
+          text-red-400
+
+          max-md:text-[13px]
+          max-md:leading-[20px]
+        "
+      >
         Não foi possível carregar suas carteiras.
       </p>
     )
   }
 
   return (
-    <section className="w-full max-w-225">
+    <section
+      className="
+        w-full
+        max-w-225
+
+        max-md:mx-auto
+        max-md:max-w-[366px]
+      "
+    >
       <div>
-        <div className="flex items-start justify-between gap-5">
+        <div
+          className="
+            flex
+            items-start
+            justify-between
+            gap-5
+
+            max-md:gap-[16px]
+          "
+        >
           <div>
-            <h1 className="text-xl font-semibold leading-7 text-[var(--color-foreground-kurio)]">
+            <h1
+              className="
+                text-xl
+                font-semibold
+                leading-7
+                text-[var(--color-foreground-kurio)]
+
+                max-md:text-[20px]
+                max-md:font-bold
+                max-md:leading-[24px]
+              "
+            >
               Carteira principal
             </h1>
 
-            <p className="mt-1.5 max-w-150 text-xs leading-5 text-[var(--color-text-secondary)]">
+            <p
+              className="
+                mt-1.5
+                max-w-150
+                text-xs
+                leading-5
+                text-[var(--color-text-secondary)]
+
+                max-md:mt-[6px]
+                max-md:max-w-none
+                max-md:text-[13px]
+                max-md:leading-[20px]
+              "
+            >
               Estas carteiras ficam disponíveis no pagamento e para receber NFTs comprados.
             </p>
           </div>
 
           {!primaryWallet && (
-            <span className="text-xs font-medium text-[var(--color-text-accent)]">
+            <span
+              className="
+                text-xs
+                font-medium
+                text-[var(--color-text-accent)]
+
+                max-md:pt-[3px]
+                max-md:text-[12px]
+                max-md:leading-[16px]
+              "
+            >
               Adicionar
             </span>
           )}
@@ -844,14 +1016,58 @@ export function ProfileWalletsPage() {
         />
       </div>
 
-      <div className="mt-10 border-t border-[var(--color-border-kurio)] pt-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <div
+        className="
+          mt-10
+          border-t
+          border-[var(--color-border-kurio)]
+          pt-8
+
+          max-md:mt-[32px]
+          max-md:pt-[24px]
+        "
+      >
+        <div
+          className="
+            flex
+            flex-wrap
+            items-start
+            justify-between
+            gap-4
+
+            max-md:gap-[14px]
+          "
+        >
           <div>
-            <h2 className="text-base font-semibold leading-6 text-[var(--color-foreground-kurio)]">
+            <h2
+              className="
+                text-base
+                font-semibold
+                leading-6
+                text-[var(--color-foreground-kurio)]
+
+                max-md:text-[18px]
+                max-md:font-bold
+                max-md:leading-[22px]
+              "
+            >
               Carteira secundária
             </h2>
 
-            <p className="mt-1.5 max-w-150 text-xs leading-5 text-[var(--color-text-secondary)]">
+            <p
+              className="
+                mt-1.5
+                max-w-150
+                text-xs
+                leading-5
+                text-[var(--color-text-secondary)]
+
+                max-md:mt-[6px]
+                max-md:max-w-none
+                max-md:text-[13px]
+                max-md:leading-[20px]
+              "
+            >
               Use uma segunda carteira para organizar recebimentos ou pagamentos alternativos.
             </p>
           </div>
@@ -875,6 +1091,11 @@ export function ProfileWalletsPage() {
                   text-[var(--color-text-accent)]
                   hover:bg-[rgba(210,138,76,0.08)]
                   hover:text-[var(--color-text-accent)]
+
+                  max-md:h-[40px]
+                  max-md:rounded-[20px]
+                  max-md:px-[14px]
+                  max-md:text-[13px]
                 "
               >
                 <Plus
