@@ -20,9 +20,11 @@ test(
     ).toBeVisible()
 
     const nftName =
-      await firstNftLink
-        .locator('h3')
-        .innerText()
+      (
+        await firstNftLink
+          .locator('h3')
+          .innerText()
+      ).trim()
 
     await firstNftLink.click()
 
@@ -32,13 +34,22 @@ test(
       /\/nft\/.+/,
     )
 
-    await expect(
-      page.getByText(
-        nftName,
+    const visibleNftTitle =
+      page.locator(
+        'h1:visible',
         {
-          exact: true,
+          hasText: nftName,
         },
-      ),
+      )
+
+    await expect(
+      visibleNftTitle.first(),
     ).toBeVisible()
+
+    await expect(
+      visibleNftTitle.first(),
+    ).toHaveText(
+      nftName,
+    )
   },
 )

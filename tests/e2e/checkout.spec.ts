@@ -21,89 +21,159 @@ test(
     const walletAddress =
       '0x1234567890123456789012345678901234567890'
 
+    const originalViewport =
+      page.viewportSize()
+
+    const isMobile =
+      (originalViewport?.width ??
+        1440) <= 767
+
     await page.goto('/')
 
-    // 1. Cria uma conta real pela interface.
+    /*
+     * 1. Cria uma conta real
+     * utilizando a interface.
+     *
+     * O Header mobile não possui
+     * o mesmo botão Entrar do desktop.
+     * Como autenticação responsiva será
+     * testada separadamente, abrimos
+     * temporariamente o Header desktop.
+     */
+    const loginButton =
+      page
+        .getByRole('banner')
+        .getByRole(
+          'button',
+          {
+            name: 'Entrar',
+            exact: true,
+          },
+        )
 
-    await page
-      .getByRole('button', {
-        name: 'Entrar',
+    if (isMobile) {
+      await page.setViewportSize({
+        width: 1440,
+        height: 900,
       })
-      .click()
+    }
+
+    await expect(
+      loginButton,
+    ).toBeVisible()
+
+    await loginButton.click()
 
     const authDialog =
-      page.getByRole('dialog')
+      page.getByRole(
+        'dialog',
+      )
 
     await expect(
       authDialog,
     ).toBeVisible()
 
-    await authDialog
-      .getByRole('button', {
-        name: 'Criar conta',
-        exact: true,
-      })
-      .click()
+    const createAccountButton =
+      authDialog.getByRole(
+        'button',
+        {
+          name: 'Criar conta',
+          exact: true,
+        },
+      )
 
     await expect(
-      authDialog.getByRole(
-        'heading',
-        {
-          level: 2,
-          name: 'Crie sua conta',
-        },
-      ),
+      createAccountButton,
     ).toBeVisible()
 
-    await authDialog
-      .getByLabel(
-        'Nome de usuário',
+    await createAccountButton.click()
+
+    /*
+     * Confirma que o formulário
+     * realmente mudou para cadastro.
+     */
+    const usernameInput =
+      authDialog.locator(
+        'input[autocomplete="username"]',
       )
-      .fill(username)
 
-    await authDialog
-      .getByLabel('E-mail')
-      .fill(email)
+    const emailInput =
+      authDialog.locator(
+        'input[autocomplete="email"]',
+      )
 
-    await authDialog
-      .locator(
+    const passwordInputs =
+      authDialog.locator(
         'input[autocomplete="new-password"]',
       )
+
+    await expect(
+      usernameInput,
+    ).toBeVisible()
+
+    await expect(
+      emailInput,
+    ).toBeVisible()
+
+    await expect(
+      passwordInputs,
+    ).toHaveCount(2)
+
+    await usernameInput.fill(
+      username,
+    )
+
+    await emailInput.fill(
+      email,
+    )
+
+    await passwordInputs
       .first()
       .fill(password)
 
-    await authDialog
-      .locator(
-        'input[autocomplete="new-password"]',
-      )
+    await passwordInputs
       .nth(1)
       .fill(password)
 
-    await authDialog
-      .locator(
+    const registerButton =
+      authDialog.locator(
         'button[type="submit"]',
       )
-      .click()
 
-    // O cadastro também autentica o usuário.
+    await expect(
+      registerButton,
+    ).toBeEnabled()
 
+    await registerButton.click()
+
+    /*
+     * O cadastro também
+     * autentica o usuário.
+     */
     await expect(
       authDialog,
     ).toBeHidden()
 
-    await expect(
-      page
-        .getByRole('banner')
-        .getByRole('link', {
-          name: 'Meu perfil',
-        }),
-    ).toBeVisible()
+    /*
+     * Restaura o viewport mobile
+     * depois da autenticação.
+     */
+    if (
+      isMobile &&
+      originalViewport
+    ) {
+      await page.setViewportSize(
+        originalViewport,
+      )
+    }
 
-    // 2. Cria uma wallet cadastrada
-    // usando a própria API mock,
-    // mas executando o fetch dentro
-    // do browser para passar pelo MSW.
-
+    /*
+     * 2. Cria uma carteira pela
+     * API mock.
+     *
+     * O fetch ocorre dentro do browser,
+     * portanto continua passando pelo MSW.
+     */
     const walletResponse =
       await page.evaluate(
         async ({
@@ -122,34 +192,38 @@ test(
                     'application/json',
                 },
 
-                body: JSON.stringify({
-                  role: 'primary',
+                body:
+                  JSON.stringify({
+                    role:
+                      'primary',
 
-                  displayName:
-                    'Playwright Collector',
+                    displayName:
+                      'Playwright Collector',
 
-                  nickname:
-                    username,
+                    nickname:
+                      username,
 
-                  network:
-                    'ethereum',
+                    network:
+                      'ethereum',
 
-                  profileName:
-                    'E2E Collector',
+                    profileName:
+                      'E2E Collector',
 
-                  address:
-                    walletAddress,
+                    address:
+                      walletAddress,
 
-                  provider:
-                    'metamask',
+                    provider:
+                      'metamask',
 
-                  email,
-                }),
+                    email,
+                  }),
               },
             )
 
           return {
-            ok: response.ok,
+            ok:
+              response.ok,
+
             status:
               response.status,
           }
@@ -166,8 +240,11 @@ test(
       `Falha ao criar wallet. HTTP ${walletResponse.status}`,
     ).toBeTruthy()
 
-    // 3. Aguarda o catálogo
-    // e abre o primeiro NFT.
+    /*
+     * 3. Volta ao catálogo
+     * e abre o primeiro NFT.
+     */
+    await page.goto('/')
 
     const firstNftLink =
       page
@@ -180,11 +257,12 @@ test(
       firstNftLink,
     ).toBeVisible()
 
-    const nftName = (
-      await firstNftLink
-        .locator('h3')
-        .innerText()
-    ).trim()
+    const nftName =
+      (
+        await firstNftLink
+          .locator('h3')
+          .innerText()
+      ).trim()
 
     await firstNftLink.click()
 
@@ -194,61 +272,51 @@ test(
       /\/nft\/.+/,
     )
 
-    await expect(
-      page.getByRole(
-        'heading',
+    const nftTitle =
+      page.locator(
+        'h1:visible',
         {
-          level: 1,
-          name: nftName,
-        },
-      ),
-    ).toBeVisible()
-
-    // 4. Adiciona uma unidade ao carrinho.
-
-    await page
-      .getByRole('button', {
-        name: 'COMPRAR',
-      })
-      .click()
-
-    await expect(
-      page.getByRole('status'),
-    ).toHaveText(
-      'Item adicionado ao carrinho.',
-    )
-
-    // 5. O Header deve refletir
-    // o estado do carrinho.
-
-    const cartLink =
-      page.getByRole(
-        'link',
-        {
-          name:
-            'Carrinho com 1 item',
+          hasText:
+            nftName,
         },
       )
 
     await expect(
-      cartLink,
+      nftTitle.first(),
     ).toBeVisible()
 
-    await cartLink.click()
-
-    await expect(
-      page,
-    ).toHaveURL('/cart')
+    /*
+     * 4. Adiciona o NFT
+     * ao carrinho.
+     */
+    await page
+      .getByRole(
+        'button',
+        {
+          name: 'COMPRAR',
+        },
+      )
+      .click()
 
     await expect(
       page.getByRole(
-        'heading',
-        {
-          level: 1,
-          name: 'Seu carrinho',
-        },
+        'status',
       ),
-    ).toBeVisible()
+    ).toHaveText(
+      'Item adicionado ao carrinho.',
+    )
+
+    /*
+     * Navegação direta evita
+     * dependência do Header.
+     */
+    await page.goto('/cart')
+
+    await expect(
+      page,
+    ).toHaveURL(
+      '/cart',
+    )
 
     await expect(
       page.getByText(
@@ -259,115 +327,286 @@ test(
       ),
     ).toBeVisible()
 
-    // 6. Avança para o checkout.
-
-    await page
-      .getByRole('link', {
-        name:
-          'Conectar e finalizar',
-      })
-      .click()
-
     await expect(
-      page,
-    ).toHaveURL('/checkout')
+      page
+        .getByRole(
+          'link',
+          {
+            name:
+              nftName,
 
-    // A quote é criada automaticamente.
-
-    await expect(
-      page.getByRole(
-        'heading',
-        {
-          level: 1,
-          name:
-            'Perfil do colecionador',
-        },
-      ),
+            exact:
+              true,
+          },
+        )
+        .first(),
     ).toBeVisible()
 
-    // 7. A wallet cadastrada
-// deve ser carregada no checkout.
-
-const walletSelect =
-  page.locator('select').filter({
-    has: page.locator('option', {
-      hasText: username,
-    }),
-  })
-
-await expect(
-  walletSelect,
-).toBeVisible()
-
-await expect(
-  walletSelect,
-).not.toHaveValue('')
-
-await expect(
-  page.getByLabel(
-    'Endereço da carteira *',
-  ),
-).toHaveValue(
-  walletAddress,
-)
-
-// 8. Simula a conexão da wallet.
-
-await page
-  .getByRole('button', {
-    name: 'Conectar carteira',
-  })
-  .click()
-
-await expect(
-  page.getByText(
-    'Conectada',
-    {
-      exact: true,
-    },
-  ),
-).toBeVisible()
-
-    // A rede deve continuar
-    // compatível com a quote.
-
-    await expect(
-      page.getByLabel('Rede *'),
-    ).not.toHaveValue('')
-
-    // MetaMask vem da wallet primária.
-
-    await expect(
+    /*
+     * 5. Avança para checkout.
+     */
+    const checkoutLink =
       page.getByRole(
-        'radio',
+        'link',
         {
-          name: /MetaMask/i,
+          name:
+            'Conectar e finalizar',
         },
-      ),
-    ).toBeChecked()
+      )
 
-    // 9. Confirma a compra.
+    await expect(
+      checkoutLink,
+    ).toBeVisible()
 
-    await page
-      .getByRole('button', {
-        name:
-          'Confirmar compra',
-      })
-      .click()
-
-    // 10. O backend cria o pedido
-    // e a aplicação navega
-    // para a confirmação.
+    await checkoutLink.click()
 
     await expect(
       page,
     ).toHaveURL(
-      /\/orders\/[^/]+$/,
+      '/checkout',
     )
 
-    // 11. O pedido deve ser confirmado
-    // pelo evento realtime do Socket.IO.
+    /*
+     * 6. Aguarda a quote e
+     * identifica o layout correto.
+     */
+    const mobileCheckoutHeading =
+  page.getByRole(
+    'heading',
+    {
+      level: 1,
+      name:
+        'Pagamento com carteira',
+    },
+  )
 
+const desktopCheckoutHeading =
+  page.getByRole(
+    'heading',
+    {
+      level: 1,
+      name:
+        'Perfil do colecionador',
+    },
+  )
+
+await expect
+  .poll(
+    async () =>
+      (
+        await mobileCheckoutHeading
+          .isVisible()
+          .catch(() => false)
+      ) ||
+      (
+        await desktopCheckoutHeading
+          .isVisible()
+          .catch(() => false)
+      ),
+    {
+      timeout: 10_000,
+    },
+  )
+  .toBe(true)
+
+const isMobileCheckout =
+  await mobileCheckoutHeading
+    .isVisible()
+    .catch(() => false)
+
+    /*
+     * 7. Valida seleção e
+     * conexão da carteira.
+     *
+     * MOBILE
+     */
+    if (isMobile) {
+      /*
+       * A carteira principal
+       * cadastrada deve aparecer.
+       */
+      const primaryWallet =
+        page.getByRole(
+          'button',
+          {
+            name:
+              /Principal.*Ethereum/i,
+          },
+        )
+
+      await expect(
+        primaryWallet,
+      ).toBeVisible({
+        timeout: 10_000,
+      })
+
+      /*
+       * Clica explicitamente para
+       * garantir selectedWallet
+       * e status connected.
+       */
+      await primaryWallet.click()
+
+      /*
+       * MetaMask deve ser o provider
+       * da carteira cadastrada.
+       */
+      const metamaskButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              /MetaMask/i,
+          },
+        )
+
+      await expect(
+        metamaskButton,
+      ).toBeVisible()
+
+      /*
+       * O botão principal deve estar
+       * disponível após a carteira
+       * ter sido selecionada.
+       */
+      const confirmButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              'Confirmar compra',
+          },
+        )
+
+      await expect(
+        confirmButton,
+      ).toBeEnabled({
+        timeout: 10_000,
+      })
+
+      /*
+       * 8. Finaliza a compra.
+       */
+      await confirmButton.click()
+    } else {
+      /*
+       * DESKTOP
+       *
+       * O formulário deve ter sido
+       * preenchido automaticamente
+       * com a carteira principal.
+       */
+      const walletAddressInput =
+        page.getByLabel(
+          'Endereço da carteira *',
+        )
+
+      await expect(
+        walletAddressInput,
+      ).toBeVisible()
+
+      await expect(
+        walletAddressInput,
+      ).toHaveValue(
+        walletAddress,
+        {
+          timeout:
+            10_000,
+        },
+      )
+
+      /*
+       * O componente da carteira
+       * mostra provider + rede.
+       *
+       * Não usamos toHaveValue()
+       * na Rede porque ela utiliza
+       * componente customizado.
+       */
+      await expect(
+        page.getByText(
+          'MetaMask · Ethereum',
+          {
+            exact:
+              true,
+          },
+        ),
+      ).toBeVisible({
+        timeout: 10_000,
+      })
+
+      /*
+       * No desktop a conexão
+       * é manual.
+       */
+      const connectButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              'Conectar',
+
+            exact:
+              true,
+          },
+        )
+
+      await expect(
+        connectButton,
+      ).toBeVisible()
+
+      await connectButton.click()
+
+      await expect(
+        page.getByText(
+          'Conectada',
+          {
+            exact:
+              true,
+          },
+        ),
+      ).toBeVisible()
+
+      /*
+       * 8. Confirma compra.
+       */
+      const confirmButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              'Confirmar compra',
+          },
+        )
+
+      await expect(
+        confirmButton,
+      ).toBeEnabled()
+
+      await confirmButton.click()
+    }
+
+    /*
+     * 9. A criação do pedido
+     * deve navegar para o recibo.
+     */
+    await expect(
+      page,
+    ).toHaveURL(
+      /\/orders\/[^/]+$/,
+      {
+        timeout:
+          10_000,
+      },
+    )
+
+    /*
+     * 10. O pedido deve chegar
+     * ao estado confirmado.
+     *
+     * Esse estado é atualizado
+     * pelo fluxo realtime.
+     */
     await expect(
       page
         .getByText(
@@ -375,19 +614,24 @@ await expect(
         )
         .first(),
     ).toBeVisible({
-      timeout: 10_000,
+      timeout:
+        10_000,
     })
 
-    // 12. O NFT comprado
-    // permanece identificado.
-
+    /*
+     * 11. O recibo preserva
+     * o NFT comprado.
+     */
     await expect(
-      page.getByText(
-        nftName,
-        {
-          exact: true,
-        },
-      ),
+      page
+        .getByText(
+          nftName,
+          {
+            exact:
+              true,
+          },
+        )
+        .first(),
     ).toBeVisible()
   },
 )

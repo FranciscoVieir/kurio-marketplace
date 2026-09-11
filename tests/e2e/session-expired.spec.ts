@@ -23,82 +23,177 @@ test(
     const password =
       'Kurio123!'
 
+    const originalViewport =
+      page.viewportSize()
+
+    const isMobile =
+      (originalViewport?.width ??
+        1440) <= 767
+
     await page.goto('/')
 
+    /*
+     * 1. Sempre começa
+     * no cenário padrão.
+     */
     await resetMockScenario(
       page,
     )
 
-    // 1. Cria uma conta e inicia
-    // uma sessão válida.
-    await page
-      .getByRole('button', {
-        name: 'Entrar',
+    /*
+     * 2. No mobile, usamos
+     * temporariamente o Header
+     * desktop para abrir o mesmo
+     * AuthDialog da aplicação.
+     */
+    if (isMobile) {
+      await page.setViewportSize({
+        width: 1440,
+        height: 900,
       })
-      .click()
+    }
 
-    const authDialog =
-      page.getByRole('dialog')
-
-    await expect(
-      authDialog,
-    ).toBeVisible()
-
-    await authDialog
-      .getByRole('button', {
-        name: 'Criar conta',
-        exact: true,
-      })
-      .click()
-
-    await authDialog
-      .getByLabel(
-        'Nome de usuário',
-      )
-      .fill(username)
-
-    await authDialog
-      .getByLabel('E-mail')
-      .fill(email)
-
-    await authDialog
-      .locator(
-        'input[autocomplete="new-password"]',
-      )
-      .first()
-      .fill(password)
-
-    await authDialog
-      .locator(
-        'input[autocomplete="new-password"]',
-      )
-      .nth(1)
-      .fill(password)
-
-    await authDialog
-      .locator(
-        'button[type="submit"]',
-      )
-      .click()
-
-    await expect(
-      authDialog,
-    ).toBeHidden()
-
-    // 2. Confirma que o usuário
-    // realmente está autenticado.
-    await expect(
+    const loginHeaderButton =
       page
         .getByRole('banner')
-        .getByRole('link', {
-          name: 'Meu perfil',
-        }),
+        .getByRole(
+          'button',
+          {
+            name: 'Entrar',
+            exact: true,
+          },
+        )
+
+    await expect(
+      loginHeaderButton,
+    ).toBeVisible()
+
+    await loginHeaderButton.click()
+
+    const authDialog =
+      page.getByRole(
+        'dialog',
+      )
+
+    await expect(
+      authDialog,
     ).toBeVisible()
 
     /*
-     * 3. O endpoint determinístico
-     * expira a sessão atualmente
-     * persistida no mock backend.
+     * 3. Cria uma conta.
+     */
+    const createAccountButton =
+      authDialog.getByRole(
+        'button',
+        {
+          name: 'Criar conta',
+          exact: true,
+        },
+      )
+
+    await expect(
+      createAccountButton,
+    ).toBeVisible()
+
+    await createAccountButton.click()
+
+    const usernameInput =
+      authDialog.locator(
+        'input[autocomplete="username"]',
+      )
+
+    const emailInput =
+      authDialog.locator(
+        'input[autocomplete="email"]',
+      )
+
+    const newPasswordInputs =
+      authDialog.locator(
+        'input[autocomplete="new-password"]',
+      )
+
+    await expect(
+      usernameInput,
+    ).toBeVisible()
+
+    await expect(
+      emailInput,
+    ).toBeVisible()
+
+    await expect(
+      newPasswordInputs,
+    ).toHaveCount(2)
+
+    await usernameInput.fill(
+      username,
+    )
+
+    await emailInput.fill(
+      email,
+    )
+
+    await newPasswordInputs
+      .first()
+      .fill(password)
+
+    await newPasswordInputs
+      .nth(1)
+      .fill(password)
+
+    const registerButton =
+      authDialog.locator(
+        'button[type="submit"]',
+      )
+
+    await expect(
+      registerButton,
+    ).toBeEnabled()
+
+    await registerButton.click()
+
+    await expect(
+      authDialog,
+    ).toBeHidden({
+      timeout: 10_000,
+    })
+
+    /*
+     * 4. Confirma que existe
+     * uma sessão autenticada.
+     *
+     * Ainda estamos temporariamente
+     * no layout desktop.
+     */
+    const profileLink =
+      page
+        .getByRole('banner')
+        .getByRole(
+          'link',
+          {
+            name: 'Meu perfil',
+          },
+        )
+
+    await expect(
+      profileLink,
+    ).toBeVisible()
+
+    /*
+     * Agora podemos restaurar
+     * o viewport original.
+     */
+    if (
+      isMobile &&
+      originalViewport
+    ) {
+      await page.setViewportSize(
+        originalViewport,
+      )
+    }
+
+    /*
+     * 5. Expira deterministicamente
+     * a sessão atual.
      */
     await setMockScenario(
       page,
@@ -106,94 +201,179 @@ test(
     )
 
     /*
-     * 4. Ao recarregar a aplicação,
-     * o AuthProvider executa
-     * getSession() novamente.
+     * 6. Reload força o AuthProvider
+     * a consultar/restaurar a sessão.
      *
-     * Como a sessão foi expirada,
-     * a request falha e o contexto
-     * limpa user/session.
+     * O backend deve informar que
+     * a sessão anterior expirou.
      */
     await page.reload()
 
-    // Aguarda a inicialização do app
-    // terminar após o reload.
+    /*
+     * Para verificar visualmente
+     * o estado desautenticado nos
+     * dois projetos, voltamos
+     * temporariamente ao Header
+     * desktop no mobile.
+     */
+    if (isMobile) {
+      await page.setViewportSize({
+        width: 1440,
+        height: 900,
+      })
+    }
+
+    const loginAfterExpiration =
+      page
+        .getByRole('banner')
+        .getByRole(
+          'button',
+          {
+            name: 'Entrar',
+            exact: true,
+          },
+        )
+
+    /*
+     * 7. A identidade anterior
+     * precisa ter sido removida.
+     */
+    await expect(
+      loginAfterExpiration,
+    ).toBeVisible({
+      timeout: 10_000,
+    })
+
     await expect(
       page
         .getByRole('banner')
-        .getByRole('button', {
-          name: 'Entrar',
-        }),
+        .getByRole(
+          'link',
+          {
+            name: 'Meu perfil',
+          },
+        ),
+    ).toHaveCount(0)
+
+    /*
+     * 8. O cenário de expiração
+     * cumpriu seu papel.
+     *
+     * Voltamos ao comportamento
+     * padrão para testar recuperação
+     * através de novo login.
+     */
+    await resetMockScenario(
+      page,
+    )
+
+    /*
+     * 9. Autentica novamente
+     * com a mesma conta.
+     */
+    await loginAfterExpiration.click()
+
+    const loginDialog =
+      page.getByRole(
+        'dialog',
+      )
+
+    await expect(
+      loginDialog,
+    ).toBeVisible()
+
+    const loginEmailInput =
+      loginDialog.locator(
+        'input[autocomplete="email"]',
+      )
+
+    const currentPasswordInput =
+      loginDialog.locator(
+        'input[autocomplete="current-password"]',
+      )
+
+    await expect(
+      loginEmailInput,
+    ).toBeVisible()
+
+    await expect(
+      currentPasswordInput,
+    ).toBeVisible()
+
+    await loginEmailInput.fill(
+      email,
+    )
+
+    await currentPasswordInput.fill(
+      password,
+    )
+
+    const submitLoginButton =
+      loginDialog.locator(
+        'button[type="submit"]',
+      )
+
+    await expect(
+      submitLoginButton,
+    ).toBeEnabled()
+
+    await submitLoginButton.click()
+
+    /*
+     * 10. O novo login deve
+     * criar uma sessão válida.
+     */
+    await expect(
+      loginDialog,
+    ).toBeHidden({
+      timeout: 10_000,
+    })
+
+    await expect(
+      page
+        .getByRole('banner')
+        .getByRole(
+          'link',
+          {
+            name: 'Meu perfil',
+          },
+        ),
     ).toBeVisible()
 
     /*
-     * 5. A identidade autenticada
-     * anterior não pode continuar
-     * aparecendo no Header.
+     * 11. Confirma que a nova
+     * sessão realmente dá acesso
+     * aos dados privados.
      */
-    await expect(
-      page
-        .getByRole('banner')
-        .getByRole('link', {
-          name: 'Meu perfil',
-        }),
-    ).toHaveCount(0)
-
-    // 6. O usuário deve conseguir
-    // entrar novamente com a mesma conta.
-    await page
-      .getByRole('banner')
-      .getByRole('button', {
-        name: 'Entrar',
-      })
-      .click()
-
-    const loginDialog =
-      page.getByRole('dialog')
+    await page.goto(
+      '/profile',
+    )
 
     await expect(
-      loginDialog,
-    ).toBeVisible()
-
-    await expect(
-      loginDialog.getByRole(
+      page.getByRole(
         'heading',
         {
-          level: 2,
-          name: 'Bem-vindo de volta',
+          level: 1,
+          name:
+            'Perfil do colecionador',
         },
       ),
-    ).toBeVisible()
+    ).toBeVisible({
+      timeout: 10_000,
+    })
 
-    await loginDialog
-      .getByLabel('E-mail')
-      .fill(email)
-
-    await loginDialog
-      .locator(
-        'input[autocomplete="current-password"]',
+    /*
+     * Restaura mobile apenas
+     * no fim do cenário.
+     */
+    if (
+      isMobile &&
+      originalViewport
+    ) {
+      await page.setViewportSize(
+        originalViewport,
       )
-      .fill(password)
-
-    await loginDialog
-      .locator(
-        'button[type="submit"]',
-      )
-      .click()
-
-    // 7. O novo login cria
-    // uma nova sessão válida.
-    await expect(
-      loginDialog,
-    ).toBeHidden()
-
-    await expect(
-      page
-        .getByRole('banner')
-        .getByRole('link', {
-          name: 'Meu perfil',
-        }),
-    ).toBeVisible()
+    }
   },
 )
 

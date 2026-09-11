@@ -9,26 +9,113 @@ export type MockScenario =
 const DEFAULT_SCENARIO: MockScenario =
   'default'
 
-let activeScenario: MockScenario =
+const MOCK_SCENARIO_STORAGE_KEY =
+  'kurio:mock-scenario'
+
+/*
+ * Fallback utilizado somente quando
+ * sessionStorage não estiver disponível,
+ * por exemplo em algum ambiente que
+ * não possua window.
+ */
+let fallbackScenario: MockScenario =
   DEFAULT_SCENARIO
 
-export function getActiveScenario() {
-  return activeScenario
+function isMockScenario(
+  value: unknown,
+): value is MockScenario {
+  return (
+    value === 'default' ||
+    value === 'quote-expired' ||
+    value ===
+      'insufficient-stock' ||
+    value ===
+      'nft-price-changed' ||
+    value ===
+      'nft-version-changed' ||
+    value ===
+      'session-expired'
+  )
+}
+
+function getScenarioStorage() {
+  if (
+    typeof window === 'undefined'
+  ) {
+    return null
+  }
+
+  try {
+    return window.sessionStorage
+  } catch {
+    return null
+  }
+}
+
+export function getActiveScenario(): MockScenario {
+  const storage =
+    getScenarioStorage()
+
+  if (!storage) {
+    return fallbackScenario
+  }
+
+  const storedScenario =
+    storage.getItem(
+      MOCK_SCENARIO_STORAGE_KEY,
+    )
+
+  if (
+    !isMockScenario(
+      storedScenario,
+    )
+  ) {
+    return DEFAULT_SCENARIO
+  }
+
+  return storedScenario
 }
 
 export function setActiveScenario(
   scenario: MockScenario,
 ) {
-  activeScenario = scenario
+  const storage =
+    getScenarioStorage()
+
+  if (!storage) {
+    fallbackScenario =
+      scenario
+
+    return
+  }
+
+  storage.setItem(
+    MOCK_SCENARIO_STORAGE_KEY,
+    scenario,
+  )
 }
 
 export function resetActiveScenario() {
-  activeScenario =
+  const storage =
+    getScenarioStorage()
+
+  fallbackScenario =
     DEFAULT_SCENARIO
+
+  if (!storage) {
+    return
+  }
+
+  storage.removeItem(
+    MOCK_SCENARIO_STORAGE_KEY,
+  )
 }
 
 export function isScenarioActive(
   scenario: MockScenario,
 ) {
-  return activeScenario === scenario
+  return (
+    getActiveScenario() ===
+    scenario
+  )
 }

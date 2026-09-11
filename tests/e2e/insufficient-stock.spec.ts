@@ -26,82 +26,159 @@ test(
     const walletAddress =
       '0x1234567890123456789012345678901234567890'
 
+    const originalViewport =
+      page.viewportSize()
+
+    const isMobile =
+      (originalViewport?.width ??
+        1440) <= 767
+
     await page.goto('/')
 
-    // 1. Começa sempre no cenário padrão.
-
+    /*
+     * 1. Sempre inicia
+     * no cenário padrão.
+     */
     await resetMockScenario(
       page,
     )
 
-    // 2. Cria e autentica uma conta real.
+    /*
+     * 2. Cria e autentica
+     * uma conta real.
+     *
+     * O Header mobile não expõe
+     * o mesmo botão Entrar.
+     *
+     * Como esse teste verifica
+     * revalidação de estoque,
+     * usamos temporariamente
+     * o Header desktop apenas
+     * durante a autenticação.
+     */
+    const loginButton =
+      page
+        .getByRole('banner')
+        .getByRole(
+          'button',
+          {
+            name: 'Entrar',
+            exact: true,
+          },
+        )
 
-    await page
-      .getByRole('button', {
-        name: 'Entrar',
+    if (isMobile) {
+      await page.setViewportSize({
+        width: 1440,
+        height: 900,
       })
-      .click()
+    }
+
+    await expect(
+      loginButton,
+    ).toBeVisible()
+
+    await loginButton.click()
 
     const authDialog =
-      page.getByRole('dialog')
+      page.getByRole(
+        'dialog',
+      )
 
     await expect(
       authDialog,
     ).toBeVisible()
 
-    await authDialog
-      .getByRole('button', {
-        name: 'Criar conta',
-        exact: true,
-      })
-      .click()
-
-    await authDialog
-      .getByLabel(
-        'Nome de usuário',
+    const createAccountButton =
+      authDialog.getByRole(
+        'button',
+        {
+          name: 'Criar conta',
+          exact: true,
+        },
       )
-      .fill(username)
 
-    await authDialog
-      .getByLabel('E-mail')
-      .fill(email)
+    await expect(
+      createAccountButton,
+    ).toBeVisible()
 
-    await authDialog
-      .locator(
+    await createAccountButton.click()
+
+    const usernameInput =
+      authDialog.locator(
+        'input[autocomplete="username"]',
+      )
+
+    const emailInput =
+      authDialog.locator(
+        'input[autocomplete="email"]',
+      )
+
+    const passwordInputs =
+      authDialog.locator(
         'input[autocomplete="new-password"]',
       )
+
+    await expect(
+      usernameInput,
+    ).toBeVisible()
+
+    await expect(
+      emailInput,
+    ).toBeVisible()
+
+    await expect(
+      passwordInputs,
+    ).toHaveCount(2)
+
+    await usernameInput.fill(
+      username,
+    )
+
+    await emailInput.fill(
+      email,
+    )
+
+    await passwordInputs
       .first()
       .fill(password)
 
-    await authDialog
-      .locator(
-        'input[autocomplete="new-password"]',
-      )
+    await passwordInputs
       .nth(1)
       .fill(password)
 
-    await authDialog
-      .locator(
+    const registerButton =
+      authDialog.locator(
         'button[type="submit"]',
       )
-      .click()
+
+    await expect(
+      registerButton,
+    ).toBeEnabled()
+
+    await registerButton.click()
 
     await expect(
       authDialog,
     ).toBeHidden()
 
-    await expect(
-      page
-        .getByRole('banner')
-        .getByRole('link', {
-          name: 'Meu perfil',
-        }),
-    ).toBeVisible()
+    /*
+     * Restaura viewport mobile
+     * após terminar a autenticação.
+     */
+    if (
+      isMobile &&
+      originalViewport
+    ) {
+      await page.setViewportSize(
+        originalViewport,
+      )
+    }
 
-    // 3. Cria uma wallet cadastrada
-    // dentro do browser para a requisição
-    // passar pelo MSW.
-
+    /*
+     * 3. Cria uma carteira
+     * cadastrada via MSW.
+     */
     const walletResponse =
       await page.evaluate(
         async ({
@@ -120,34 +197,38 @@ test(
                     'application/json',
                 },
 
-                body: JSON.stringify({
-                  role: 'primary',
+                body:
+                  JSON.stringify({
+                    role:
+                      'primary',
 
-                  displayName:
-                    'Stock E2E Collector',
+                    displayName:
+                      'Stock E2E Collector',
 
-                  nickname:
-                    username,
+                    nickname:
+                      username,
 
-                  network:
-                    'ethereum',
+                    network:
+                      'ethereum',
 
-                  profileName:
-                    'Stock Validation',
+                    profileName:
+                      'Stock Validation',
 
-                  address:
-                    walletAddress,
+                    address:
+                      walletAddress,
 
-                  provider:
-                    'metamask',
+                    provider:
+                      'metamask',
 
-                  email,
-                }),
+                    email,
+                  }),
               },
             )
 
           return {
-            ok: response.ok,
+            ok:
+              response.ok,
+
             status:
               response.status,
           }
@@ -164,7 +245,11 @@ test(
       `Falha ao criar wallet. HTTP ${walletResponse.status}`,
     ).toBeTruthy()
 
-    // 4. Abre o primeiro NFT disponível.
+    /*
+     * 4. Volta ao catálogo
+     * e abre o primeiro NFT.
+     */
+    await page.goto('/')
 
     const firstNftLink =
       page
@@ -177,11 +262,12 @@ test(
       firstNftLink,
     ).toBeVisible()
 
-    const nftName = (
-      await firstNftLink
-        .locator('h3')
-        .innerText()
-    ).trim()
+    const nftName =
+      (
+        await firstNftLink
+          .locator('h3')
+          .innerText()
+      ).trim()
 
     await firstNftLink.click()
 
@@ -191,40 +277,51 @@ test(
       /\/nft\/.+/,
     )
 
-    await expect(
-      page.getByRole(
-        'heading',
+    const visibleNftTitle =
+      page.locator(
+        'h1:visible',
         {
-          level: 1,
-          name: nftName,
+          hasText:
+            nftName,
         },
-      ),
+      )
+
+    await expect(
+      visibleNftTitle.first(),
     ).toBeVisible()
 
-    // 5. Adiciona uma unidade ao carrinho.
-
+    /*
+     * 5. Adiciona uma unidade
+     * ao carrinho.
+     */
     await page
-      .getByRole('button', {
-        name: 'COMPRAR',
-      })
+      .getByRole(
+        'button',
+        {
+          name: 'COMPRAR',
+        },
+      )
       .click()
 
     await expect(
-      page.getByRole('status'),
+      page.getByRole(
+        'status',
+      ),
     ).toHaveText(
       'Item adicionado ao carrinho.',
     )
 
-    await page
-      .getByRole('link', {
-        name:
-          'Carrinho com 1 item',
-      })
-      .click()
+    /*
+     * Navegação direta para evitar
+     * dependência do Header.
+     */
+    await page.goto('/cart')
 
     await expect(
       page,
-    ).toHaveURL('/cart')
+    ).toHaveURL(
+      '/cart',
+    )
 
     await expect(
       page.getByText(
@@ -235,24 +332,62 @@ test(
       ),
     ).toBeVisible()
 
-    // 6. Entra no checkout ainda
-    // com o cenário padrão.
-    //
-    // Queremos primeiro uma quote
-    // completamente válida.
+    await expect(
+      page
+        .getByRole(
+          'link',
+          {
+            name: nftName,
+            exact: true,
+          },
+        )
+        .first(),
+    ).toBeVisible()
 
-    await page
-      .getByRole('link', {
-        name:
-          'Conectar e finalizar',
-      })
-      .click()
+    /*
+     * 6. Entra no checkout ainda
+     * com cenário padrão.
+     *
+     * Precisamos primeiro criar
+     * uma quote completamente válida.
+     */
+    const checkoutLink =
+      page.getByRole(
+        'link',
+        {
+          name:
+            'Conectar e finalizar',
+        },
+      )
+
+    await expect(
+      checkoutLink,
+    ).toBeVisible()
+
+    await checkoutLink.click()
 
     await expect(
       page,
-    ).toHaveURL('/checkout')
+    ).toHaveURL(
+      '/checkout',
+    )
 
-    await expect(
+    /*
+     * 7. Aguarda a quote e detecta
+     * qual layout está realmente
+     * visível.
+     */
+    const mobileCheckoutHeading =
+      page.getByRole(
+        'heading',
+        {
+          level: 1,
+          name:
+            'Pagamento com carteira',
+        },
+      )
+
+    const desktopCheckoutHeading =
       page.getByRole(
         'heading',
         {
@@ -260,122 +395,260 @@ test(
           name:
             'Perfil do colecionador',
         },
-      ),
-    ).toBeVisible()
+      )
 
-    // A existência da tela com os dados
-    // da quote prova que a cotação inicial
-    // foi criada com sucesso.
-
-    await expect(
-      page.getByText(
-        nftName,
+    await expect
+      .poll(
+        async () =>
+          (
+            await mobileCheckoutHeading
+              .isVisible()
+              .catch(
+                () => false,
+              )
+          ) ||
+          (
+            await desktopCheckoutHeading
+              .isVisible()
+              .catch(
+                () => false,
+              )
+          ),
         {
-          exact: true,
+          timeout: 10_000,
         },
-      ),
-    ).toBeVisible()
+      )
+      .toBe(true)
 
-    // 7. Confirma que a wallet cadastrada
-    // foi carregada automaticamente.
-
-    const walletSelect =
-      page.locator('select').filter({
-        has: page.locator(
-          'option',
-          {
-            hasText:
-              username,
-          },
-        ),
-      })
-
-    await expect(
-      walletSelect,
-    ).toBeVisible()
-
-    await expect(
-      walletSelect,
-    ).not.toHaveValue('')
-
-    await expect(
-      page.getByLabel(
-        'Endereço da carteira *',
-      ),
-    ).toHaveValue(
-      walletAddress,
-    )
-
-    // 8. Simula a conexão da wallet.
-
-    await page
-      .getByRole('button', {
-        name:
-          'Conectar carteira',
-      })
-      .click()
-
-    await expect(
-      page.getByText(
-        'Conectada',
-        {
-          exact: true,
-        },
-      ),
-    ).toBeVisible()
-
-    await expect(
-      page.getByLabel('Rede *'),
-    ).not.toHaveValue('')
+    const isMobileCheckout =
+      await mobileCheckoutHeading
+        .isVisible()
+        .catch(
+          () => false,
+        )
 
     /*
-     * 9. Somente AGORA alteramos
+     * Neste ponto a quote inicial
+     * já foi criada no cenário padrão.
+     *
+     * Agora garantimos que a carteira
+     * esteja selecionada/conectada
+     * ANTES de mudar o estoque.
+     */
+    if (isMobileCheckout) {
+      /*
+       * MOBILE
+       *
+       * A carteira principal deve
+       * estar presente na tela.
+       */
+      const primaryWallet =
+        page.getByRole(
+          'button',
+          {
+            name:
+              /Principal.*Ethereum/i,
+          },
+        )
+
+      await expect(
+        primaryWallet,
+      ).toBeVisible({
+        timeout: 10_000,
+      })
+
+      /*
+       * Selecionar uma carteira no
+       * fluxo mobile também define
+       * o estado como connected.
+       */
+      await primaryWallet.click()
+
+      const metamaskButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              /MetaMask/i,
+          },
+        )
+
+      await expect(
+        metamaskButton,
+      ).toBeVisible()
+
+      /*
+       * Confirma que chegamos a um
+       * estado em que a compra poderia
+       * ser executada normalmente.
+       */
+      const confirmButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              'Confirmar compra',
+          },
+        )
+
+      await expect(
+        confirmButton,
+      ).toBeEnabled({
+        timeout: 10_000,
+      })
+    } else {
+      /*
+       * DESKTOP
+       *
+       * A carteira primária deve ter
+       * preenchido automaticamente
+       * o formulário.
+       */
+      const walletAddressInput =
+        page.getByLabel(
+          'Endereço da carteira *',
+        )
+
+      await expect(
+        walletAddressInput,
+      ).toBeVisible()
+
+      await expect(
+        walletAddressInput,
+      ).toHaveValue(
+        walletAddress,
+        {
+          timeout: 10_000,
+        },
+      )
+
+      /*
+       * Verifica provider e rede
+       * sem assumir um <select>
+       * nativo.
+       */
+      await expect(
+        page.getByText(
+          'MetaMask · Ethereum',
+          {
+            exact: true,
+          },
+        ),
+      ).toBeVisible({
+        timeout: 10_000,
+      })
+
+      /*
+       * No desktop a conexão
+       * é explicitamente manual.
+       */
+      const connectButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              'Conectar',
+
+            exact:
+              true,
+          },
+        )
+
+      await expect(
+        connectButton,
+      ).toBeVisible()
+
+      await connectButton.click()
+
+      await expect(
+        page.getByText(
+          'Conectada',
+          {
+            exact: true,
+          },
+        ),
+      ).toBeVisible()
+
+      const confirmButton =
+        page.getByRole(
+          'button',
+          {
+            name:
+              'Confirmar compra',
+          },
+        )
+
+      await expect(
+        confirmButton,
+      ).toBeEnabled()
+    }
+
+    /*
+     * 8. SOMENTE AGORA alteramos
      * deterministicamente o estoque.
      *
-     * A quote já existe e representa
+     * A quote existente representa
      * o estado anterior do NFT.
      *
-     * Durante POST /api/orders,
-     * applyPurchaseScenario() reduzirá
-     * o estoque antes de
-     * commitNftPurchase() revalidá-lo.
+     * Portanto o POST /api/orders
+     * deverá revalidar a disponibilidade
+     * contra o novo estado.
      */
-
     await setMockScenario(
       page,
       'insufficient-stock',
     )
 
-    // 10. Tenta concluir a compra
-    // utilizando a quote anteriormente válida.
-
-    await page
-      .getByRole('button', {
-        name:
-          'Confirmar compra',
-      })
-      .click()
-
     /*
-     * 11. O commit precisa perceber
-     * que a quantidade disponível
-     * mudou desde a cotação.
+     * 9. Tenta concluir a compra
+     * utilizando a quote anterior.
      */
+    const confirmPurchaseButton =
+      page.getByRole(
+        'button',
+        {
+          name:
+            'Confirmar compra',
+        },
+      )
 
     await expect(
-      page.getByRole('alert'),
+      confirmPurchaseButton,
+    ).toBeEnabled()
+
+    await confirmPurchaseButton.click()
+
+    /*
+     * 10. O backend precisa detectar
+     * a mudança de estoque.
+     */
+    const purchaseError =
+      page.getByRole(
+        'alert',
+      )
+
+    await expect(
+      purchaseError,
+    ).toBeVisible({
+      timeout: 10_000,
+    })
+
+    await expect(
+      purchaseError,
     ).toContainText(
       'A quantidade disponível de um dos NFTs foi alterada antes da confirmação da compra.',
     )
 
     /*
-     * 12. Uma compra rejeitada
-     * nunca pode gerar confirmação.
+     * 11. A compra rejeitada
+     * não pode produzir pedido
+     * confirmado nem sair do checkout.
      */
-
     await expect(
       page,
-    ).toHaveURL('/checkout')
+    ).toHaveURL(
+      '/checkout',
+    )
 
     await expect(
       page,

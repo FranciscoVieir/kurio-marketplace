@@ -426,15 +426,18 @@ export function AuthDialog({
 
           {mode ===
             'register' && (
-            <label className="block">
-              <span
+            <div className="block">
+              <label
+                htmlFor="auth-username"
                 className="sr-only"
               >
                 Nome de usuário
-              </span>
+              </label>
 
               <div className="relative">
                 <input
+                  id="auth-username"
+                  aria-label="Nome de usuário"
                   type="text"
                   value={
                     username
@@ -497,18 +500,21 @@ export function AuthDialog({
                   </span>
                 )}
               </div>
-            </label>
+            </div>
           )}
 
-          <label className="block">
-            <span
+          <div className="block">
+            <label
+              htmlFor="auth-email"
               className="sr-only"
             >
               E-mail
-            </span>
+            </label>
 
             <div className="relative">
               <input
+                id="auth-email"
+                aria-label="E-mail"
                 type="email"
                 value={email}
                 onChange={(
@@ -575,17 +581,20 @@ export function AuthDialog({
                 </span>
               )}
             </div>
-          </label>
+          </div>
 
-          <label className="block">
-            <span
+          <div className="block">
+            <label
+              htmlFor="auth-password"
               className="sr-only"
             >
               Senha
-            </span>
+            </label>
 
             <div className="relative">
               <input
+                id="auth-password"
+                aria-label="Senha"
                 type={
                   showPassword
                     ? 'text'
@@ -693,19 +702,22 @@ export function AuthDialog({
                 )}
               </button>
             </div>
-          </label>
+          </div>
 
           {mode ===
             'register' && (
-            <label className="block">
-              <span
+            <div className="block">
+              <label
+                htmlFor="auth-confirm-password"
                 className="sr-only"
               >
                 Confirmar senha
-              </span>
+              </label>
 
               <div className="relative">
                 <input
+                  id="auth-confirm-password"
+                  aria-label="Confirmar senha"
                   type={
                     showConfirmPassword
                       ? 'text'
@@ -808,7 +820,7 @@ export function AuthDialog({
                   )}
                 </button>
               </div>
-            </label>
+            </div>
           )}
 
           {mode ===
