@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import {
   Minus,
   Plus,
@@ -18,12 +19,17 @@ export function CartItemsList() {
     <div className="min-w-0">
       <div
         className="
-          grid grid-cols-[1fr_90px_110px_90px_28px]
-          items-center gap-[18px]
-          border-b border-[var(--color-border-kurio)]
-          pb-[8px]
-          text-[11px]
-          text-foreground
+          grid
+          grid-cols-[minmax(0,1fr)_100px_130px_100px_32px]
+          items-center
+          gap-[20px]
+          border-b
+          border-[var(--color-border-kurio)]
+          pb-[10px]
+          text-[12px]
+          font-medium
+          leading-[16px]
+          text-[var(--color-foreground-kurio)]
         "
       >
         <span>NFTs</span>
@@ -33,7 +39,12 @@ export function CartItemsList() {
         <span aria-hidden="true" />
       </div>
 
-      <div className="mt-[8px] space-y-[8px]">
+      <div
+        className="
+          mt-[10px]
+          space-y-[10px]
+        "
+      >
         {items.map((item) => {
           const isMinimumQuantity =
             item.quantity <= 1
@@ -49,48 +60,90 @@ export function CartItemsList() {
             <article
               key={item.nftId}
               className="
-                grid min-h-[76px]
-                grid-cols-[1fr_90px_110px_90px_28px]
-                items-center gap-[18px]
+                grid
+                min-h-[92px]
+                grid-cols-[minmax(0,1fr)_100px_130px_100px_32px]
+                items-center
+                gap-[20px]
+                rounded-[8px]
+                border
+                border-[var(--color-border-kurio)]
                 bg-[var(--color-surface-card)]
-                px-[12px] py-[8px]
+                px-[14px]
+                py-[10px]
               "
             >
-              <div className="flex min-w-0 items-center gap-[10px]">
-                <div
+              <div
+                className="
+                  flex
+                  min-w-0
+                  items-center
+                  gap-[12px]
+                "
+              >
+                <Link
+                  to="/nft/$nftId"
+                  params={{
+                    nftId: item.nftId,
+                  }}
                   className="
-                    h-[52px] w-[52px]
-                    shrink-0 overflow-hidden
-                    rounded-[4px]
-                    bg-background
+                    group
+                    shrink-0
                   "
+                  aria-label={`Abrir ${item.name}`}
                 >
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
+                  <div
                     className="
-                      h-full w-full
-                      object-cover
+                      h-[64px]
+                      w-[64px]
+                      overflow-hidden
+                      rounded-[6px]
+                      bg-background
                     "
-                  />
-                </div>
+                  >
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      loading="lazy"
+                      className="
+                        h-full
+                        w-full
+                        object-cover
+                        transition-transform
+                        duration-300
+                        group-hover:scale-[1.04]
+                      "
+                    />
+                  </div>
+                </Link>
 
                 <div className="min-w-0">
-                  <p
+                  <Link
+                    to="/nft/$nftId"
+                    params={{
+                      nftId: item.nftId,
+                    }}
                     className="
+                      block
                       truncate
-                      text-[11px] font-bold
-                      text-foreground
+                      text-[13px]
+                      font-bold
+                      leading-[18px]
+                      text-[var(--color-foreground-kurio)]
+                      transition-colors
+                      hover:text-[var(--color-text-accent)]
                     "
                   >
                     {item.name}
-                  </p>
+                  </Link>
 
                   <p
                     className="
-                      mt-[4px]
+                      mt-[5px]
                       truncate
-                      text-[9px]
+                      text-[11px]
+                      font-normal
+                      leading-[16px]
                       text-[var(--color-text-secondary)]
                     "
                   >
@@ -101,84 +154,116 @@ export function CartItemsList() {
 
               <div
                 className="
-                  text-[11px] font-bold
+                  text-[13px]
+                  font-bold
+                  leading-[18px]
                   text-[var(--color-text-accent)]
                 "
               >
                 {item.priceEth} ETH
               </div>
 
-              <div className="flex items-center gap-[8px]">
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateQuantity(
-                      item.nftId,
-                      item.quantity - 1,
-                    )
-                  }
-                  disabled={isMinimumQuantity}
-                  aria-label={`Diminuir quantidade de ${item.name}`}
+              <div
+                className="
+                  flex
+                  items-center
+                "
+              >
+                <div
                   className="
-                    flex h-[22px] w-[22px]
-                    items-center justify-center
-                    rounded-full
-                    bg-[var(--color-primary-kurio)]
-                    text-[var(--color-ink)]
-                    transition-opacity
-                    disabled:cursor-not-allowed
-                    disabled:opacity-40
+                    flex
+                    h-[34px]
+                    items-center
+                    overflow-hidden
+                    rounded-[6px]
+                    border
+                    border-[var(--color-border-kurio)]
+                    bg-[var(--color-ink)]
                   "
                 >
-                  <Minus
-                    size={12}
-                    strokeWidth={2.5}
-                  />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateQuantity(
+                        item.nftId,
+                        item.quantity - 1,
+                      )
+                    }
+                    disabled={isMinimumQuantity}
+                    aria-label={`Diminuir quantidade de ${item.name}`}
+                    className="
+                      flex
+                      h-full
+                      w-[34px]
+                      items-center
+                      justify-center
+                      text-[var(--color-foreground-kurio)]
+                      transition-colors
+                      hover:bg-[var(--color-border-kurio)]
+                      disabled:cursor-not-allowed
+                      disabled:opacity-30
+                    "
+                  >
+                    <Minus
+                      size={14}
+                      strokeWidth={2}
+                    />
+                  </button>
 
-                <span
-                  aria-live="polite"
-                  className="
-                    min-w-[14px]
-                    text-center
-                    text-[11px] font-bold
-                    text-foreground
-                  "
-                >
-                  {item.quantity}
-                </span>
+                  <span
+                    aria-live="polite"
+                    className="
+                      flex
+                      h-full
+                      min-w-[36px]
+                      items-center
+                      justify-center
+                      border-x
+                      border-[var(--color-border-kurio)]
+                      text-[13px]
+                      font-bold
+                      text-[var(--color-foreground-kurio)]
+                    "
+                  >
+                    {item.quantity}
+                  </span>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateQuantity(
-                      item.nftId,
-                      item.quantity + 1,
-                    )
-                  }
-                  disabled={isMaximumQuantity}
-                  aria-label={`Aumentar quantidade de ${item.name}`}
-                  className="
-                    flex h-[22px] w-[22px]
-                    items-center justify-center
-                    rounded-full
-                    bg-[var(--color-primary-kurio)]
-                    text-[var(--color-ink)]
-                    transition-opacity
-                    disabled:cursor-not-allowed
-                    disabled:opacity-40
-                  "
-                >
-                  <Plus
-                    size={12}
-                    strokeWidth={2.5}
-                  />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateQuantity(
+                        item.nftId,
+                        item.quantity + 1,
+                      )
+                    }
+                    disabled={isMaximumQuantity}
+                    aria-label={`Aumentar quantidade de ${item.name}`}
+                    className="
+                      flex
+                      h-full
+                      w-[34px]
+                      items-center
+                      justify-center
+                      text-[var(--color-foreground-kurio)]
+                      transition-colors
+                      hover:bg-[var(--color-border-kurio)]
+                      disabled:cursor-not-allowed
+                      disabled:opacity-30
+                    "
+                  >
+                    <Plus
+                      size={14}
+                      strokeWidth={2}
+                    />
+                  </button>
+                </div>
               </div>
 
               <div
                 className="
-                  text-[11px] font-bold
+                  text-[13px]
+                  font-bold
+                  leading-[18px]
                   text-[var(--color-text-accent)]
                 "
               >
@@ -192,15 +277,20 @@ export function CartItemsList() {
                 }
                 aria-label={`Remover ${item.name} do carrinho`}
                 className="
-                  flex h-[24px] w-[24px]
-                  items-center justify-center
+                  flex
+                  h-[32px]
+                  w-[32px]
+                  items-center
+                  justify-center
+                  rounded-[6px]
                   text-[var(--color-text-secondary)]
                   transition-colors
+                  hover:bg-[var(--color-ink)]
                   hover:text-[var(--color-text-accent)]
                 "
               >
                 <Trash2
-                  size={14}
+                  size={16}
                   strokeWidth={1.8}
                 />
               </button>

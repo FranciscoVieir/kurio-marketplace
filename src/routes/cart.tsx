@@ -21,12 +21,17 @@ export function CartPage() {
       <Header />
 
       <main>
-        <PageContainer className="pt-6">
-          <div
+        <PageContainer className="pt-[20px]">
+          <nav
+            aria-label="Breadcrumb"
             className="
-              flex items-center gap-2
-              text-[11px]
-              text-muted-foreground
+              flex
+              items-center
+              gap-[8px]
+              text-[12px]
+              font-normal
+              leading-[16px]
+              text-[var(--color-text-secondary)]
             "
           >
             <Link
@@ -39,26 +44,45 @@ export function CartPage() {
               Início
             </Link>
 
-            <span>/</span>
+            <span aria-hidden="true">
+              /
+            </span>
 
-            <span>Mercado</span>
+            <Link
+              to="/"
+              hash="catalog"
+              className="
+                transition-colors
+                hover:text-[var(--color-text-accent)]
+              "
+            >
+              Mercado
+            </Link>
 
-            <span>/</span>
+            <span aria-hidden="true">
+              /
+            </span>
 
-            <span className="text-foreground">
+            <span className="text-[var(--color-foreground-kurio)]">
               Carrinho
             </span>
-          </div>
+          </nav>
         </PageContainer>
 
-        <PageContainer className="pb-18 pt-6">
+        <PageContainer
+          className="
+            pb-[72px]
+            pt-[24px]
+          "
+        >
           <section>
             <div>
               <h1
                 className="
-                  text-[24px] font-bold
-                  leading-[30px]
-                  text-foreground
+                  text-[28px]
+                  font-bold
+                  leading-[34px]
+                  text-[var(--color-foreground-kurio)]
                 "
               >
                 Seu carrinho
@@ -66,8 +90,10 @@ export function CartPage() {
 
               <p
                 className="
-                  mt-1.5
-                  text-[11px]
+                  mt-[6px]
+                  text-[13px]
+                  font-normal
+                  leading-[20px]
                   text-[var(--color-text-secondary)]
                 "
               >
@@ -84,37 +110,45 @@ export function CartPage() {
             {isEmpty ? (
               <div
                 className="
-                  mt-8
-                  flex min-h-[300px]
+                  mt-[28px]
+                  flex
+                  min-h-[360px]
                   flex-col
-                  items-center justify-center
+                  items-center
+                  justify-center
+                  rounded-[10px]
                   border
                   border-[var(--color-border-kurio)]
                   bg-[var(--color-surface-card)]
-                  px-6
+                  px-[24px]
                   text-center
                 "
               >
                 <div
                   className="
-                    flex h-12 w-12
-                    items-center justify-center
+                    flex
+                    h-[56px]
+                    w-[56px]
+                    items-center
+                    justify-center
                     rounded-full
                     bg-[var(--color-ink)]
                     text-[var(--color-text-accent)]
                   "
                 >
                   <ShoppingCart
-                    size={21}
+                    size={24}
                     strokeWidth={1.7}
                   />
                 </div>
 
                 <h2
                   className="
-                    mt-4
-                    text-[14px] font-bold
-                    text-foreground
+                    mt-[18px]
+                    text-[18px]
+                    font-bold
+                    leading-[24px]
+                    text-[var(--color-foreground-kurio)]
                   "
                 >
                   Seu carrinho está vazio
@@ -122,40 +156,49 @@ export function CartPage() {
 
                 <p
                   className="
-                    mt-2 max-w-[360px]
-                    text-[11px] leading-[18px]
+                    mt-[8px]
+                    max-w-[400px]
+                    text-[13px]
+                    font-normal
+                    leading-[21px]
                     text-[var(--color-text-secondary)]
                   "
                 >
-                  Explore o mercado e adicione NFTs à
-                  sua coleção para continuar.
+                  Explore o mercado e encontre NFTs para
+                  adicionar à sua coleção.
                 </p>
 
                 <Link
                   to="/"
+                  hash="catalog"
                   className="
-                    mt-5
-                    flex h-9
-                    items-center justify-center
+                    mt-[22px]
+                    flex
+                    h-[40px]
+                    items-center
+                    justify-center
                     rounded-[6px]
                     bg-[var(--color-primary-kurio)]
-                    px-5
-                    text-[11px] font-bold
+                    px-[22px]
+                    text-[13px]
+                    font-bold
                     text-[var(--color-ink)]
+                    transition-opacity
+                    hover:opacity-90
                   "
                 >
-                  Explorar NFTs
+                  EXPLORAR NFTs
                 </Link>
               </div>
             ) : (
               <>
                 <div
                   className="
-                    mt-7
+                    mt-[28px]
                     grid
-                    grid-cols-[minmax(0,1fr)_280px]
+                    grid-cols-[minmax(0,1fr)_320px]
                     items-start
-                    gap-10
+                    gap-[40px]
                   "
                 >
                   <CartItemsList />
@@ -169,7 +212,7 @@ export function CartPage() {
           </section>
         </PageContainer>
 
-        <div className="pb-18">
+        <div className="pb-[72px]">
           <BenefitsSection />
         </div>
       </main>
