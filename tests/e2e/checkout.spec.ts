@@ -7,7 +7,9 @@ test(
   'conclui uma compra do catálogo até a confirmação do pedido',
   async ({ page }) => {
     const uniqueId =
-      Date.now().toString()
+      `${Date.now()}-${Math.random()
+        .toString(16)
+        .slice(2)}`
 
     const username =
       `playwright-${uniqueId}`
@@ -242,29 +244,42 @@ test(
 
     /*
      * 3. Volta ao catálogo
-     * e abre o primeiro NFT.
+     * e abre um NFT isolado por projeto.
+     *
+     * Desktop e mobile rodam em paralelo.
+     * Se ambos comprarem o mesmo NFT, o
+     * commit de um worker altera versão e
+     * estoque enquanto o outro ainda está
+     * criando a cotação.
      */
     await page.goto('/')
 
-    const firstNftLink =
+    const nftIndex =
+      isMobile ? 1 : 0
+
+    const nftLink =
       page
         .locator(
-          '#catalog article a',
+          '#catalog article',
+        )
+        .nth(nftIndex)
+        .locator(
+          'a[href^="/nft/"]',
         )
         .first()
 
     await expect(
-      firstNftLink,
+      nftLink,
     ).toBeVisible()
 
     const nftName =
       (
-        await firstNftLink
+        await nftLink
           .locator('h3')
           .innerText()
       ).trim()
 
-    await firstNftLink.click()
+    await nftLink.click()
 
     await expect(
       page,
