@@ -2,6 +2,13 @@ import {
   useState,
 } from 'react'
 
+import {
+  ChevronLeft,
+  Heart,
+} from 'lucide-react'
+
+import { useFavorites } from '@/features/favorites/hooks/use-favorites'
+
 import type { Nft } from '@/features/nft/types/nft'
 
 type NftDetailGalleryProps = {
@@ -21,6 +28,16 @@ export function NftDetailGallery({
     setIsImageLoading,
   ] = useState(true)
 
+  const {
+    isFavorite,
+    toggleFavorite,
+  } = useFavorites()
+
+  const favorite =
+    isFavorite(
+      nft.id,
+    )
+
   function handleSelectImage(
     index: number,
   ) {
@@ -33,20 +50,39 @@ export function NftDetailGallery({
     )
   }
 
+  function handleBack() {
+    window.history.back()
+  }
+
+  function handleToggleFavorite() {
+    toggleFavorite(
+      nft.id,
+    )
+  }
+
   return (
     <div
       className="
         flex
         shrink-0
         gap-[16px]
+
+        max-md:mx-auto
+        max-md:w-full
+        max-md:max-w-[361px]
+        max-md:flex-col
+        max-md:gap-[8px]
       "
     >
+      {/* Desktop: thumbnails */}
       <div
         className="
           flex
           w-[72px]
           flex-col
           gap-[12px]
+
+          max-md:hidden
         "
       >
         {Array.from({
@@ -128,6 +164,88 @@ export function NftDetailGallery({
         )}
       </div>
 
+      {/* Mobile: voltar + favorito */}
+      <div
+        className="
+          hidden
+
+          max-md:flex
+          max-md:h-[35px]
+          max-md:w-full
+          max-md:items-center
+          max-md:justify-between
+        "
+      >
+        <button
+          type="button"
+          onClick={
+            handleBack
+          }
+          aria-label="Voltar"
+          className="
+            flex
+            h-[35px]
+            w-[35px]
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-[var(--color-border-kurio)]
+            bg-[var(--color-surface-raised)]
+            text-[var(--color-primary-kurio)]
+            transition-opacity
+            active:opacity-70
+          "
+        >
+          <ChevronLeft
+            size={16}
+            strokeWidth={1.5}
+          />
+        </button>
+
+        <button
+          type="button"
+          onClick={
+            handleToggleFavorite
+          }
+          aria-label={
+            favorite
+              ? `Remover ${nft.name} dos favoritos`
+              : `Adicionar ${nft.name} aos favoritos`
+          }
+          aria-pressed={
+            favorite
+          }
+          className="
+            flex
+            h-[35px]
+            w-[35px]
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-[var(--color-border-kurio)]
+            bg-[var(--color-surface-raised)]
+            text-[var(--color-primary-kurio)]
+            transition-opacity
+            active:opacity-70
+          "
+        >
+          <Heart
+            size={16}
+            strokeWidth={1.5}
+            fill={
+              favorite
+                ? 'currentColor'
+                : 'none'
+            }
+          />
+        </button>
+      </div>
+
+      {/* Imagem principal */}
       <div
         className="
           relative
@@ -136,6 +254,11 @@ export function NftDetailGallery({
           overflow-hidden
           rounded-[18px]
           bg-[var(--color-surface-card)]
+
+          max-md:h-auto
+          max-md:w-full
+          max-md:aspect-[361/356]
+          max-md:rounded-[24px]
         "
       >
         {isImageLoading &&

@@ -83,8 +83,11 @@ export function NftDetailContent({
       className="
         mt-[72px]
         scroll-mt-16
+
+        max-md:mt-[40px]
       "
     >
+      {/* Tabs */}
       <div
         role="tablist"
         aria-label="Informações do NFT"
@@ -94,6 +97,11 @@ export function NftDetailContent({
           gap-[28px]
           border-b
           border-[var(--color-border-kurio)]
+
+          max-md:grid
+          max-md:grid-cols-2
+          max-md:gap-[8px]
+          max-md:border-b-0
         "
       >
         <button
@@ -114,22 +122,56 @@ export function NftDetailContent({
             text-[14px]
             leading-[18px]
             transition-colors
+
+            max-md:flex
+            max-md:min-h-[44px]
+            max-md:items-center
+            max-md:justify-center
+            max-md:rounded-[8px]
+            max-md:border
+            max-md:px-[12px]
+            max-md:pb-0
+            max-md:text-center
+            max-md:leading-[20px]
+
             ${
               activeTab ===
               'details'
                 ? `
                   font-bold
                   text-[var(--color-text-accent)]
+
+                  max-md:border-[var(--color-primary-kurio)]
+                  max-md:bg-[var(--color-primary-kurio)]/10
                 `
                 : `
                   font-normal
                   text-[var(--color-text-secondary)]
                   hover:text-[var(--color-foreground-kurio)]
+
+                  max-md:border-[var(--color-border-kurio)]
+                  max-md:bg-[var(--color-surface-raised)]
                 `
             }
           `}
         >
-          Detalhes do NFT
+          <span
+            className="
+              max-md:hidden
+            "
+          >
+            Detalhes do NFT
+          </span>
+
+          <span
+            className="
+              hidden
+
+              max-md:inline
+            "
+          >
+            Detalhes
+          </span>
 
           {activeTab ===
             'details' && (
@@ -142,6 +184,8 @@ export function NftDetailContent({
                 h-[2px]
                 w-full
                 bg-[var(--color-primary-kurio)]
+
+                max-md:hidden
               "
             />
           )}
@@ -165,22 +209,56 @@ export function NftDetailContent({
             text-[14px]
             leading-[18px]
             transition-colors
+
+            max-md:flex
+            max-md:min-h-[44px]
+            max-md:items-center
+            max-md:justify-center
+            max-md:rounded-[8px]
+            max-md:border
+            max-md:px-[10px]
+            max-md:pb-0
+            max-md:text-center
+            max-md:leading-[20px]
+
             ${
               activeTab ===
               'reviews'
                 ? `
                   font-bold
                   text-[var(--color-text-accent)]
+
+                  max-md:border-[var(--color-primary-kurio)]
+                  max-md:bg-[var(--color-primary-kurio)]/10
                 `
                 : `
                   font-normal
                   text-[var(--color-text-secondary)]
                   hover:text-[var(--color-foreground-kurio)]
+
+                  max-md:border-[var(--color-border-kurio)]
+                  max-md:bg-[var(--color-surface-raised)]
                 `
             }
           `}
         >
-          Avaliações de colecionadores (19)
+          <span
+            className="
+              max-md:hidden
+            "
+          >
+            Avaliações de colecionadores (19)
+          </span>
+
+          <span
+            className="
+              hidden
+
+              max-md:inline
+            "
+          >
+            Avaliações (19)
+          </span>
 
           {activeTab ===
             'reviews' && (
@@ -193,12 +271,15 @@ export function NftDetailContent({
                 h-[2px]
                 w-full
                 bg-[var(--color-primary-kurio)]
+
+                max-md:hidden
               "
             />
           )}
         </button>
       </div>
 
+      {/* DETALHES */}
       {activeTab ===
         'details' && (
         <div
@@ -211,6 +292,8 @@ export function NftDetailContent({
             font-normal
             leading-[22px]
             text-[var(--color-text-secondary)]
+
+            max-md:pt-[18px]
           "
         >
           <p>
@@ -258,6 +341,9 @@ export function NftDetailContent({
               grid-cols-3
               gap-[16px]
               pt-[8px]
+
+              max-md:grid-cols-1
+              max-md:gap-[10px]
             "
           >
             <div
@@ -267,6 +353,8 @@ export function NftDetailContent({
                 border-[var(--color-border-kurio)]
                 bg-[var(--color-surface-card)]
                 p-[16px]
+
+                max-md:rounded-[10px]
               "
             >
               <p
@@ -302,6 +390,8 @@ export function NftDetailContent({
                 border-[var(--color-border-kurio)]
                 bg-[var(--color-surface-card)]
                 p-[16px]
+
+                max-md:rounded-[10px]
               "
             >
               <p
@@ -335,6 +425,8 @@ export function NftDetailContent({
                 border-[var(--color-border-kurio)]
                 bg-[var(--color-surface-card)]
                 p-[16px]
+
+                max-md:rounded-[10px]
               "
             >
               <p
@@ -366,6 +458,9 @@ export function NftDetailContent({
             className="
               space-y-[12px]
               pt-[4px]
+
+              max-md:space-y-[16px]
+              max-md:pt-[8px]
             "
           >
             <div>
@@ -415,20 +510,65 @@ export function NftDetailContent({
         </div>
       )}
 
+      {/* AVALIAÇÕES */}
       {activeTab ===
         'reviews' && (
         <div
           role="tabpanel"
           className="
             pt-[20px]
+
+            max-md:pt-[18px]
           "
         >
+          {/* Título mobile */}
+          <div
+            className="
+              hidden
+
+              max-md:block
+              max-md:mb-[18px]
+            "
+          >
+            <h2
+              className="
+                text-[18px]
+                font-bold
+                leading-[24px]
+                text-[var(--color-foreground-kurio)]
+              "
+            >
+              Avaliações de colecionadores
+            </h2>
+
+            <p
+              className="
+                mt-[5px]
+                text-[12px]
+                font-normal
+                leading-[18px]
+                text-[var(--color-text-secondary)]
+              "
+            >
+              19 avaliações sobre este NFT
+            </p>
+          </div>
+
+          {/* Resumo */}
           <div
             className="
               mb-[20px]
               flex
               items-end
               justify-between
+
+              max-md:mb-[16px]
+              max-md:items-center
+              max-md:rounded-[12px]
+              max-md:border
+              max-md:border-[var(--color-border-kurio)]
+              max-md:bg-[var(--color-surface-raised)]
+              max-md:p-[16px]
             "
           >
             <div>
@@ -438,6 +578,9 @@ export function NftDetailContent({
                   font-bold
                   leading-[28px]
                   text-[var(--color-foreground-kurio)]
+
+                  max-md:text-[26px]
+                  max-md:leading-[30px]
                 "
               >
                 4,9
@@ -448,6 +591,9 @@ export function NftDetailContent({
                   mt-[4px]
                   text-[13px]
                   text-[var(--color-primary-kurio)]
+
+                  max-md:mt-[6px]
+                  max-md:text-[14px]
                 "
                 aria-label="Avaliação média de 4,9 de 5 estrelas"
               >
@@ -460,6 +606,11 @@ export function NftDetailContent({
                 text-[12px]
                 leading-[18px]
                 text-[var(--color-text-secondary)]
+
+                max-md:max-w-[120px]
+                max-md:text-right
+                max-md:text-[12px]
+                max-md:leading-[18px]
               "
             >
               19 avaliações de
@@ -467,11 +618,15 @@ export function NftDetailContent({
             </p>
           </div>
 
+          {/* Cards das avaliações */}
           <div
             className="
               grid
               grid-cols-3
               gap-[16px]
+
+              max-md:grid-cols-1
+              max-md:gap-[12px]
             "
           >
             {collectorReviews.map(
@@ -489,6 +644,10 @@ export function NftDetailContent({
                     border-[var(--color-border-kurio)]
                     bg-[var(--color-surface-card)]
                     p-[18px]
+
+                    max-md:min-h-0
+                    max-md:rounded-[12px]
+                    max-md:p-[16px]
                   "
                 >
                   <div
@@ -499,12 +658,19 @@ export function NftDetailContent({
                       gap-[12px]
                     "
                   >
-                    <div>
+                    <div
+                      className="
+                        min-w-0
+                      "
+                    >
                       <p
                         className="
                           text-[14px]
                           font-bold
                           text-[var(--color-foreground-kurio)]
+
+                          max-md:text-[15px]
+                          max-md:leading-[20px]
                         "
                       >
                         {
@@ -518,12 +684,16 @@ export function NftDetailContent({
                           text-[12px]
                           tracking-[0.05em]
                           text-[var(--color-primary-kurio)]
+
+                          max-md:mt-[6px]
+                          max-md:text-[13px]
                         "
                         aria-label={`${review.rating} de 5 estrelas`}
                       >
                         {'★'.repeat(
                           review.rating,
                         )}
+
                         {'☆'.repeat(
                           5 -
                             review.rating,
@@ -533,8 +703,12 @@ export function NftDetailContent({
 
                     <span
                       className="
+                        shrink-0
                         text-[11px]
                         text-[var(--color-text-secondary)]
+
+                        max-md:text-[12px]
+                        max-md:leading-[18px]
                       "
                     >
                       {
@@ -550,6 +724,10 @@ export function NftDetailContent({
                       font-normal
                       leading-[20px]
                       text-[var(--color-text-secondary)]
+
+                      max-md:mt-[16px]
+                      max-md:text-[14px]
+                      max-md:leading-[22px]
                     "
                   >
                     {
@@ -567,6 +745,9 @@ export function NftDetailContent({
               text-[11px]
               leading-[18px]
               text-[var(--color-text-secondary)]
+
+              max-md:mt-[14px]
+              max-md:text-center
             "
           >
             Avaliações simuladas para

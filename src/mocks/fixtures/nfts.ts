@@ -2,20 +2,46 @@ import type { Nft } from '@/features/nft/types/nft'
 
 export const nftFixtures: Nft[] = [
   {
-    id: 'emerald-ape-042',
-    name: 'Emerald Ape #042',
-    tokenId: '#0042',
-    priceEth: '1.19',
-    previousPriceEth: '1.39',
-    imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
-    collection: 'Kurio Apes',
-    network: 'ethereum',
-    category: 'digital-art',
-    availableQuantity: 8,
-    version: 1,
-    createdAt: '2026-09-08T14:30:00.000Z',
-    trendingScore: 94,
+  id: 'emerald-ape-042',
+  name: 'Emerald Ape #042',
+  tokenId: '#0042',
+  priceEth: '1.19',
+  previousPriceEth: '1.39',
+  imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
+  collection: 'Kurio Apes',
+  network: 'ethereum',
+  category: 'digital-art',
+  availableQuantity: 8,
+  version: 1,
+  createdAt: '2026-09-08T14:30:00.000Z',
+  trendingScore: 94,
+
+  description:
+    'Um colecionável digital 1/50 finalizado à mão da coleção Kurio Editions, verificado na Ethereum.',
+
+  rating: 4.8,
+
+  reviewCount: 19,
+
+  edition: {
+    current: 1,
+    total: 10,
+
+    collectionCurrent: 1,
+    collectionTotal: 10,
+
+    rarityCurrent: 1,
+    rarityTotal: 50,
+
+    status: 'open',
   },
+
+  attributes: [
+    'Óculos',
+    'Esmeralda',
+    'Raro',
+  ],
+},
   {
     id: 'sage-nomad-009',
     name: 'Sage Nomad #009',

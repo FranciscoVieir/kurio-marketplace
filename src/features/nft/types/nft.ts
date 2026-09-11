@@ -29,4 +29,23 @@ export type Nft = {
   createdAt: string
 
   trendingScore: number
+
+  // Dados adicionais da tela de detalhes
+  description?: string
+
+  rating?: number
+
+  reviewCount?: number
+
+  edition?: {
+    current: number
+    total: number
+    collectionCurrent?: number
+    collectionTotal?: number
+    rarityCurrent?: number
+    rarityTotal?: number
+    status?: 'open' | 'closed'
+  }
+
+  attributes?: string[]
 }

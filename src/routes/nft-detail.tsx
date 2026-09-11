@@ -16,27 +16,43 @@ import { useNft } from '@/features/nft/hooks/use-nft'
 function NftDetailSkeleton() {
   return (
     <section
+      aria-label="Carregando detalhes do NFT"
       className="
         flex
         min-h-[520px]
         items-start
         gap-[24px]
+
+        max-md:mx-auto
+        max-md:min-h-0
+        max-md:w-full
+        max-md:max-w-[366px]
+        max-md:flex-col
+        max-md:gap-[20px]
       "
-      aria-label="Carregando detalhes do NFT"
     >
       <div
         className="
           flex
           w-[586px]
           gap-[16px]
+
+          max-md:mx-auto
+          max-md:w-full
+          max-md:max-w-[361px]
+          max-md:flex-col
+          max-md:gap-[8px]
         "
       >
+        {/* Desktop: thumbnails */}
         <div
           className="
             flex
             w-[76px]
             flex-col
             gap-[12px]
+
+            max-md:hidden
           "
         >
           {Array.from({
@@ -65,6 +81,60 @@ function NftDetailSkeleton() {
           ))}
         </div>
 
+        {/* Mobile: voltar + favorito */}
+        <div
+          className="
+            hidden
+
+            max-md:flex
+            max-md:h-[35px]
+            max-md:w-full
+            max-md:items-center
+            max-md:justify-between
+          "
+        >
+          <div
+            className="
+              relative
+              h-[35px]
+              w-[35px]
+              overflow-hidden
+              rounded-full
+              bg-[var(--color-surface-raised)]
+              before:absolute
+              before:inset-0
+              before:-translate-x-full
+              before:animate-[shimmer_1.6s_infinite]
+              before:bg-gradient-to-r
+              before:from-transparent
+              before:via-white/5
+              before:to-transparent
+              motion-reduce:before:animate-none
+            "
+          />
+
+          <div
+            className="
+              relative
+              h-[35px]
+              w-[35px]
+              overflow-hidden
+              rounded-full
+              bg-[var(--color-surface-raised)]
+              before:absolute
+              before:inset-0
+              before:-translate-x-full
+              before:animate-[shimmer_1.6s_infinite]
+              before:bg-gradient-to-r
+              before:from-transparent
+              before:via-white/5
+              before:to-transparent
+              motion-reduce:before:animate-none
+            "
+          />
+        </div>
+
+        {/* Imagem principal */}
         <div
           className="
             relative
@@ -82,10 +152,17 @@ function NftDetailSkeleton() {
             before:via-white/5
             before:to-transparent
             motion-reduce:before:animate-none
+
+            max-md:h-auto
+            max-md:aspect-[361/356]
+            max-md:w-full
+            max-md:flex-none
+            max-md:rounded-[24px]
           "
         />
       </div>
 
+      {/* Skeleton do painel */}
       <div
         className="
           flex
@@ -93,6 +170,10 @@ function NftDetailSkeleton() {
           flex-1
           flex-col
           gap-[20px]
+
+          max-md:min-h-0
+          max-md:w-full
+          max-md:flex-none
         "
       >
         <div
@@ -101,6 +182,8 @@ function NftDetailSkeleton() {
             w-[130px]
             rounded-[4px]
             bg-[var(--color-surface-card)]
+
+            max-md:bg-[var(--color-surface-raised)]
           "
         />
 
@@ -110,6 +193,8 @@ function NftDetailSkeleton() {
             w-[70%]
             rounded-[6px]
             bg-[var(--color-surface-card)]
+
+            max-md:bg-[var(--color-surface-raised)]
           "
         />
 
@@ -119,6 +204,8 @@ function NftDetailSkeleton() {
             w-[45%]
             rounded-[4px]
             bg-[var(--color-surface-card)]
+
+            max-md:bg-[var(--color-surface-raised)]
           "
         />
 
@@ -129,6 +216,8 @@ function NftDetailSkeleton() {
             w-full
             rounded-[8px]
             bg-[var(--color-surface-card)]
+
+            max-md:bg-[var(--color-surface-raised)]
           "
         />
 
@@ -162,14 +251,27 @@ export function NftDetailPage() {
       className="
         min-h-screen
         bg-background
+
+        max-md:bg-[var(--color-surface-card)]
       "
     >
-      <Header />
+      {/* Header existe somente na versão web */}
+      <div
+        className="
+          max-md:hidden
+          md:contents
+        "
+      >
+        <Header />
+      </div>
 
       <main>
+        {/* Breadcrumb existe somente na versão web */}
         <PageContainer
           className="
             pt-[20px]
+
+            max-md:hidden
           "
         >
           <nav
@@ -237,6 +339,10 @@ export function NftDetailPage() {
           className="
             pb-[72px]
             pt-[24px]
+
+            max-md:px-[25.5px]
+            max-md:pb-[48px]
+            max-md:pt-[23px]
           "
         >
           {isLoading && (
@@ -252,6 +358,8 @@ export function NftDetailPage() {
                 items-center
                 justify-center
                 text-center
+
+                max-md:min-h-[calc(100vh-46px)]
               "
               role="alert"
             >
@@ -276,8 +384,11 @@ export function NftDetailPage() {
                   text-[var(--color-text-secondary)]
                 "
               >
-                Este NFT pode ter sido removido, estar indisponível ou o endereço
-                acessado não existe.
+                Este NFT pode ter sido
+                removido, estar
+                indisponível ou o
+                endereço acessado não
+                existe.
               </p>
 
               <Link
@@ -309,6 +420,12 @@ export function NftDetailPage() {
                   flex
                   items-start
                   gap-[24px]
+
+                  max-md:mx-auto
+                  max-md:w-full
+                  max-md:max-w-[366px]
+                  max-md:flex-col
+                  max-md:gap-0
                 "
               >
                 <NftDetailGallery
@@ -331,12 +448,7 @@ export function NftDetailPage() {
           )}
         </PageContainer>
 
-        <div
-          className="
-          "
-        >
-          <BenefitsSection />
-        </div>
+        <BenefitsSection />
       </main>
 
       <Footer />
