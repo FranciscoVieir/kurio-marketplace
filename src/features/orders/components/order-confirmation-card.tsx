@@ -1,6 +1,7 @@
 import {
   useNavigate,
 } from '@tanstack/react-router'
+import { ChevronLeft } from 'lucide-react'
 
 import type {
   CheckoutWalletProvider,
@@ -104,8 +105,68 @@ export function OrderConfirmationCard({
         bg-[var(--color-surface-card)]
         text-foreground
         shadow-2xl
+
+        max-md:max-w-[366px]
+        max-md:rounded-[24px]
+        max-md:shadow-none
       "
     >
+      {/* MOBILE: navegação */}
+      <div
+        className="
+          hidden
+
+          max-md:grid
+          max-md:h-[44px]
+          max-md:w-full
+          max-md:grid-cols-[35px_minmax(0,1fr)_35px]
+          max-md:items-center
+          max-md:px-[16px]
+          max-md:pt-[16px]
+        "
+      >
+        <button
+          type="button"
+          onClick={handleClose}
+          aria-label="Voltar ao mercado"
+          className="
+            flex
+            h-[35px]
+            w-[35px]
+            items-center
+            justify-center
+            rounded-full
+            border
+            border-[var(--color-border-kurio)]
+            bg-[var(--color-surface-raised)]
+            text-[var(--color-primary-kurio)]
+            transition-opacity
+            active:opacity-70
+          "
+        >
+          <ChevronLeft
+            size={16}
+            strokeWidth={1.5}
+          />
+        </button>
+
+        <h1
+          className="
+            truncate
+            px-[10px]
+            text-center
+            text-[20px]
+            font-bold
+            leading-[16px]
+            text-[var(--color-foreground-kurio)]
+          "
+        >
+          Comprovante
+        </h1>
+
+        <span aria-hidden="true" />
+      </div>
+
       <button
         type="button"
         onClick={handleClose}
@@ -130,6 +191,8 @@ export function OrderConfirmationCard({
           focus-visible:outline-none
           focus-visible:ring-1
           focus-visible:ring-[var(--color-primary-kurio)]
+
+          max-md:hidden
         "
       >
         ×
@@ -140,6 +203,10 @@ export function OrderConfirmationCard({
           px-7
           pb-1
           pt-7
+
+          max-md:px-[18px]
+          max-md:pb-0
+          max-md:pt-[28px]
         "
       >
         <div
@@ -149,27 +216,6 @@ export function OrderConfirmationCard({
             items-center
           "
         >
-          <div
-            className="
-              flex
-              size-14.5
-              items-center
-              justify-center
-              border
-              border-[var(--color-text-accent)]
-              text-center
-              text-[9px]
-              font-bold
-              leading-[11px]
-              tracking-wide
-              text-[var(--color-text-accent)]
-            "
-          >
-            THANK
-            <br />
-            YOU
-          </div>
-
           <p
             className="
               mt-4
@@ -177,6 +223,10 @@ export function OrderConfirmationCard({
               text-[12px]
               font-bold
               leading-5
+
+              max-md:mt-[16px]
+              max-md:text-[18px]
+              max-md:leading-[24px]
             "
           >
             Pedido realizado com sucesso
@@ -190,6 +240,11 @@ export function OrderConfirmationCard({
               text-[10px]
               leading-4
               text-[var(--color-text-secondary)]
+
+              max-md:mt-[6px]
+              max-md:max-w-[300px]
+              max-md:text-[13px]
+              max-md:leading-[20px]
             "
           >
             Acompanhe abaixo o processamento
@@ -209,6 +264,12 @@ export function OrderConfirmationCard({
           bg-[rgba(210,138,76,0.06)]
           px-5
           py-4
+
+          max-md:mx-[16px]
+          max-md:mt-[20px]
+          max-md:rounded-[14px]
+          max-md:px-[16px]
+          max-md:py-[16px]
         "
       >
         <p
@@ -218,12 +279,15 @@ export function OrderConfirmationCard({
             uppercase
             tracking-[0.12em]
             text-[var(--color-text-secondary)]
+
+            max-md:text-[11px]
+            max-md:leading-[16px]
           "
         >
           Status do pedido
         </p>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-3 max-md:mt-[16px] max-md:space-y-[14px]">
           <div
             className="
               flex
@@ -236,6 +300,8 @@ export function OrderConfirmationCard({
                 flex
                 size-5
                 items-center
+
+                max-md:size-[22px]
                 justify-center
                 rounded-full
                 bg-[var(--color-primary-kurio)]
@@ -252,6 +318,9 @@ export function OrderConfirmationCard({
                 className="
                   text-[10px]
                   font-bold
+
+                  max-md:text-[13px]
+                  max-md:leading-[18px]
                 "
               >
                 Pedido recebido
@@ -262,6 +331,10 @@ export function OrderConfirmationCard({
                   mt-0.5
                   text-[9px]
                   text-[var(--color-text-secondary)]
+
+                  max-md:mt-[2px]
+                  max-md:text-[11px]
+                  max-md:leading-[16px]
                 "
               >
                 Sua compra foi registrada.
@@ -281,6 +354,8 @@ export function OrderConfirmationCard({
                 flex
                 size-5
                 items-center
+
+                max-md:size-[22px]
                 justify-center
                 rounded-full
                 border
@@ -311,6 +386,9 @@ export function OrderConfirmationCard({
                 className="
                   text-[10px]
                   font-bold
+
+                  max-md:text-[13px]
+                  max-md:leading-[18px]
                 "
               >
                 Processando transação
@@ -321,6 +399,10 @@ export function OrderConfirmationCard({
                   mt-0.5
                   text-[9px]
                   text-[var(--color-text-secondary)]
+
+                  max-md:mt-[2px]
+                  max-md:text-[11px]
+                  max-md:leading-[16px]
                 "
               >
                 {isConfirmed
@@ -342,6 +424,8 @@ export function OrderConfirmationCard({
                 flex
                 size-5
                 items-center
+
+                max-md:size-[22px]
                 justify-center
                 rounded-full
                 border
@@ -371,6 +455,9 @@ export function OrderConfirmationCard({
                 className="
                   text-[10px]
                   font-bold
+
+                  max-md:text-[13px]
+                  max-md:leading-[18px]
                 "
               >
                 Confirmado
@@ -381,6 +468,10 @@ export function OrderConfirmationCard({
                   mt-0.5
                   text-[9px]
                   text-[var(--color-text-secondary)]
+
+                  max-md:mt-[2px]
+                  max-md:text-[11px]
+                  max-md:leading-[16px]
                 "
               >
                 {isConfirmed
@@ -401,6 +492,13 @@ export function OrderConfirmationCard({
           border-[var(--color-primary-kurio)]
           px-7
           py-4
+
+          max-md:mt-[20px]
+          max-md:grid-cols-2
+          max-md:gap-x-[20px]
+          max-md:gap-y-[16px]
+          max-md:px-[18px]
+          max-md:py-[16px]
         "
       >
         <div>
@@ -408,6 +506,9 @@ export function OrderConfirmationCard({
             className="
               text-[9px]
               text-[var(--color-text-secondary)]
+
+              max-md:text-[11px]
+              max-md:leading-[16px]
             "
           >
             ID da transação
@@ -418,6 +519,10 @@ export function OrderConfirmationCard({
               mt-1.5
               text-[10px]
               font-medium
+
+              max-md:mt-[4px]
+              max-md:text-[12px]
+              max-md:leading-[16px]
             "
           >
             {formatTransactionHash(
@@ -431,6 +536,9 @@ export function OrderConfirmationCard({
             className="
               text-[9px]
               text-[var(--color-text-secondary)]
+
+              max-md:text-[11px]
+              max-md:leading-[16px]
             "
           >
             Data
@@ -441,6 +549,10 @@ export function OrderConfirmationCard({
               mt-1.5
               text-[10px]
               font-medium
+
+              max-md:mt-[4px]
+              max-md:text-[12px]
+              max-md:leading-[16px]
             "
           >
             {formatOrderDate(
@@ -454,6 +566,9 @@ export function OrderConfirmationCard({
             className="
               text-[9px]
               text-[var(--color-text-secondary)]
+
+              max-md:text-[11px]
+              max-md:leading-[16px]
             "
           >
             Total
@@ -464,6 +579,10 @@ export function OrderConfirmationCard({
               mt-1.5
               text-[10px]
               font-medium
+
+              max-md:mt-[4px]
+              max-md:text-[12px]
+              max-md:leading-[16px]
             "
           >
             {order.totalEth} ETH
@@ -475,6 +594,9 @@ export function OrderConfirmationCard({
             className="
               text-[9px]
               text-[var(--color-text-secondary)]
+
+              max-md:text-[11px]
+              max-md:leading-[16px]
             "
           >
             Carteira
@@ -485,6 +607,10 @@ export function OrderConfirmationCard({
               mt-1.5
               text-[10px]
               font-medium
+
+              max-md:mt-[4px]
+              max-md:text-[12px]
+              max-md:leading-[16px]
             "
           >
             {getWalletProviderLabel(
@@ -498,12 +624,18 @@ export function OrderConfirmationCard({
         className="
           px-7
           py-5
+
+          max-md:px-[16px]
+          max-md:py-[20px]
         "
       >
         <p
           className="
             text-[10px]
             font-bold
+
+            max-md:text-[16px]
+            max-md:leading-[20px]
           "
         >
           Detalhes da transação
@@ -517,6 +649,8 @@ export function OrderConfirmationCard({
             gap-4
             text-[9px]
             font-bold
+
+            max-md:hidden
           "
         >
           <span>
@@ -532,7 +666,7 @@ export function OrderConfirmationCard({
           </span>
         </div>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4 max-md:mt-[14px] max-md:space-y-[10px]">
           {order.items.map(
             (item) => (
               <div
@@ -542,6 +676,15 @@ export function OrderConfirmationCard({
                   grid-cols-[minmax(0,1fr)_70px_90px]
                   items-center
                   gap-4
+
+                  max-md:grid-cols-[minmax(0,1fr)_auto]
+                  max-md:gap-x-[12px]
+                  max-md:gap-y-[4px]
+                  max-md:rounded-[12px]
+                  max-md:border
+                  max-md:border-[var(--color-border-kurio)]
+                  max-md:bg-[var(--color-surface-raised)]
+                  max-md:p-[12px]
                 "
               >
                 <div
@@ -550,6 +693,9 @@ export function OrderConfirmationCard({
                     min-w-0
                     items-center
                     gap-3
+
+                    max-md:row-span-2
+                    max-md:gap-[10px]
                   "
                 >
                   <img
@@ -560,6 +706,9 @@ export function OrderConfirmationCard({
                       shrink-0
                       rounded-md
                       object-cover
+
+                      max-md:size-[56px]
+                      max-md:rounded-[10px]
                     "
                   />
 
@@ -570,6 +719,9 @@ export function OrderConfirmationCard({
                         text-[11px]
                         font-bold
                         leading-4
+
+                        max-md:text-[14px]
+                        max-md:leading-[18px]
                       "
                     >
                       {item.name}
@@ -581,6 +733,10 @@ export function OrderConfirmationCard({
                         text-[9px]
                         leading-3
                         text-[var(--color-text-secondary)]
+
+                        max-md:mt-[4px]
+                        max-md:text-[11px]
+                        max-md:leading-[16px]
                       "
                     >
                       ID do token:{' '}
@@ -593,6 +749,12 @@ export function OrderConfirmationCard({
                   className="
                     text-[10px]
                     text-[var(--color-text-secondary)]
+
+                    max-md:col-start-2
+                    max-md:row-start-1
+                    max-md:self-end
+                    max-md:text-[11px]
+                    max-md:leading-[16px]
                   "
                 >
                   (x {item.quantity})
@@ -604,6 +766,11 @@ export function OrderConfirmationCard({
                     text-[11px]
                     font-bold
                     text-[var(--color-text-accent)]
+
+                    max-md:col-start-2
+                    max-md:row-start-2
+                    max-md:text-[13px]
+                    max-md:leading-[18px]
                   "
                 >
                   {item.subtotalEth} ETH
@@ -623,6 +790,13 @@ export function OrderConfirmationCard({
             gap-x-6
             gap-y-2.5
             text-[10px]
+
+            max-md:mt-[18px]
+            max-md:max-w-none
+            max-md:gap-x-[20px]
+            max-md:gap-y-[10px]
+            max-md:text-[13px]
+            max-md:leading-[18px]
           "
         >
           <span className="text-right">
@@ -633,6 +807,8 @@ export function OrderConfirmationCard({
             className="
               min-w-21.25
               text-right
+
+              max-md:min-w-0
             "
           >
             {order.subtotalEth} ETH
@@ -646,6 +822,8 @@ export function OrderConfirmationCard({
             className="
               min-w-21.25
               text-right
+
+              max-md:min-w-0
             "
           >
             {order.networkFeeEth} ETH
@@ -662,6 +840,8 @@ export function OrderConfirmationCard({
                   min-w-21.25
                   text-right
                   font-medium
+
+                  max-md:min-w-0
                   text-[var(--color-text-accent)]
                 "
               >
@@ -685,6 +865,10 @@ export function OrderConfirmationCard({
               text-right
               text-[12px]
               font-bold
+
+              max-md:min-w-0
+              max-md:text-[18px]
+              max-md:leading-[20px]
               text-[var(--color-text-accent)]
             "
           >
@@ -698,6 +882,9 @@ export function OrderConfirmationCard({
             border-t
             border-[var(--color-border-kurio)]
             pt-4
+
+            max-md:mt-[20px]
+            max-md:pt-[18px]
           "
         >
           <p
@@ -708,6 +895,10 @@ export function OrderConfirmationCard({
               text-[10px]
               leading-4.25
               text-[var(--color-text-secondary)]
+
+              max-md:max-w-[310px]
+              max-md:text-[12px]
+              max-md:leading-[19px]
             "
           >
             {isConfirmed
@@ -735,6 +926,8 @@ export function OrderConfirmationCard({
               mt-5
               flex
               justify-center
+
+              max-md:mt-[18px]
             "
           >
             <button
@@ -757,6 +950,12 @@ export function OrderConfirmationCard({
                 font-bold
                 text-[var(--color-ink)]
                 disabled:cursor-not-allowed
+
+                max-md:h-[52px]
+                max-md:w-full
+                max-md:rounded-[40px]
+                max-md:text-[14px]
+                max-md:leading-[16px]
               "
             >
               {isConfirmed
@@ -773,6 +972,8 @@ export function OrderConfirmationCard({
         className="
           h-1.5
           bg-[var(--color-primary-kurio)]
+
+          max-md:rounded-b-[24px]
         "
       />
     </article>
