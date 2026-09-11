@@ -358,6 +358,14 @@ export function AuthDialog({
   ])
 
   useEffect(() => {
+    setUsername('')
+    setEmail('')
+    setPassword('')
+    setConfirmPassword('')
+
+    setShowPassword(false)
+    setShowConfirmPassword(false)
+
     setErrorMessage(
       null,
     )
