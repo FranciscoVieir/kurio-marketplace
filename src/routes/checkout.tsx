@@ -12,8 +12,10 @@ import {
 import axios from 'axios'
 import {
   Check,
+  ChevronLeft,
   ChevronRight,
   CircleAlert,
+  EllipsisVertical,
   LoaderCircle,
   RefreshCw,
   Wallet,
@@ -55,6 +57,27 @@ const INITIAL_COLLECTOR_PROFILE: CollectorProfileInput = {
   useAnotherWallet: false,
   collectionNote: '',
 }
+
+const MOBILE_WALLET_PROVIDERS = [
+  {
+    id: 'walletconnect',
+    label: 'WalletConnect',
+    initial: 'W',
+  },
+  {
+    id: 'metamask',
+    label: 'MetaMask',
+    initial: 'M',
+  },
+  {
+    id: 'coinbase',
+    label: 'Coinbase Wallet',
+    initial: 'C',
+  },
+] as const
+
+type MobileWalletProvider =
+  (typeof MOBILE_WALLET_PROVIDERS)[number]['id']
 
 type OrderErrorResponse = {
   code?: string
@@ -455,6 +478,11 @@ export function CheckoutPage() {
   const hasInitializedWallet =
     useRef(false)
 
+  const mobileWalletSectionRef =
+    useRef<HTMLDivElement | null>(
+      null,
+    )
+
   const idempotencyKeyRef =
     useRef<string | null>(
       null,
@@ -475,6 +503,37 @@ export function CheckoutPage() {
         wallet.id ===
         selectedWalletId,
     )
+
+  const mobileWallets =
+    [...wallets].sort(
+      (
+        firstWallet,
+        secondWallet,
+      ) => {
+        const firstOrder =
+          firstWallet.role ===
+          'primary'
+            ? 1
+            : 0
+
+        const secondOrder =
+          secondWallet.role ===
+          'primary'
+            ? 1
+            : 0
+
+        return (
+          firstOrder -
+          secondOrder
+        )
+      },
+    )
+
+  const selectedMobileProvider =
+    String(
+      selectedWallet?.provider ??
+        walletProvider,
+    ).toLowerCase()
 
   useEffect(() => {
     if (
@@ -626,6 +685,29 @@ export function CheckoutPage() {
     wallets,
   ])
 
+  useEffect(() => {
+    if (
+      !selectedWallet ||
+      typeof window ===
+        'undefined' ||
+      !window.matchMedia(
+        '(max-width: 767px)',
+      ).matches
+    ) {
+      return
+    }
+
+    setWalletConnectionStatus(
+      (
+        currentStatus,
+      ) =>
+        currentStatus ===
+        'refused'
+          ? currentStatus
+          : 'connected',
+    )
+  }, [selectedWallet])
+
   function handleWalletSelection(
     walletId: string | null,
   ) {
@@ -754,6 +836,88 @@ export function CheckoutPage() {
   function handleDisconnectWallet() {
     setWalletConnectionStatus(
       'disconnected',
+    )
+
+    setSubmitError(
+      null,
+    )
+  }
+
+  function handleMobileBack() {
+    void navigate({
+      to: '/cart',
+    })
+  }
+
+  function handleMobileChangeWallet() {
+    mobileWalletSectionRef.current?.scrollIntoView(
+      {
+        behavior: 'smooth',
+        block: 'center',
+      },
+    )
+  }
+
+  function handleMobileWalletSelection(
+    walletId: string,
+  ) {
+    handleWalletSelection(
+      walletId,
+    )
+
+    setWalletConnectionStatus(
+      'connected',
+    )
+  }
+
+  function handleMobileProviderSelection(
+    provider: MobileWalletProvider,
+  ) {
+    if (
+      provider ===
+      'walletconnect'
+    ) {
+      setSubmitError(
+        'WalletConnect ainda não está habilitado para finalizar compras. Use MetaMask ou Coinbase Wallet.',
+      )
+
+      return
+    }
+
+    setWalletProvider(
+      provider,
+    )
+
+    const providerWallet =
+      compatibleWallets.find(
+        (wallet) =>
+          String(
+            wallet.provider,
+          ).toLowerCase() ===
+          provider,
+      ) ??
+      wallets.find(
+        (wallet) =>
+          String(
+            wallet.provider,
+          ).toLowerCase() ===
+          provider,
+      )
+
+    if (
+      !providerWallet
+    ) {
+      setSubmitError(
+        `Nenhuma carteira ${formatWalletProvider(
+          provider,
+        )} cadastrada.`,
+      )
+
+      return
+    }
+
+    handleMobileWalletSelection(
+      providerWallet.id,
     )
 
     setSubmitError(
@@ -897,12 +1061,20 @@ export function CheckoutPage() {
         bg-background
       "
     >
-      <Header />
+      <div
+        className="
+          max-md:hidden
+        "
+      >
+        <Header />
+      </div>
 
       <main>
         <PageContainer
           className="
             pt-5
+
+            max-md:hidden
           "
         >
           <nav
@@ -963,6 +1135,10 @@ export function CheckoutPage() {
           className="
             pb-18
             pt-8.5
+
+            max-md:px-[16px]
+            max-md:pb-[36px]
+            max-md:pt-[42px]
           "
         >
           {isEmpty && (
@@ -1179,12 +1355,650 @@ export function CheckoutPage() {
           {!isEmpty &&
             quote && (
               <section>
+                {/* MOBILE */}
+                <div
+                  className="
+                    hidden
+
+                    max-md:mx-auto
+                    max-md:flex
+                    max-md:min-h-[700px]
+                    max-md:w-full
+                    max-md:max-w-[390px]
+                    max-md:flex-col
+                    max-md:rounded-[30px]
+                    max-md:bg-[var(--color-ink)]
+                    max-md:px-[16px]
+                    max-md:pb-[24px]
+                    max-md:pt-[20px]
+                  "
+                >
+                  {/* Topo */}
+                  <div
+                    className="
+                      grid
+                      h-[44px]
+                      w-full
+                      grid-cols-[35px_minmax(0,1fr)_35px]
+                      items-center
+                    "
+                  >
+                    <button
+                      type="button"
+                      onClick={
+                        handleMobileBack
+                      }
+                      aria-label="Voltar ao carrinho"
+                      className="
+                        flex
+                        h-[35px]
+                        w-[35px]
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-[var(--color-border-kurio)]
+                        bg-[var(--color-surface-raised)]
+                        text-[var(--color-text-accent)]
+                        transition-opacity
+                        active:opacity-70
+                      "
+                    >
+                      <ChevronLeft
+                        size={16}
+                        strokeWidth={1.6}
+                      />
+                    </button>
+
+                    <h1
+                      className="
+                        min-w-0
+                        truncate
+                        text-center
+                        text-[20px]
+                        font-bold
+                        leading-[16px]
+                        text-[var(--color-foreground-kurio)]
+                      "
+                    >
+                      Pagamento com carteira
+                    </h1>
+
+                    <span
+                      aria-hidden="true"
+                    />
+                  </div>
+
+                  {/* Carteiras cadastradas */}
+                  <div
+                    className="
+                      mt-[16px]
+                      w-full
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        h-[16px]
+                        w-full
+                        items-center
+                        justify-between
+                        gap-[16px]
+                      "
+                    >
+                      <h2
+                        className="
+                          text-[16px]
+                          font-bold
+                          leading-[16px]
+                          text-[var(--color-foreground-kurio)]
+                        "
+                      >
+                        Carteira conectada
+                      </h2>
+
+                      <button
+                        type="button"
+                        onClick={
+                          handleMobileChangeWallet
+                        }
+                        className="
+                          shrink-0
+                          text-[14px]
+                          font-bold
+                          leading-[16px]
+                          text-[var(--color-text-accent)]
+                          transition-opacity
+                          active:opacity-70
+                        "
+                      >
+                        Trocar carteira
+                      </button>
+                    </div>
+
+                    <div
+                      className="
+                        mt-[12px]
+                        space-y-[16px]
+                      "
+                    >
+                      {isWalletsPending ? (
+                        <>
+                          {Array.from({
+                            length: 2,
+                          }).map(
+                            (
+                              _,
+                              index,
+                            ) => (
+                              <div
+                                key={
+                                  index
+                                }
+                                className="
+                                  h-[93px]
+                                  w-full
+                                  rounded-[14px]
+                                  bg-[var(--color-surface-card)]
+                                  kurio-shimmer
+                                "
+                              />
+                            ),
+                          )}
+                        </>
+                      ) : mobileWallets.length >
+                        0 ? (
+                        mobileWallets.map(
+                          (wallet) => {
+                            const isSelected =
+                              wallet.id ===
+                              selectedWalletId
+
+                            return (
+                              <div
+                                key={
+                                  wallet.id
+                                }
+                                className="
+                                  relative
+                                  h-[93px]
+                                  w-full
+                                "
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleMobileWalletSelection(
+                                      wallet.id,
+                                    )
+                                  }
+                                  aria-pressed={
+                                    isSelected
+                                  }
+                                  className="
+                                    grid
+                                    h-[93px]
+                                    w-full
+                                    grid-cols-[16px_minmax(0,1fr)]
+                                    items-center
+                                    gap-[19px]
+                                    rounded-[14px]
+                                    bg-[var(--color-surface-card)]
+                                    pb-[11px]
+                                    pl-[19px]
+                                    pr-[44px]
+                                    pt-[12px]
+                                    text-left
+                                    transition-opacity
+                                    active:opacity-85
+                                  "
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className={`
+                                      flex
+                                      h-[16px]
+                                      w-[16px]
+                                      items-center
+                                      justify-center
+                                      rounded-full
+                                      border-[1.2px]
+
+                                      ${
+                                        isSelected
+                                          ? `
+                                            border-[var(--color-primary-kurio)]
+                                          `
+                                          : `
+                                            border-[var(--color-border-kurio)]
+                                          `
+                                      }
+                                    `}
+                                  >
+                                    {isSelected && (
+                                      <span
+                                        className="
+                                          h-[8px]
+                                          w-[8px]
+                                          rounded-full
+                                          bg-[var(--color-primary-kurio)]
+                                        "
+                                      />
+                                    )}
+                                  </span>
+
+                                  <span
+                                    className="
+                                      min-w-0
+                                      self-start
+                                    "
+                                  >
+                                    <span
+                                      className="
+                                        block
+                                        truncate
+                                        text-[16px]
+                                        font-bold
+                                        leading-[16px]
+                                        text-[var(--color-foreground-kurio)]
+                                      "
+                                    >
+                                      {wallet.role ===
+                                      'primary'
+                                        ? 'Principal'
+                                        : 'Reserva'}
+                                    </span>
+
+                                    <span
+                                      className="
+                                        mt-[7px]
+                                        block
+                                        truncate
+                                        text-[14px]
+                                        font-normal
+                                        leading-[22px]
+                                        text-[var(--color-text-secondary)]
+                                      "
+                                    >
+                                      {wallet.ensName?.trim() ||
+                                        formatWalletAddress(
+                                          wallet.address,
+                                        )}
+                                    </span>
+
+                                    <span
+                                      className="
+                                        block
+                                        truncate
+                                        text-[14px]
+                                        font-normal
+                                        leading-[22px]
+                                        text-[var(--color-text-secondary)]
+                                      "
+                                    >
+                                      {wallet.role ===
+                                      'primary'
+                                        ? 'Rede principal '
+                                        : 'Rede '}
+                                      {formatNetwork(
+                                        wallet.network,
+                                      )}
+                                    </span>
+                                  </span>
+                                </button>
+
+                                <Link
+                                  to="/profile/wallets"
+                                  aria-label={`Editar carteira ${wallet.nickname}`}
+                                  className="
+                                    absolute
+                                    right-[12px]
+                                    top-1/2
+                                    z-10
+                                    flex
+                                    h-[30px]
+                                    w-[24px]
+                                    -translate-y-1/2
+                                    items-center
+                                    justify-center
+                                    text-[var(--color-secondary,#B39463)]
+                                    transition-opacity
+                                    active:opacity-70
+                                  "
+                                >
+                                  <EllipsisVertical
+                                    size={17}
+                                    strokeWidth={2}
+                                  />
+                                </Link>
+                              </div>
+                            )
+                          },
+                        )
+                      ) : (
+                        <div
+                          className="
+                            flex
+                            min-h-[93px]
+                            items-center
+                            rounded-[14px]
+                            border
+                            border-[var(--color-border-kurio)]
+                            bg-[var(--color-surface-card)]
+                            px-[18px]
+                          "
+                        >
+                          <p
+                            className="
+                              text-[13px]
+                              leading-[20px]
+                              text-[var(--color-text-secondary)]
+                            "
+                          >
+                            Nenhuma carteira cadastrada.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Carteira e rede */}
+                  <div
+                    ref={
+                      mobileWalletSectionRef
+                    }
+                    className="
+                      mt-[14px]
+                      w-full
+                      scroll-mt-[20px]
+                    "
+                  >
+                    <h2
+                      className="
+                        text-[16px]
+                        font-bold
+                        leading-[16px]
+                        text-[var(--color-foreground-kurio)]
+                      "
+                    >
+                      Carteira e rede
+                    </h2>
+
+                    <div
+                      className="
+                        mt-[10px]
+                        space-y-[12px]
+                      "
+                    >
+                      {MOBILE_WALLET_PROVIDERS.map(
+                        (
+                          provider,
+                        ) => {
+                          const isSelected =
+                            selectedMobileProvider ===
+                            provider.id
+
+                          return (
+                            <button
+                              key={
+                                provider.id
+                              }
+                              type="button"
+                              onClick={() =>
+                                handleMobileProviderSelection(
+                                  provider.id,
+                                )
+                              }
+                              aria-pressed={
+                                isSelected
+                              }
+                              className="
+                                flex
+                                h-[52px]
+                                w-full
+                                items-center
+                                rounded-[14px]
+                                bg-[var(--color-surface-card)]
+                                px-[10px]
+                                text-left
+                                transition-opacity
+                                active:opacity-85
+                              "
+                            >
+                              <span
+                                className="
+                                  flex
+                                  h-[40px]
+                                  w-[40px]
+                                  shrink-0
+                                  items-center
+                                  justify-center
+                                  rounded-full
+                                  border
+                                  border-[var(--color-border-kurio)]
+                                  bg-[var(--color-surface-raised)]
+                                  text-[13px]
+                                  font-medium
+                                  leading-[16px]
+                                  text-[var(--color-text-accent)]
+                                "
+                              >
+                                {
+                                  provider.initial
+                                }
+                              </span>
+
+                              <span
+                                className="
+                                  ml-[10px]
+                                  min-w-0
+                                  flex-1
+                                  truncate
+                                  text-[14px]
+                                  font-normal
+                                  leading-[16px]
+                                  text-[var(--color-foreground-kurio)]
+                                "
+                              >
+                                {
+                                  provider.label
+                                }
+                              </span>
+
+                              <span
+                                aria-hidden="true"
+                                className={`
+                                  mr-[4px]
+                                  flex
+                                  h-[14px]
+                                  w-[14px]
+                                  shrink-0
+                                  items-center
+                                  justify-center
+                                  rounded-full
+                                  border
+
+                                  ${
+                                    isSelected
+                                      ? `
+                                        border-[var(--color-primary-kurio)]
+                                      `
+                                      : `
+                                        border-[var(--color-border-kurio)]
+                                      `
+                                  }
+                                `}
+                              >
+                                {isSelected && (
+                                  <span
+                                    className="
+                                      h-[7px]
+                                      w-[7px]
+                                      rounded-full
+                                      bg-[var(--color-primary-kurio)]
+                                    "
+                                  />
+                                )}
+                              </span>
+                            </button>
+                          )
+                        },
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Total */}
+                  <div
+                    className="
+                      mt-[14px]
+                      flex
+                      w-full
+                      justify-end
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        h-[16px]
+                        w-[184px]
+                        items-center
+                        justify-between
+                        gap-[28px]
+                      "
+                    >
+                      <span
+                        className="
+                          text-[16px]
+                          font-bold
+                          leading-[16px]
+                          text-[var(--color-foreground-kurio)]
+                        "
+                      >
+                        Total:
+                      </span>
+
+                      <span
+                        className="
+                          shrink-0
+                          text-right
+                          text-[18px]
+                          font-bold
+                          leading-[16px]
+                          text-[var(--color-text-accent)]
+                        "
+                      >
+                        {
+                          quote.totalEth
+                        }{' '}
+                        ETH
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Erro */}
+                  {submitError && (
+                    <div
+                      role="alert"
+                      className="
+                        mt-[14px]
+                        flex
+                        items-start
+                        gap-[7px]
+                        rounded-[10px]
+                        border
+                        border-destructive/30
+                        bg-destructive/5
+                        px-[12px]
+                        py-[9px]
+                      "
+                    >
+                      <CircleAlert
+                        size={14}
+                        className="
+                          mt-[2px]
+                          shrink-0
+                          text-destructive
+                        "
+                      />
+
+                      <p
+                        className="
+                          text-[11px]
+                          leading-[17px]
+                          text-destructive
+                        "
+                      >
+                        {
+                          submitError
+                        }
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Confirmar */}
+                  <div
+                    className="
+                      mt-auto
+                      w-full
+                      pt-[24px]
+                    "
+                  >
+                    <button
+                      type="button"
+                      onClick={
+                        handleConfirmPurchase
+                      }
+                      disabled={
+                        isOrderPending ||
+                        !selectedWallet
+                      }
+                      className="
+                        flex
+                        h-[60px]
+                        w-full
+                        items-center
+                        justify-center
+                        gap-[8px]
+                        rounded-[40px]
+                        bg-[linear-gradient(93.21deg,#D28A4C_-3.96%,rgba(210,138,76,0.8)_121.97%)]
+                        text-center
+                        text-[16px]
+                        font-bold
+                        leading-[16px]
+                        text-[var(--color-ink)]
+                        transition-opacity
+                        active:opacity-80
+                        disabled:cursor-not-allowed
+                        disabled:opacity-45
+                      "
+                    >
+                      {isOrderPending ? (
+                        <>
+                          <LoaderCircle
+                            size={16}
+                            className="
+                              animate-spin
+                            "
+                          />
+
+                          Confirmando compra...
+                        </>
+                      ) : (
+                        'Confirmar compra'
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* DESKTOP */}
                 <div
                   className="
                     grid
                     grid-cols-[minmax(0,1fr)_320px]
                     items-start
                     gap-12
+
+                    max-md:hidden
                   "
                 >
                   <div
@@ -2087,6 +2901,7 @@ export function CheckoutPage() {
           quote && (
             <div
               className="
+                max-md:hidden
               "
             >
               <BenefitsSection />
@@ -2094,7 +2909,13 @@ export function CheckoutPage() {
           )}
       </main>
 
-      <Footer />
+      <div
+        className="
+          max-md:hidden
+        "
+      >
+        <Footer />
+      </div>
     </div>
   )
 }
