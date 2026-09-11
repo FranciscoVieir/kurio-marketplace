@@ -44,13 +44,13 @@ export function HomePage() {
           }}
         />
 
-        <div className="space-y-[72px] pb-[72px]">
-          <EditorialSection />
+      <div className="space-y-12">
+      <EditorialSection />
 
-          <JournalSection />
+      <JournalSection />
 
-          <BenefitsSection />
-        </div>
+        <BenefitsSection />
+      </div>
       </main>
 
       <Footer />

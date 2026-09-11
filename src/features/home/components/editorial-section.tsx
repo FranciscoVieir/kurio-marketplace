@@ -115,7 +115,7 @@ function EditorialCard({
 
 export function EditorialSection() {
   return (
-    <section className="bg-background">
+    <section className="bg-background pt-16">
       <PageContainer>
         <div
           className="

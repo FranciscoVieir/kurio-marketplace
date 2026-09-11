@@ -333,7 +333,6 @@ export function NftDetailPage() {
 
         <div
           className="
-            pb-[72px]
           "
         >
           <BenefitsSection />

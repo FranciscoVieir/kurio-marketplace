@@ -164,8 +164,8 @@ export function CatalogSection({
       className="
         scroll-mt-6
         bg-background
-        pt-8
-        pb-10
+        pt-10
+        pb-14
       "
     >
       <PageContainer>
@@ -283,17 +283,19 @@ export function CatalogSection({
                 </div>
 
                 {hasPagination && (
-                  <CatalogPagination
-                    params={
-                      params
-                    }
-                    total={
-                      total
-                    }
-                    pageSize={
-                      pageSize
-                    }
-                  />
+                  <div className="mt-14">
+                    <CatalogPagination
+                      params={
+                        params
+                      }
+                      total={
+                        total
+                      }
+                      pageSize={
+                        pageSize
+                      }
+                    />
+                  </div>
                 )}
               </>
             ) : (

@@ -36,7 +36,8 @@ export function HeroSection() {
         relative
         scroll-mt-16
         bg-[var(--color-ink)]
-        pt-4
+        pt-7
+        pb-10
       "
     >
       <PageContainer>
@@ -146,7 +147,7 @@ export function HeroSection() {
         aria-label="Slide 1 de 3"
         className="
           absolute
-          bottom-5
+          bottom-4
           left-1/2
           flex
           -translate-x-1/2

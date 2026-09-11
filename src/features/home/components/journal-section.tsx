@@ -77,6 +77,7 @@ function JournalCard({
         overflow-hidden
         rounded-[8px]
         bg-[var(--color-surface-card)]
+        
       "
     >
       <div
@@ -174,6 +175,7 @@ export function JournalSection() {
       className="
         scroll-mt-16
         bg-background
+        pt-12
       "
     >
       <PageContainer>

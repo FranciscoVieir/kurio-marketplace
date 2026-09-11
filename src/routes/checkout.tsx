@@ -2087,7 +2087,6 @@ export function CheckoutPage() {
           quote && (
             <div
               className="
-                pb-18
               "
             >
               <BenefitsSection />

@@ -43,10 +43,19 @@ function BenefitItem({
   return (
     <article
       className="
-        h-[202px]
-        w-[264.67px]
-        px-[16px]
+    relative
+    h-[202px]
+    w-[264.67px]
+    px-[16px]
+    after:absolute
+    after:right-0
+    after:top-0
+    after:bottom-0
+    after:w-0.5
+    after:bg-[var(--color-primary-kurio)]/45
+    after:content-['']
       "
+
     >
       <div
         className="
@@ -257,6 +266,7 @@ export function BenefitsSection() {
       className="
         scroll-mt-16
         bg-background
+        pt-10
       "
     >
       <PageContainer>

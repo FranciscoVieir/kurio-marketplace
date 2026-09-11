@@ -228,7 +228,7 @@ export function Header() {
           <div
             className="
               flex
-              h-[45px]
+              h-[55px]
               items-center
               border-b
               border-[var(--color-border-kurio)]

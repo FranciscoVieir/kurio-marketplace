@@ -212,7 +212,7 @@ export function CartPage() {
           </section>
         </PageContainer>
 
-        <div className="pb-[72px]">
+        <div className="">
           <BenefitsSection />
         </div>
       </main>
