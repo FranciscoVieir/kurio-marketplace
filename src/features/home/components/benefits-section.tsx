@@ -43,70 +43,98 @@ function BenefitItem({
   return (
     <article
       className="
-    relative
-    h-[202px]
-    w-[264.67px]
-    px-[16px]
-    after:absolute
-    after:right-0
-    after:top-0
-    after:bottom-0
-    after:w-0.5
-    after:bg-[var(--color-primary-kurio)]/45
-    after:content-['']
+        relative
+        w-full
+        py-5
+        after:absolute
+        after:right-0
+        after:bottom-0
+        after:left-0
+        after:h-px
+        after:bg-[var(--color-primary-kurio)]/45
+        after:content-['']
+        last:after:hidden
+        lg:h-[202px]
+        lg:w-[264.67px]
+        lg:px-[16px]
+        lg:py-0
+        lg:after:top-0
+        lg:after:right-0
+        lg:after:bottom-0
+        lg:after:left-auto
+        lg:after:h-auto
+        lg:after:w-0.5
+        lg:last:after:block
       "
-
     >
       <div
         className="
           flex
           h-full
           w-full
-          flex-col
-          gap-[12px]
+          items-start
+          gap-4
+          lg:flex-col
+          lg:gap-[12px]
         "
       >
         <div
           className="
             flex
-            h-[74px]
-            w-[74px]
+            size-[54px]
             shrink-0
             items-center
             justify-center
             rounded-full
             bg-[var(--color-primary-kurio)]
-            text-[18px]
+            text-[16px]
             font-bold
             text-[var(--color-ink)]
+            lg:h-[74px]
+            lg:w-[74px]
+            lg:text-[18px]
           "
           aria-hidden="true"
         >
           {benefit.initial}
         </div>
 
-        <h3
+        <div
           className="
-            text-[17px]
-            font-bold
-            leading-[16px]
-            text-[var(--color-foreground-kurio)]
+            min-w-0
+            flex-1
           "
         >
-          {benefit.title}
-        </h3>
+          <h3
+            className="
+              text-[15px]
+              font-bold
+              leading-[18px]
+              text-[var(--color-foreground-kurio)]
+              lg:text-[17px]
+              lg:leading-[16px]
+            "
+          >
+            {benefit.title}
+          </h3>
 
-        <p
-          className="
-            max-w-[204px]
-            text-[14px]
-            font-normal
-            leading-[22px]
-            text-[var(--color-text-secondary)]
-          "
-        >
-          {benefit.description}
-        </p>
+          <p
+            className="
+              mt-2
+              max-w-[250px]
+              text-[12px]
+              font-normal
+              leading-[18px]
+              text-[var(--color-text-secondary)]
+              lg:mt-3
+              lg:max-w-[204px]
+              lg:text-[14px]
+              lg:leading-[22px]
+            "
+          >
+            {benefit.description}
+          </p>
+        </div>
       </div>
     </article>
   )
@@ -129,9 +157,12 @@ function Newsletter() {
   return (
     <section
       className="
-        h-[202px]
-        w-[357px]
-        px-[16px]
+        w-full
+        pt-5
+        lg:h-[202px]
+        lg:w-[357px]
+        lg:px-[16px]
+        lg:pt-0
       "
       aria-labelledby="newsletter-title"
     >
@@ -140,24 +171,27 @@ function Newsletter() {
           flex
           h-full
           flex-col
-          gap-[12px]
+          gap-3
         "
       >
         <div
           className="
             flex
-            w-[325px]
+            w-full
             flex-col
-            gap-[16px]
+            gap-4
+            lg:w-[325px]
           "
         >
           <h3
             id="newsletter-title"
             className="
-              text-[18px]
+              text-[16px]
               font-bold
-              leading-[16px]
+              leading-[20px]
               text-[var(--color-foreground-kurio)]
+              lg:text-[18px]
+              lg:leading-[16px]
             "
           >
             Antecipe-se ao próximo
@@ -169,7 +203,8 @@ function Newsletter() {
             className="
               flex
               h-[40px]
-              w-[325px]
+              w-full
+              lg:w-[325px]
             "
             onSubmit={
               handleSubmit
@@ -195,14 +230,15 @@ function Newsletter() {
                 border-r-0
                 border-border
                 bg-[var(--color-surface-dark,#38220F)]
-                px-[12px]
-                text-[14px]
+                px-3
+                text-[13px]
                 font-normal
-                leading-[16px]
+                leading-4
                 text-foreground
                 outline-none
                 placeholder:text-[var(--color-secondary-kurio)]
                 focus:border-[var(--color-primary-kurio)]
+                lg:text-[14px]
               "
             />
 
@@ -210,16 +246,18 @@ function Newsletter() {
               type="submit"
               className="
                 h-[40px]
-                w-[85px]
+                w-[78px]
                 shrink-0
                 rounded-r-[6px]
                 bg-[var(--color-primary-kurio)]
-                px-[4px]
-                py-[12px]
-                text-[18px]
+                px-1
+                py-3
+                text-[16px]
                 font-bold
-                leading-[16px]
+                leading-4
                 text-[var(--color-ink)]
+                lg:w-[85px]
+                lg:text-[18px]
               "
             >
               Enviar
@@ -232,10 +270,12 @@ function Newsletter() {
             role="status"
             className="
               max-w-[325px]
-              text-[13px]
+              text-[12px]
               font-normal
-              leading-[22px]
+              leading-[18px]
               text-[var(--color-text-accent)]
+              lg:text-[13px]
+              lg:leading-[22px]
             "
           >
             Inscrição enviada com sucesso.
@@ -244,10 +284,12 @@ function Newsletter() {
           <p
             className="
               max-w-[325px]
-              text-[13px]
+              text-[12px]
               font-normal
-              leading-[22px]
+              leading-[18px]
               text-[var(--color-text-secondary)]
+              lg:text-[13px]
+              lg:leading-[22px]
             "
           >
             Receba lançamentos selecionados, histórias de criadores e novidades
@@ -266,41 +308,55 @@ export function BenefitsSection() {
       className="
         scroll-mt-16
         bg-background
-        pt-10
+        pt-8
+        lg:pt-10
       "
     >
       <PageContainer>
         <div
           className="
-            h-[250px]
-            w-full
-            bg-[var(--color-surface-card)]
-            p-[32px]
+            px-6
+            lg:px-0
           "
         >
           <div
             className="
-              flex
-              h-[202px]
               w-full
-              items-start
-              justify-between
+              rounded-[12px]
+              bg-[var(--color-surface-card)]
+              px-4
+              py-5
+              lg:h-[250px]
+              lg:rounded-none
+              lg:p-[32px]
             "
           >
-            {benefits.map(
-              (benefit) => (
-                <BenefitItem
-                  key={
-                    benefit.id
-                  }
-                  benefit={
-                    benefit
-                  }
-                />
-              ),
-            )}
+            <div
+              className="
+                flex
+                w-full
+                flex-col
+                lg:h-[202px]
+                lg:flex-row
+                lg:items-start
+                lg:justify-between
+              "
+            >
+              {benefits.map(
+                (benefit) => (
+                  <BenefitItem
+                    key={
+                      benefit.id
+                    }
+                    benefit={
+                      benefit
+                    }
+                  />
+                ),
+              )}
 
-            <Newsletter />
+              <Newsletter />
+            </div>
           </div>
         </div>
       </PageContainer>

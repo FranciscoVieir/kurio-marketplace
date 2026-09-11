@@ -2,13 +2,13 @@ import { useSearch } from '@tanstack/react-router'
 
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
+import { MobileBottomNavigation } from '@/components/layout/mobile-bottom-navigation'
 import { CatalogSection } from '@/features/catalog/components/catalog-section'
 import { useNfts } from '@/features/catalog/hooks/use-nfts'
 import { BenefitsSection } from '@/features/home/components/benefits-section'
 import { EditorialSection } from '@/features/home/components/editorial-section'
 import { HeroSection } from '@/features/home/components/hero-section'
 import { JournalSection } from '@/features/home/components/journal-section'
-import { MobileBottomNavigation } from '@/components/layout/mobile-bottom-navigation'
 
 export function HomePage() {
   const searchParams = useSearch({
@@ -33,12 +33,7 @@ export function HomePage() {
     >
       <Header />
 
-      <main
-        className="
-          pb-[120px]
-          lg:pb-0
-        "
-      >
+      <main>
         <HeroSection />
 
         <CatalogSection
@@ -73,6 +68,7 @@ export function HomePage() {
       </main>
 
       <Footer />
+
       <MobileBottomNavigation />
     </div>
   )

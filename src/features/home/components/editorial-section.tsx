@@ -18,23 +18,30 @@ function EditorialCard({
     <article
       className="
         flex
-        h-[250px]
-        w-[586px]
+        w-full
+        flex-col
         overflow-hidden
-        rounded-[8px]
+        rounded-[12px]
         bg-[var(--color-surface-card)]
+        lg:h-[250px]
+        lg:w-[586px]
+        lg:flex-row
+        lg:rounded-[8px]
       "
     >
       <div
         className="
           relative
-          -ml-[5px]
-          h-[250px]
-          w-[292px]
+          h-[180px]
+          w-full
           shrink-0
           overflow-hidden
-          rounded-[18px]
+          rounded-[16px]
           bg-card
+          lg:-ml-[5px]
+          lg:h-[250px]
+          lg:w-[292px]
+          lg:rounded-[18px]
         "
       >
         <img
@@ -54,19 +61,28 @@ function EditorialCard({
           min-w-0
           flex-1
           flex-col
-          items-end
-          pr-[30px]
-          pt-[37px]
-          text-right
+          items-start
+          px-4
+          pt-4
+          pb-5
+          text-left
+          lg:items-end
+          lg:p-0
+          lg:pr-[30px]
+          lg:pt-[37px]
+          lg:text-right
         "
       >
         <h2
           className="
-            w-[206px]
-            text-[18px]
+            w-full
+            text-[16px]
             font-bold
-            leading-[24px]
+            leading-[22px]
             text-[var(--color-foreground-kurio)]
+            lg:w-[206px]
+            lg:text-[18px]
+            lg:leading-[24px]
           "
         >
           {title}
@@ -74,12 +90,16 @@ function EditorialCard({
 
         <p
           className="
-            mt-[9px]
-            w-[263px]
-            text-[14px]
+            mt-2
+            w-full
+            text-[12px]
             font-normal
-            leading-[24px]
+            leading-[18px]
             text-[var(--color-text-secondary)]
+            lg:mt-[9px]
+            lg:w-[263px]
+            lg:text-[14px]
+            lg:leading-[24px]
           "
         >
           {description}
@@ -88,15 +108,19 @@ function EditorialCard({
         <Button
           type="button"
           className="
-            mt-[25px]
-            h-[40px]
-            w-[140px]
+            mt-4
+            h-[36px]
+            w-[116px]
             rounded-[6px]
             bg-[var(--color-primary-kurio)]
-            text-[16px]
+            text-[14px]
             font-bold
             text-[var(--color-ink)]
             hover:bg-[var(--color-primary-kurio)]
+            lg:mt-[25px]
+            lg:h-[40px]
+            lg:w-[140px]
+            lg:text-[16px]
           "
           onClick={() => {
             document
@@ -115,16 +139,27 @@ function EditorialCard({
 
 export function EditorialSection() {
   return (
-    <section className="bg-background pt-16">
+    <section
+      className="
+        bg-background
+        pt-8
+        lg:pt-16
+      "
+    >
       <PageContainer>
         <div
           className="
             flex
-            h-[250px]
             w-full
-            items-stretch
-            justify-between
-            gap-[28px]
+            flex-col
+            gap-4
+            px-6
+            lg:h-[250px]
+            lg:flex-row
+            lg:items-stretch
+            lg:justify-between
+            lg:gap-[28px]
+            lg:px-0
           "
         >
           <EditorialCard

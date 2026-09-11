@@ -16,18 +16,21 @@ function FooterColumn({
     <div
       className="
         flex
-        h-[174px]
-        w-[178.67px]
+        w-full
         flex-col
-        gap-[8px]
+        gap-2
+        lg:h-[174px]
+        lg:w-[178.67px]
       "
     >
       <h3
         className="
-          text-[18px]
+          text-[16px]
           font-bold
-          leading-[16px]
+          leading-[18px]
           text-[var(--color-foreground-kurio)]
+          lg:text-[18px]
+          lg:leading-[16px]
         "
       >
         {title}
@@ -37,10 +40,12 @@ function FooterColumn({
         className="
           flex
           flex-col
-          text-[14px]
+          text-[13px]
           font-normal
-          leading-[30px]
+          leading-[26px]
           text-[var(--color-foreground-kurio)]
+          lg:text-[14px]
+          lg:leading-[30px]
         "
         aria-label={title}
       >
@@ -90,17 +95,20 @@ function SocialAndWallets() {
     <div
       className="
         flex
-        h-[174px]
-        flex-1
+        w-full
         flex-col
+        lg:h-[174px]
+        lg:flex-1
       "
     >
       <h3
         className="
-          text-[18px]
+          text-[16px]
           font-bold
-          leading-[16px]
+          leading-[18px]
           text-[var(--color-foreground-kurio)]
+          lg:text-[18px]
+          lg:leading-[16px]
         "
       >
         Redes sociais
@@ -108,10 +116,10 @@ function SocialAndWallets() {
 
       <div
         className="
-          mt-[12px]
+          mt-3
           flex
           items-center
-          gap-[8px]
+          gap-2
         "
       >
         <span
@@ -119,8 +127,7 @@ function SocialAndWallets() {
           aria-disabled="true"
           className="
             flex
-            h-[32px]
-            w-[32px]
+            size-8
             cursor-default
             items-center
             justify-center
@@ -140,8 +147,7 @@ function SocialAndWallets() {
           aria-disabled="true"
           className="
             flex
-            h-[32px]
-            w-[32px]
+            size-8
             cursor-default
             items-center
             justify-center
@@ -161,8 +167,7 @@ function SocialAndWallets() {
           aria-disabled="true"
           className="
             flex
-            h-[32px]
-            w-[32px]
+            size-8
             cursor-default
             items-center
             justify-center
@@ -180,11 +185,14 @@ function SocialAndWallets() {
 
       <h3
         className="
-          mt-[30px]
-          text-[18px]
+          mt-6
+          text-[16px]
           font-bold
-          leading-[16px]
+          leading-[18px]
           text-[var(--color-foreground-kurio)]
+          lg:mt-[30px]
+          lg:text-[18px]
+          lg:leading-[16px]
         "
       >
         Carteiras compatíveis
@@ -192,21 +200,22 @@ function SocialAndWallets() {
 
       <div
         className="
-          mt-[12px]
+          mt-3
           flex
+          flex-wrap
           items-center
-          gap-[8px]
+          gap-2
         "
       >
         <span
           className="
             flex
-            h-[32px]
+            h-8
             items-center
             rounded-[4px]
             border
             border-border
-            px-[8px]
+            px-2
             text-[10px]
             font-bold
             text-[var(--color-foreground-kurio)]
@@ -218,12 +227,12 @@ function SocialAndWallets() {
         <span
           className="
             flex
-            h-[32px]
+            h-8
             items-center
             rounded-[4px]
             border
             border-border
-            px-[8px]
+            px-2
             text-[10px]
             font-bold
             text-[var(--color-foreground-kurio)]
@@ -235,12 +244,12 @@ function SocialAndWallets() {
         <span
           className="
             flex
-            h-[32px]
+            h-8
             items-center
             rounded-[4px]
             border
             border-border
-            px-[8px]
+            px-2
             text-[10px]
             font-bold
             text-[var(--color-foreground-kurio)]
@@ -258,34 +267,44 @@ export function Footer() {
     <footer
       className="
         mx-auto
-        h-[360px]
         w-full
         max-w-[1200px]
+        pb-[120px]
+        lg:h-[360px]
+        lg:pb-0
       "
     >
       <div
         className="
-          flex
-          h-[88px]
           w-full
-          items-center
           bg-[var(--color-surface-dark,#38220F)]
-          px-[32px]
+          py-6
+          lg:flex
+          lg:h-[88px]
+          lg:items-center
+          lg:px-[32px]
+          lg:py-0
         "
       >
         <div
           className="
+            mx-auto
             flex
-            w-full
-            items-center
-            gap-[92px]
+            w-[calc(100%-48px)]
+            flex-col
+            gap-3
+            lg:mx-0
+            lg:w-full
+            lg:flex-row
+            lg:items-center
+            lg:gap-[92px]
           "
         >
           <div
             className="
-              w-[210.67px]
               shrink-0
-              py-[8px]
+              lg:w-[210.67px]
+              lg:py-[8px]
             "
           >
             <a
@@ -306,12 +325,14 @@ export function Footer() {
 
           <p
             className="
-              w-[219px]
-              shrink-0
-              text-[14px]
+              text-[13px]
               font-normal
-              leading-[22px]
+              leading-[20px]
               text-[var(--color-foreground-kurio)]
+              lg:w-[219px]
+              lg:shrink-0
+              lg:text-[14px]
+              lg:leading-[22px]
             "
           >
             Feito para colecionadores e criadores.
@@ -320,12 +341,14 @@ export function Footer() {
           <a
             href="mailto:contato@kurio.com"
             className="
-              text-[14px]
+              text-[13px]
               font-normal
-              leading-[22px]
+              leading-[20px]
               text-[var(--color-foreground-kurio)]
               transition-colors
               hover:text-[var(--color-text-accent)]
+              lg:text-[14px]
+              lg:leading-[22px]
             "
           >
             contato@kurio.com
@@ -334,13 +357,15 @@ export function Footer() {
           <a
             href="tel:+5511999999999"
             className="
-              ml-auto
-              text-[14px]
+              text-[13px]
               font-normal
-              leading-[22px]
+              leading-[20px]
               text-[var(--color-foreground-kurio)]
               transition-colors
               hover:text-[var(--color-text-accent)]
+              lg:ml-auto
+              lg:text-[14px]
+              lg:leading-[22px]
             "
           >
             +55 11 99999-9999
@@ -350,18 +375,26 @@ export function Footer() {
 
       <div
         className="
-          h-[236px]
           w-full
           bg-background
-          p-[32px]
+          py-8
+          lg:h-[236px]
+          lg:p-[32px]
         "
       >
         <div
           className="
-            flex
-            h-[174px]
-            w-full
-            gap-[124px]
+            mx-auto
+            grid
+            w-[calc(100%-48px)]
+            grid-cols-2
+            gap-x-6
+            gap-y-8
+            lg:mx-0
+            lg:flex
+            lg:h-[174px]
+            lg:w-full
+            lg:gap-[124px]
           "
         >
           <FooterColumn
@@ -463,15 +496,21 @@ export function Footer() {
       <div
         className="
           flex
-          h-[30px]
           w-full
           items-center
           justify-center
+          px-6
+          py-3
           text-center
-          text-[14px]
+          text-[12px]
           font-normal
-          leading-[30px]
+          leading-[18px]
           text-[var(--color-foreground-kurio)]
+          lg:h-[30px]
+          lg:px-0
+          lg:py-0
+          lg:text-[14px]
+          lg:leading-[30px]
         "
       >
         © 2026 Kurio. Propriedade digital para todos.

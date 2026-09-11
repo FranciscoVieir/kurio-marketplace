@@ -72,20 +72,23 @@ function JournalCard({
   return (
     <article
       className="
-        h-[369px]
-        w-[268px]
+        w-full
         overflow-hidden
-        rounded-[8px]
+        rounded-[12px]
         bg-[var(--color-surface-card)]
-        
+        lg:h-[369px]
+        lg:w-[268px]
+        lg:rounded-[8px]
       "
     >
       <div
         className="
-          h-[195px]
-          w-[268px]
+          aspect-[1.375]
+          w-full
           overflow-hidden
           bg-card
+          lg:h-[195px]
+          lg:w-[268px]
         "
       >
         <img
@@ -102,22 +105,25 @@ function JournalCard({
       <div
         className="
           flex
-          h-[174px]
+          min-h-[150px]
           w-full
           flex-col
-          gap-[8px]
-          px-[16px]
-          pb-[16px]
-          pt-[12px]
+          gap-2
+          px-4
+          pt-3
+          pb-4
+          lg:h-[174px]
+          lg:min-h-0
         "
       >
         <p
           className="
-            min-h-[32px]
-            text-[12px]
+            text-[11px]
             font-medium
-            leading-[16px]
+            leading-4
             text-[var(--color-text-secondary)]
+            lg:min-h-[32px]
+            lg:text-[12px]
           "
         >
           {article.meta}
@@ -125,11 +131,13 @@ function JournalCard({
 
         <h3
           className="
-            min-h-[42px]
-            text-[16px]
+            text-[15px]
             font-bold
-            leading-[16px]
+            leading-[19px]
             text-[var(--color-foreground-kurio)]
+            lg:min-h-[42px]
+            lg:text-[16px]
+            lg:leading-[16px]
           "
         >
           {article.title}
@@ -137,11 +145,12 @@ function JournalCard({
 
         <p
           className="
-            min-h-[32px]
             text-[12px]
             font-medium
-            leading-[16px]
+            leading-[17px]
             text-[var(--color-text-secondary)]
+            lg:min-h-[32px]
+            lg:leading-[16px]
           "
         >
           {article.description}
@@ -175,36 +184,43 @@ export function JournalSection() {
       className="
         scroll-mt-16
         bg-background
-        pt-12
+        pt-8
+        lg:pt-12
       "
     >
       <PageContainer>
         <div
           className="
             flex
-            h-[476px]
             w-full
             flex-col
-            gap-[40px]
+            gap-6
+            px-6
+            lg:h-[476px]
+            lg:gap-[40px]
+            lg:px-0
           "
         >
           <header
             className="
               flex
-              h-[67px]
               w-full
               flex-col
-              gap-[12px]
-              text-center
+              gap-2
+              text-left
+              lg:h-[67px]
+              lg:gap-[12px]
+              lg:text-center
             "
           >
             <h2
               className="
-                h-[37px]
-                text-[28px]
+                text-[22px]
                 font-bold
                 leading-[28px]
                 text-[var(--color-foreground-kurio)]
+                lg:h-[37px]
+                lg:text-[28px]
               "
             >
               Diário da Cunhagem
@@ -212,11 +228,15 @@ export function JournalSection() {
 
             <p
               className="
-                h-[18px]
-                text-[14px]
+                max-w-[330px]
+                text-[12px]
                 font-normal
-                leading-[14px]
+                leading-[18px]
                 text-[var(--color-text-secondary)]
+                lg:h-[18px]
+                lg:max-w-none
+                lg:text-[14px]
+                lg:leading-[14px]
               "
             >
               Histórias, guias e insights para colecionadores sobre o universo
@@ -226,12 +246,15 @@ export function JournalSection() {
 
           <div
             className="
-              flex
-              h-[369px]
+              grid
               w-full
-              items-start
-              justify-center
-              gap-[24px]
+              grid-cols-2
+              gap-4
+              lg:flex
+              lg:h-[369px]
+              lg:items-start
+              lg:justify-center
+              lg:gap-[24px]
             "
           >
             {journalArticles.map(

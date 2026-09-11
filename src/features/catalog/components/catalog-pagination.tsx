@@ -73,12 +73,15 @@ export function CatalogPagination({
     <nav
       aria-label="Paginação do catálogo"
       className="
-        mt-8
         flex
-        h-[35px]
+        h-8
         items-center
-        justify-end
-        gap-2
+        justify-center
+        gap-1.5
+        lg:mt-8
+        lg:h-[35px]
+        lg:justify-end
+        lg:gap-2
       "
     >
       {visiblePages.map(
@@ -103,13 +106,15 @@ export function CatalogPagination({
               }
               className={`
                 flex
-                h-[35px]
-                w-[35px]
+                size-8
                 items-center
                 justify-center
                 rounded-[4px]
-                text-[18px]
-                leading-[16px]
+                text-[15px]
+                leading-4
+                lg:h-[35px]
+                lg:w-[35px]
+                lg:text-[18px]
                 ${
                   active
                     ? `
@@ -139,6 +144,7 @@ export function CatalogPagination({
           currentPage >=
           totalPages
         }
+        aria-label="Próxima página"
         onClick={() =>
           goToPage(
             currentPage +
@@ -147,16 +153,18 @@ export function CatalogPagination({
         }
         className="
           flex
-          h-[35px]
-          w-[35px]
+          size-8
           items-center
           justify-center
           rounded-[4px]
           border
           border-border
-          text-[18px]
+          text-[16px]
           text-[var(--text-primary-kurio)]
           disabled:opacity-40
+          lg:h-[35px]
+          lg:w-[35px]
+          lg:text-[18px]
         "
       >
         ›

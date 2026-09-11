@@ -113,15 +113,22 @@ export function CatalogToolbar({
         flex
         scroll-mt-16
         items-center
-        justify-between
+        justify-start
+        lg:justify-between
       "
     >
       <div
         className="
           flex
-          h-4
+          h-5
+          w-full
           items-center
-          gap-5
+          justify-center
+          gap-3
+          lg:h-4
+          lg:w-auto
+          lg:justify-start
+          lg:gap-5
         "
         role="tablist"
         aria-label="Visualização do catálogo"
@@ -143,10 +150,19 @@ export function CatalogToolbar({
                 )
               }
               className={`
-                text-[15px]
+                relative
+                flex
+                h-5
+                items-center
+                justify-center
+                whitespace-nowrap
+                px-0
+                text-[12px]
                 font-medium
                 leading-4
                 transition-colors
+                lg:h-auto
+                lg:text-[15px]
                 ${
                   active
                     ? 'text-[var(--color-text-accent)]'
@@ -155,6 +171,21 @@ export function CatalogToolbar({
               `}
             >
               {tab.label}
+
+              {active && (
+                <span
+                  aria-hidden="true"
+                  className="
+                    absolute
+                    right-0
+                    bottom-0
+                    left-0
+                    h-px
+                    bg-[var(--color-primary-kurio)]
+                    lg:hidden
+                  "
+                />
+              )}
             </button>
           )
         })}
@@ -162,10 +193,11 @@ export function CatalogToolbar({
 
       <div
         className="
-          flex
+          hidden
           items-center
           gap-1.5
           text-[15px]
+          lg:flex
         "
       >
         <span

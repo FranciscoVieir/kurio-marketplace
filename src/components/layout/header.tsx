@@ -2,6 +2,7 @@ import {
   LogIn,
   Search,
   ShoppingCart,
+  SlidersHorizontal,
   UserRound,
 } from 'lucide-react'
 
@@ -224,278 +225,379 @@ export function Header() {
           bg-[var(--color-ink)]
         "
       >
-        <PageContainer>
+        {/* Mobile: busca + filtro conforme o Figma. */}
+        <div
+          className="
+            px-6
+            pt-6
+            pb-3
+            lg:hidden
+          "
+        >
           <div
             className="
               flex
-              h-[55px]
+              h-[45px]
+              w-full
               items-center
-              border-b
-              border-[var(--color-border-kurio)]
+              gap-2
             "
           >
             <button
               type="button"
+              aria-label="Explorar coleções de NFTs"
               onClick={() =>
                 void goToSection(
-                  'home',
+                  'catalog',
                 )
               }
               className="
+                flex
+                h-[45px]
+                min-w-0
+                flex-1
+                items-center
+                gap-2
+                rounded-[10px]
+                bg-[var(--color-surface-card)]
+                px-3
+                text-left
                 text-[14px]
                 font-bold
-                leading-[14px]
-                tracking-[0.1em]
-                text-[var(--color-foreground-kurio)]
+                leading-[16px]
+                text-[var(--color-secondary)]
                 transition-colors
                 hover:text-[var(--color-text-accent)]
               "
             >
-              KURIO
+              <Search
+                className="
+                  size-[22px]
+                  shrink-0
+                "
+                strokeWidth={1.8}
+              />
+
+              <span
+                className="
+                  truncate
+                "
+              >
+                Explorar coleções
+              </span>
             </button>
 
-            <nav
-              aria-label="Navegação principal"
+            <button
+              type="button"
+              aria-label="Ir para os filtros do mercado"
+              onClick={() =>
+                void goToSection(
+                  'catalog',
+                )
+              }
               className="
-                ml-[180px]
                 flex
-                h-full
+                size-[45px]
+                shrink-0
                 items-center
-                gap-6
+                justify-center
+                rounded-[14px]
+                bg-[linear-gradient(137.05deg,rgba(210,138,76,0.45)_-24.6%,#D28A4C_100%)]
+                text-[var(--color-ink)]
+                transition-opacity
+                hover:opacity-90
               "
             >
-              {navigation.map(
-                (item) => {
-                  const active =
-                    isSectionActive(
-                      item.section,
-                    )
+              <SlidersHorizontal
+                className="
+                  size-[21px]
+                "
+                strokeWidth={1.8}
+              />
+            </button>
+          </div>
+        </div>
 
-                  return (
-                    <button
-                      key={
-                        item.label
-                      }
-                      type="button"
-                      onClick={() =>
-                        void goToSection(
-                          item.section,
-                        )
-                      }
-                      className={`
-                        relative
-                        flex
-                        h-full
-                        items-center
-                        text-[16px]
-                        font-normal
-                        leading-[16px]
-                        transition-colors
-                        ${
-                          active
-                            ? 'text-[var(--color-text-accent)]'
-                            : 'text-[var(--color-foreground-kurio)] hover:text-[var(--color-text-accent)]'
-                        }
-                      `}
-                    >
-                      {
-                        item.label
-                      }
-
-                      {active && (
-                        <span
-                          aria-hidden="true"
-                          className="
-                            absolute
-                            bottom-0
-                            left-0
-                            h-[3px]
-                            w-full
-                            bg-[var(--color-primary-kurio)]
-                          "
-                        />
-                      )}
-                    </button>
-                  )
-                },
-              )}
-            </nav>
-
+        {/* Desktop: preservado exatamente como estava. */}
+        <div
+          className="
+            hidden
+            lg:block
+          "
+        >
+          <PageContainer>
             <div
               className="
-                ml-auto
                 flex
+                h-[55px]
                 items-center
-                gap-5
+                border-b
+                border-[var(--color-border-kurio)]
               "
             >
               <button
                 type="button"
-                aria-label="Ir para a busca de NFTs"
                 onClick={() =>
                   void goToSection(
-                    'catalog',
+                    'home',
                   )
                 }
                 className="
+                  text-[14px]
+                  font-bold
+                  leading-[14px]
+                  tracking-[0.1em]
                   text-[var(--color-foreground-kurio)]
                   transition-colors
                   hover:text-[var(--color-text-accent)]
                 "
               >
-                <Search
-                  size={20}
-                  strokeWidth={
-                    1.8
-                  }
-                />
+                KURIO
               </button>
 
-              <Link
-                to="/cart"
-                aria-label={
-                  totalItems ===
-                  0
-                    ? 'Carrinho vazio'
-                    : `Carrinho com ${totalItems} ${
-                        totalItems ===
-                        1
-                          ? 'item'
-                          : 'itens'
-                      }`
-                }
+              <nav
+                aria-label="Navegação principal"
                 className="
-                  relative
+                  ml-[180px]
                   flex
-                  h-7
-                  w-7
+                  h-full
                   items-center
-                  justify-center
-                  text-[var(--color-foreground-kurio)]
-                  transition-colors
-                  hover:text-[var(--color-text-accent)]
+                  gap-6
                 "
               >
-                <ShoppingCart
-                  size={20}
-                  strokeWidth={
-                    1.8
-                  }
-                />
+                {navigation.map(
+                  (item) => {
+                    const active =
+                      isSectionActive(
+                        item.section,
+                      )
 
-                {totalItems >
-                  0 && (
-                  <span
-                    className="
-                      absolute
-                      -right-1
-                      -top-1
-                      flex
-                      h-4
-                      min-w-4
-                      items-center
-                      justify-center
-                      rounded-full
-                      border-2
-                      border-[var(--color-ink)]
-                      bg-[var(--color-primary-kurio)]
-                      px-[2px]
-                      text-[9px]
-                      font-bold
-                      leading-none
-                      text-[var(--color-ink)]
-                    "
-                  >
-                    {totalItems >
-                    99
-                      ? '99+'
-                      : totalItems}
-                  </span>
+                    return (
+                      <button
+                        key={
+                          item.label
+                        }
+                        type="button"
+                        onClick={() =>
+                          void goToSection(
+                            item.section,
+                          )
+                        }
+                        className={`
+                          relative
+                          flex
+                          h-full
+                          items-center
+                          text-[16px]
+                          font-normal
+                          leading-[16px]
+                          transition-colors
+                          ${
+                            active
+                              ? 'text-[var(--color-text-accent)]'
+                              : 'text-[var(--color-foreground-kurio)] hover:text-[var(--color-text-accent)]'
+                          }
+                        `}
+                      >
+                        {
+                          item.label
+                        }
+
+                        {active && (
+                          <span
+                            aria-hidden="true"
+                            className="
+                              absolute
+                              bottom-0
+                              left-0
+                              h-[3px]
+                              w-full
+                              bg-[var(--color-primary-kurio)]
+                            "
+                          />
+                        )}
+                      </button>
+                    )
+                  },
                 )}
-              </Link>
+              </nav>
 
-              {isInitializing ? (
-                <div
-                  aria-label="Verificando sessão"
-                  className="
-                    h-[35px]
-                    w-[100px]
-                    animate-pulse
-                    rounded-[6px]
-                    bg-[var(--color-surface-card)]
-                  "
-                />
-              ) : isAuthenticated ? (
-                <Link
-                  to="/profile"
-                  className={`
-                    flex
-                    h-[35px]
-                    min-w-[112px]
-                    items-center
-                    justify-center
-                    gap-1.5
-                    rounded-[6px]
-                    px-3
-                    text-[16px]
-                    font-medium
-                    leading-[16px]
-                    transition-colors
-                    ${
-                      isProfile
-                        ? `
-                          bg-[var(--color-text-accent)]
-                          text-[var(--color-ink)]
-                        `
-                        : `
-                          bg-[var(--color-primary-kurio)]
-                          text-[var(--color-ink)]
-                        `
-                    }
-                  `}
-                >
-                  <UserRound
-                    size={19}
-                    strokeWidth={
-                      1.9
-                    }
-                  />
-
-                  Meu perfil
-                </Link>
-              ) : (
+              <div
+                className="
+                  ml-auto
+                  flex
+                  items-center
+                  gap-5
+                "
+              >
                 <button
                   type="button"
+                  aria-label="Ir para a busca de NFTs"
                   onClick={() =>
-                    setIsAuthDialogOpen(
-                      true,
+                    void goToSection(
+                      'catalog',
                     )
                   }
                   className="
-                    flex
-                    h-[35px]
-                    w-[100px]
-                    items-center
-                    justify-center
-                    gap-1
-                    rounded-[6px]
-                    bg-[var(--color-primary-kurio)]
-                    text-[16px]
-                    font-medium
-                    leading-[16px]
-                    text-[var(--color-ink)]
+                    text-[var(--color-foreground-kurio)]
+                    transition-colors
+                    hover:text-[var(--color-text-accent)]
                   "
                 >
-                  <LogIn
+                  <Search
                     size={20}
+                    strokeWidth={
+                      1.8
+                    }
+                  />
+                </button>
+
+                <Link
+                  to="/cart"
+                  aria-label={
+                    totalItems ===
+                    0
+                      ? 'Carrinho vazio'
+                      : `Carrinho com ${totalItems} ${
+                          totalItems ===
+                          1
+                            ? 'item'
+                            : 'itens'
+                        }`
+                  }
+                  className="
+                    relative
+                    flex
+                    h-7
+                    w-7
+                    items-center
+                    justify-center
+                    text-[var(--color-foreground-kurio)]
+                    transition-colors
+                    hover:text-[var(--color-text-accent)]
+                  "
+                >
+                  <ShoppingCart
+                    size={20}
+                    strokeWidth={
+                      1.8
+                    }
                   />
 
-                  Entrar
-                </button>
-              )}
+                  {totalItems >
+                    0 && (
+                    <span
+                      className="
+                        absolute
+                        -right-1
+                        -top-1
+                        flex
+                        h-4
+                        min-w-4
+                        items-center
+                        justify-center
+                        rounded-full
+                        border-2
+                        border-[var(--color-ink)]
+                        bg-[var(--color-primary-kurio)]
+                        px-[2px]
+                        text-[9px]
+                        font-bold
+                        leading-none
+                        text-[var(--color-ink)]
+                      "
+                    >
+                      {totalItems >
+                      99
+                        ? '99+'
+                        : totalItems}
+                    </span>
+                  )}
+                </Link>
+
+                {isInitializing ? (
+                  <div
+                    aria-label="Verificando sessão"
+                    className="
+                      h-[35px]
+                      w-[100px]
+                      animate-pulse
+                      rounded-[6px]
+                      bg-[var(--color-surface-card)]
+                    "
+                  />
+                ) : isAuthenticated ? (
+                  <Link
+                    to="/profile"
+                    className={`
+                      flex
+                      h-[35px]
+                      min-w-[112px]
+                      items-center
+                      justify-center
+                      gap-1.5
+                      rounded-[6px]
+                      px-3
+                      text-[16px]
+                      font-medium
+                      leading-[16px]
+                      transition-colors
+                      ${
+                        isProfile
+                          ? `
+                              bg-[var(--color-text-accent)]
+                              text-[var(--color-ink)]
+                            `
+                          : `
+                              bg-[var(--color-primary-kurio)]
+                              text-[var(--color-ink)]
+                            `
+                      }
+                    `}
+                  >
+                    <UserRound
+                      size={19}
+                      strokeWidth={
+                        1.9
+                      }
+                    />
+
+                    Meu perfil
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsAuthDialogOpen(
+                        true,
+                      )
+                    }
+                    className="
+                      flex
+                      h-[35px]
+                      w-[100px]
+                      items-center
+                      justify-center
+                      gap-1
+                      rounded-[6px]
+                      bg-[var(--color-primary-kurio)]
+                      text-[16px]
+                      font-medium
+                      leading-[16px]
+                      text-[var(--color-ink)]
+                    "
+                  >
+                    <LogIn
+                      size={20}
+                    />
+
+                    Entrar
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </PageContainer>
+          </PageContainer>
+        </div>
       </header>
 
       <AuthDialog

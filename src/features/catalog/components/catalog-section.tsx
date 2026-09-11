@@ -28,33 +28,48 @@ function CatalogCardSkeleton() {
       className="
         flex
         flex-col
-        gap-3
+        gap-2
+        lg:gap-3
       "
       aria-hidden="true"
     >
       <div
         className="
-          relative
-          aspect-square
-          w-full
-          overflow-hidden
-          rounded-[15px]
-          bg-muted
-          before:absolute
-          before:inset-0
-          before:-translate-x-full
-          before:bg-gradient-to-r
-          before:from-transparent
-          before:via-white/8
-          before:to-transparent
-          before:animate-[shimmer_1.6s_infinite]
-          motion-reduce:before:animate-none
+          rounded-[20px]
+          bg-[var(--color-surface-card)]
+          px-1
+          pt-3
+          pb-5
+          lg:bg-transparent
+          lg:p-0
         "
-      />
+      >
+        <div
+          className="
+            relative
+            aspect-square
+            w-full
+            overflow-hidden
+            rounded-[16px]
+            bg-muted
+            before:absolute
+            before:inset-0
+            before:-translate-x-full
+            before:bg-gradient-to-r
+            before:from-transparent
+            before:via-white/8
+            before:to-transparent
+            before:animate-[shimmer_1.6s_infinite]
+            motion-reduce:before:animate-none
+            lg:rounded-[15px]
+          "
+        />
+      </div>
 
       <div
         className="
           relative
+          ml-1
           h-4
           w-3/4
           overflow-hidden
@@ -69,12 +84,14 @@ function CatalogCardSkeleton() {
           before:to-transparent
           before:animate-[shimmer_1.6s_infinite]
           motion-reduce:before:animate-none
+          lg:ml-0
         "
       />
 
       <div
         className="
           relative
+          ml-1
           h-4
           w-2/5
           overflow-hidden
@@ -89,6 +106,7 @@ function CatalogCardSkeleton() {
           before:to-transparent
           before:animate-[shimmer_1.6s_infinite]
           motion-reduce:before:animate-none
+          lg:ml-0
         "
       />
     </div>
@@ -99,11 +117,15 @@ function CatalogLoadingState() {
   return (
     <div
       className="
-        mt-8
+        mt-5
         grid
-        grid-cols-3
-        gap-x-[34px]
-        gap-y-10
+        grid-cols-2
+        gap-x-4
+        gap-y-8
+        lg:mt-8
+        lg:grid-cols-3
+        lg:gap-x-[34px]
+        lg:gap-y-10
       "
       aria-label="Carregando NFTs"
       aria-busy="true"
@@ -164,22 +186,28 @@ export function CatalogSection({
       className="
         scroll-mt-6
         bg-background
-        pt-10
-        pb-14
+        pb-10
+        lg:pt-10
+        lg:pb-14
       "
     >
       <PageContainer>
         <div
           className="
             flex
+            w-full
             items-start
             gap-8
+            px-6
+            lg:px-0
           "
         >
           <div
             className="
+              hidden
               w-[310px]
               shrink-0
+              lg:block
             "
           >
             <FilterSidebar
@@ -208,25 +236,31 @@ export function CatalogSection({
             ) : isError ? (
               <div
                 className="
-                  mt-8
+                  mt-5
                   flex
-                  min-h-[320px]
+                  min-h-[240px]
                   flex-col
                   items-center
                   justify-center
+                  rounded-[16px]
                   border
                   border-border
                   bg-card
-                  px-8
+                  px-5
                   text-center
+                  lg:mt-8
+                  lg:min-h-[320px]
+                  lg:rounded-none
+                  lg:px-8
                 "
                 role="alert"
               >
                 <h2
                   className="
-                    text-[20px]
+                    text-[18px]
                     font-bold
                     text-foreground
+                    lg:text-[20px]
                   "
                 >
                   Não foi possível carregar os NFTs
@@ -236,9 +270,11 @@ export function CatalogSection({
                   className="
                     mt-3
                     max-w-[420px]
-                    text-[14px]
-                    leading-6
+                    text-[13px]
+                    leading-5
                     text-muted-foreground
+                    lg:text-[14px]
+                    lg:leading-6
                   "
                 >
                   Ocorreu um erro ao carregar o catálogo.
@@ -261,11 +297,15 @@ export function CatalogSection({
               <>
                 <div
                   className="
-                    mt-8
+                    mt-5
                     grid
-                    grid-cols-3
-                    gap-x-[34px]
-                    gap-y-10
+                    grid-cols-2
+                    gap-x-4
+                    gap-y-8
+                    lg:mt-8
+                    lg:grid-cols-3
+                    lg:gap-x-[34px]
+                    lg:gap-y-10
                   "
                 >
                   {nfts.map(
@@ -283,7 +323,12 @@ export function CatalogSection({
                 </div>
 
                 {hasPagination && (
-                  <div className="mt-14">
+                  <div
+                    className="
+                      mt-8
+                      lg:mt-14
+                    "
+                  >
                     <CatalogPagination
                       params={
                         params
@@ -301,24 +346,30 @@ export function CatalogSection({
             ) : (
               <div
                 className="
-                  mt-8
+                  mt-5
                   flex
-                  min-h-[320px]
+                  min-h-[240px]
                   flex-col
                   items-center
                   justify-center
+                  rounded-[16px]
                   border
                   border-border
                   bg-card
-                  px-8
+                  px-5
                   text-center
+                  lg:mt-8
+                  lg:min-h-[320px]
+                  lg:rounded-none
+                  lg:px-8
                 "
               >
                 <h2
                   className="
-                    text-[20px]
+                    text-[18px]
                     font-bold
                     text-foreground
+                    lg:text-[20px]
                   "
                 >
                   Nenhum NFT encontrado
@@ -328,9 +379,11 @@ export function CatalogSection({
                   className="
                     mt-3
                     max-w-[420px]
-                    text-[14px]
-                    leading-6
+                    text-[13px]
+                    leading-5
                     text-muted-foreground
+                    lg:text-[14px]
+                    lg:leading-6
                   "
                 >
                   Não encontramos NFTs com os filtros selecionados.
