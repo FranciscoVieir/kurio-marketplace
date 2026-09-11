@@ -20,6 +20,30 @@ function createIdempotencyStorageKey(
   return `${userId}:${idempotencyKey}`
 }
 
+function normalizeOrder(
+  order: Order,
+): Order {
+  if (
+    Number.isInteger(
+      order.version,
+    ) &&
+    order.version > 0
+  ) {
+    return order
+  }
+
+  /*
+   * Compatibilidade com pedidos que
+   * possam existir no localStorage de
+   * uma execução anterior, antes de o
+   * recurso possuir version.
+   */
+  return {
+    ...order,
+    version: 1,
+  }
+}
+
 function loadOrders() {
   if (
     typeof window ===
@@ -58,7 +82,17 @@ function loadOrders() {
       string,
       Order
     >(
-      parsed,
+      parsed.map(
+        ([
+          orderId,
+          order,
+        ]) => [
+          orderId,
+          normalizeOrder(
+            order,
+          ),
+        ],
+      ),
     )
   } catch {
     return new Map<
@@ -158,7 +192,9 @@ function loadOrdersByIdempotencyKey() {
                 storageKey,
                 {
                   order:
-                    value as Order,
+                    normalizeOrder(
+                      value as Order,
+                    ),
 
                   requestSignature:
                     null,
@@ -170,7 +206,13 @@ function loadOrdersByIdempotencyKey() {
           return [
             [
               storageKey,
-              value,
+              {
+                ...value,
+                order:
+                  normalizeOrder(
+                    value.order,
+                  ),
+              },
             ] as const,
           ]
         },
@@ -230,21 +272,27 @@ export function saveOrder(
     | string
     | null = null,
 ) {
+  const normalizedOrder =
+    normalizeOrder(
+      order,
+    )
+
   orders.set(
-    order.id,
-    order,
+    normalizedOrder.id,
+    normalizedOrder,
   )
 
   const storageKey =
     createIdempotencyStorageKey(
-      order.userId,
+      normalizedOrder.userId,
       idempotencyKey,
     )
 
   ordersByIdempotencyKey.set(
     storageKey,
     {
-      order,
+      order:
+        normalizedOrder,
 
       requestSignature,
     },
@@ -344,9 +392,23 @@ export function updateOrder(
     return undefined
   }
 
+  const currentStatus =
+    currentOrder.status
+
+  const nextStatus =
+    currentStatus ===
+      'pending'
+      ? (
+          updates.status ??
+          currentStatus
+        )
+      : currentStatus
+
   /*
-   * O owner de um pedido não deve
-   * ser transferido por update.
+   * confirmed e failed são estados
+   * terminais. Depois que o pedido
+   * sai de pending, um update não
+   * pode fazê-lo regredir.
    */
   const updatedOrder: Order = {
     ...currentOrder,
@@ -354,6 +416,17 @@ export function updateOrder(
 
     userId:
       currentOrder.userId,
+
+    status:
+      nextStatus,
+
+    /*
+     * A versão é controlada pelo
+     * banco mock e nunca pelo caller.
+     */
+    version:
+      currentOrder.version +
+      1,
   }
 
   orders.set(

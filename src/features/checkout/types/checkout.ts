@@ -79,6 +79,17 @@ export type Order = {
   quoteId: string
   transactionHash: string
   status: OrderStatus
+
+  /*
+   * Versão monotônica do recurso.
+   *
+   * Cada alteração persistida no pedido
+   * incrementa este número. O cliente usa
+   * a versão para ignorar eventos realtime
+   * duplicados ou antigos.
+   */
+  version: number
+
   items: CheckoutQuoteItem[]
   network: NftNetwork
   walletProvider: CheckoutWalletProvider

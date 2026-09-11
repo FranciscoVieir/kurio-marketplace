@@ -920,6 +920,17 @@ for (
         status:
           'pending',
 
+        /*
+         * Versão inicial do recurso.
+         *
+         * updateOrder() incrementa a
+         * versão a cada alteração
+         * persistida, permitindo que
+         * order.updated rejeite eventos
+         * antigos ou duplicados.
+         */
+        version: 1,
+
         items:
           quote.items,
 

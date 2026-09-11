@@ -20,6 +20,10 @@ import {
 } from '@/features/cart/hooks/use-cart'
 
 import type {
+  Order,
+} from '@/features/checkout/types/checkout'
+
+import type {
   Nft,
 } from '@/features/nft/types/nft'
 
@@ -35,6 +39,17 @@ import {
 
 type RealtimeProviderProps = {
   children: ReactNode
+}
+
+function isTerminalOrder(
+  order: Order,
+) {
+  return (
+    order.status ===
+      'confirmed' ||
+    order.status ===
+      'failed'
+  )
 }
 
 export function RealtimeProvider({
@@ -189,12 +204,55 @@ export function RealtimeProvider({
         return
       }
 
-      queryClient.setQueryData(
+      queryClient.setQueryData<Order>(
         [
           'orders',
           event.order.id,
         ],
-        event.order,
+        (
+          currentOrder,
+        ) => {
+          if (
+            !currentOrder
+          ) {
+            return event.order
+          }
+
+          /*
+           * Evento duplicado ou antigo.
+           *
+           * Uma versão igual também é
+           * descartada para evitar a
+           * reaplicação do mesmo efeito.
+           */
+          if (
+            event.order.version <=
+              currentOrder.version
+          ) {
+            return currentOrder
+          }
+
+          /*
+           * confirmed e failed são
+           * estados terminais.
+           *
+           * Mesmo um evento com versão
+           * maior não pode fazer um
+           * pedido terminal voltar para
+           * pending ou trocar de terminal.
+           */
+          if (
+            isTerminalOrder(
+              currentOrder,
+            ) &&
+            event.order.status !==
+              currentOrder.status
+          ) {
+            return currentOrder
+          }
+
+          return event.order
+        },
       )
 
       /*
