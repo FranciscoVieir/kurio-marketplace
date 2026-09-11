@@ -1,4 +1,5 @@
 import {
+  delay,
   http,
   HttpResponse,
 } from 'msw'
@@ -32,6 +33,10 @@ import {
 } from '@/mocks/scenarios/purchase-scenarios'
 
 import {
+  isScenarioActive,
+} from '@/mocks/scenarios/scenario-state'
+
+import {
   getCheckoutQuote,
 } from '../database/checkout-quotes'
 
@@ -45,6 +50,16 @@ import {
 
 const ORDER_CONFIRMATION_DELAY_MS =
   1800
+
+/*
+ * O Axios do frontend possui timeout de 10s.
+ *
+ * Neste cenário o backend aceita/persiste a
+ * operação antes de atrasar a resposta por
+ * tempo suficiente para o cliente abortar.
+ */
+const PAYMENT_TIMEOUT_RESPONSE_DELAY_MS =
+  11_000
 
 function createOrderId() {
   return `order_${crypto.randomUUID()}`
@@ -783,6 +798,34 @@ export const orderHandlers = [
       }
 
       /*
+       * PAYMENT REFUSED
+       *
+       * A recusa acontece antes de qualquer
+       * baixa de estoque ou criação de pedido.
+       *
+       * O frontend recebe uma falha definitiva
+       * e mantém o carrinho intacto.
+       */
+      if (
+        isScenarioActive(
+          'payment-refused',
+        )
+      ) {
+        return HttpResponse.json(
+          {
+            code:
+              'PAYMENT_REFUSED',
+
+            message:
+              'O pagamento foi recusado pela carteira. Revise os dados ou tente novamente.',
+          },
+          {
+            status: 402,
+          },
+        )
+      }
+
+      /*
  * DETERMINISTIC PURCHASE SCENARIOS
  *
  * Em cenários de teste podemos
@@ -933,6 +976,57 @@ for (
           nft:
             updatedNft,
         })
+      }
+
+      /*
+       * PAYMENT TIMEOUT
+       *
+       * O pedido e a chave de idempotência
+       * já foram persistidos, e a compra já
+       * foi aplicada uma única vez.
+       *
+       * A primeira resposta simula um timeout
+       * do gateway. Como o registro idempotente
+       * já existe, uma nova tentativa com a
+       * mesma chave retorna exatamente este
+       * mesmo pedido sem repetir a compra.
+       */
+      if (
+        isScenarioActive(
+          'payment-timeout',
+        )
+      ) {
+        scheduleOrderConfirmation(
+          order.id,
+          auth.userId,
+        )
+
+        /*
+         * O pedido já existe neste ponto.
+         *
+         * A resposta HTTP é deliberadamente
+         * atrasada além do timeout de 10s do
+         * Axios. Assim, quem falha é o cliente
+         * por timeout real — não o backend com
+         * um 504 artificial.
+         *
+         * Se o usuário tentar novamente, o
+         * bloco de idempotência no início deste
+         * handler encontra a mesma chave e
+         * devolve o mesmo pedido imediatamente,
+         * sem executar commitNftPurchase() de
+         * novo.
+         */
+        await delay(
+          PAYMENT_TIMEOUT_RESPONSE_DELAY_MS,
+        )
+
+        return HttpResponse.json(
+          order,
+          {
+            status: 201,
+          },
+        )
       }
 
       /*

@@ -10,6 +10,8 @@ export type MockScenario =
   | 'nft-version-changed'
   | 'session-expired'
   | 'favorite-mutation-error'
+  | 'payment-refused'
+  | 'payment-timeout'
 
 async function waitForMockingReady(
   page: Page,

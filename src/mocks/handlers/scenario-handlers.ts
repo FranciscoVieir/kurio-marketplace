@@ -25,7 +25,11 @@ function isMockScenario(
     value === 'nft-version-changed' ||
     value === 'session-expired' ||
     value ===
-      'favorite-mutation-error'
+      'favorite-mutation-error' ||
+    value ===
+      'payment-refused' ||
+    value ===
+      'payment-timeout'
   )
 }
 
@@ -98,6 +102,8 @@ export const scenarioHandlers = [
               'nft-version-changed',
               'session-expired',
               'favorite-mutation-error',
+              'payment-refused',
+              'payment-timeout',
             ],
           },
           {

@@ -6,6 +6,8 @@ export type MockScenario =
   | 'nft-version-changed'
   | 'session-expired'
   | 'favorite-mutation-error'
+  | 'payment-refused'
+  | 'payment-timeout'
 
 const DEFAULT_SCENARIO: MockScenario =
   'default'
@@ -27,7 +29,11 @@ function isMockScenario(
     value === 'nft-version-changed' ||
     value === 'session-expired' ||
     value ===
-      'favorite-mutation-error'
+      'favorite-mutation-error' ||
+    value ===
+      'payment-refused' ||
+    value ===
+      'payment-timeout'
   )
 }
 
