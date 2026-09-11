@@ -36,7 +36,6 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 
-
   --background: #140d0a;
   --foreground: #f5f1eb;
 
@@ -66,7 +65,6 @@
 
   --radius: 6px;
 
-
   --chart-1: #d28a4c;
   --chart-2: #e89b55;
   --chart-3: #b39463;
@@ -88,7 +86,9 @@
 
   --sidebar-border: #3f2319;
   --sidebar-ring: #d28a4c;
+  
 }
+
 
 @theme inline {
   --font-sans: "Geist Variable", sans-serif;
@@ -145,7 +145,6 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -192,4 +191,28 @@
     display: block;
     max-width: 100%;
   }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
 }

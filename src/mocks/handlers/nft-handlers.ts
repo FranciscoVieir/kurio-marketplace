@@ -1,4 +1,5 @@
 import {
+  delay,
   http,
   HttpResponse,
 } from 'msw'
@@ -8,12 +9,17 @@ import {
   getNfts,
 } from '@/mocks/database/nft-database'
 
-const PAGE_SIZE = 2
+const PAGE_SIZE = 9
+const CATALOG_DELAY_MS = 800
 
 export const nftHandlers = [
   http.get(
     '/api/nfts',
-    ({ request }) => {
+    async ({ request }) => {
+      await delay(
+        CATALOG_DELAY_MS,
+      )
+
       const url =
         new URL(request.url)
 

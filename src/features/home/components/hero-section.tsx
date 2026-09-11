@@ -2,10 +2,39 @@ import { Button } from '@/components/ui/button'
 import { PageContainer } from '@/components/layout/page-container'
 
 export function HeroSection() {
+  function handleExplore() {
+    const catalog =
+      document.getElementById(
+        'catalog',
+      )
+
+    catalog?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
+    if (catalog) {
+      const url =
+        new URL(
+          window.location.href,
+        )
+
+      url.hash = 'catalog'
+
+      window.history.replaceState(
+        window.history.state,
+        '',
+        url,
+      )
+    }
+  }
+
   return (
     <section
+      id="home"
       className="
         relative
+        scroll-mt-16
         bg-[var(--color-ink)]
         pt-4
       "
@@ -71,6 +100,8 @@ export function HeroSection() {
             </p>
 
             <Button
+              type="button"
+              onClick={handleExplore}
               className="
                 h-10
                 w-35

@@ -16,7 +16,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-08T14:30:00.000Z',
     trendingScore: 94,
   },
-
   {
     id: 'sage-nomad-009',
     name: 'Sage Nomad #009',
@@ -32,7 +31,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-07T11:00:00.000Z',
     trendingScore: 88,
   },
-
   {
     id: 'ivory-baron-088',
     name: 'Ivory Baron #088',
@@ -48,7 +46,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-06T09:15:00.000Z',
     trendingScore: 71,
   },
-
   {
     id: 'crimson-oracle-015',
     name: 'Crimson Oracle #015',
@@ -63,7 +60,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-09T08:20:00.000Z',
     trendingScore: 96,
   },
-
   {
     id: 'neon-relic-031',
     name: 'Neon Relic #031',
@@ -79,7 +75,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-05T18:45:00.000Z',
     trendingScore: 91,
   },
-
   {
     id: 'solar-drift-102',
     name: 'Solar Drift #102',
@@ -94,7 +89,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-03T16:10:00.000Z',
     trendingScore: 62,
   },
-
   {
     id: 'echo-frame-077',
     name: 'Echo Frame #077',
@@ -110,7 +104,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-02T12:00:00.000Z',
     trendingScore: 84,
   },
-
   {
     id: 'void-signal-011',
     name: 'Void Signal #011',
@@ -125,7 +118,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-09-01T19:30:00.000Z',
     trendingScore: 58,
   },
-
   {
     id: 'pixel-forge-064',
     name: 'Pixel Forge #064',
@@ -140,7 +132,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-08-30T10:00:00.000Z',
     trendingScore: 79,
   },
-
   {
     id: 'golden-pass-020',
     name: 'Golden Pass #020',
@@ -156,7 +147,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-08-28T13:25:00.000Z',
     trendingScore: 90,
   },
-
   {
     id: 'utility-core-055',
     name: 'Utility Core #055',
@@ -171,7 +161,6 @@ export const nftFixtures: Nft[] = [
     createdAt: '2026-08-25T17:40:00.000Z',
     trendingScore: 66,
   },
-
   {
     id: 'chrome-muse-093',
     name: 'Chrome Muse #093',
@@ -186,5 +175,368 @@ export const nftFixtures: Nft[] = [
     version: 1,
     createdAt: '2026-09-04T07:50:00.000Z',
     trendingScore: 86,
+  },
+  {
+    id: 'amber-ape-116',
+    name: 'Amber Ape #116',
+    tokenId: '#0116',
+    priceEth: '1.36',
+    previousPriceEth: '1.58',
+    imageUrl: '/MenuMonkeys/monkey1.png',
+    collection: 'Kurio Apes',
+    network: 'polygon',
+    category: 'digital-art',
+    availableQuantity: 11,
+    version: 1,
+    createdAt: '2026-09-09T12:10:00.000Z',
+    trendingScore: 82,
+  },
+  {
+    id: 'lunar-oracle-127',
+    name: 'Lunar Oracle #127',
+    tokenId: '#0127',
+    priceEth: '0.73',
+    imageUrl: '/MenuMonkeys/monkey2.png',
+    collection: 'Kurio Visions',
+    network: 'solana',
+    category: 'generative',
+    availableQuantity: 16,
+    version: 1,
+    createdAt: '2026-09-08T20:15:00.000Z',
+    trendingScore: 89,
+  },
+  {
+    id: 'obsidian-relic-144',
+    name: 'Obsidian Relic #144',
+    tokenId: '#0144',
+    priceEth: '2.84',
+    previousPriceEth: '3.05',
+    imageUrl: '/MenuMonkeys/monkey3.png',
+    collection: 'Kurio Relics',
+    network: 'ethereum',
+    category: 'collectibles',
+    availableQuantity: 5,
+    version: 1,
+    createdAt: '2026-09-07T17:30:00.000Z',
+    trendingScore: 87,
+  },
+  {
+    id: 'kinetic-drift-151',
+    name: 'Kinetic Drift #151',
+    tokenId: '#0151',
+    priceEth: '0.67',
+    imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
+    collection: 'Kurio Motion',
+    network: 'polygon',
+    category: '3d-art',
+    availableQuantity: 13,
+    version: 1,
+    createdAt: '2026-09-06T14:40:00.000Z',
+    trendingScore: 74,
+  },
+  {
+    id: 'static-wave-173',
+    name: 'Static Wave #173',
+    tokenId: '#0173',
+    priceEth: '0.48',
+    imageUrl: '/MenuMonkeys/monkey1.png',
+    collection: 'Kurio Frequencies',
+    network: 'solana',
+    category: 'music',
+    availableQuantity: 20,
+    version: 1,
+    createdAt: '2026-09-05T09:05:00.000Z',
+    trendingScore: 81,
+  },
+  {
+    id: 'arcade-prime-188',
+    name: 'Arcade Prime #188',
+    tokenId: '#0188',
+    priceEth: '1.27',
+    previousPriceEth: '1.42',
+    imageUrl: '/MenuMonkeys/monkey2.png',
+    collection: 'Kurio Arcade',
+    network: 'ethereum',
+    category: 'games',
+    availableQuantity: 9,
+    version: 1,
+    createdAt: '2026-09-04T15:20:00.000Z',
+    trendingScore: 83,
+  },
+
+  /*
+   * DIGITAL ART
+   * Total: 10
+   */
+  {
+    id: 'copper-ape-201',
+    name: 'Copper Ape #201',
+    tokenId: '#0201',
+    priceEth: '1.44',
+    previousPriceEth: '1.61',
+    imageUrl: '/MenuMonkeys/monkey3.png',
+    collection: 'Kurio Apes',
+    network: 'ethereum',
+    category: 'digital-art',
+    availableQuantity: 8,
+    version: 1,
+    createdAt: '2026-09-10T07:15:00.000Z',
+    trendingScore: 93,
+  },
+  {
+    id: 'violet-muse-214',
+    name: 'Violet Muse #214',
+    tokenId: '#0214',
+    priceEth: '2.06',
+    imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
+    collection: 'Kurio Visions',
+    network: 'solana',
+    category: 'digital-art',
+    availableQuantity: 10,
+    version: 1,
+    createdAt: '2026-09-09T22:40:00.000Z',
+    trendingScore: 85,
+  },
+  {
+    id: 'onyx-ape-226',
+    name: 'Onyx Ape #226',
+    tokenId: '#0226',
+    priceEth: '1.92',
+    previousPriceEth: '2.14',
+    imageUrl: '/MenuMonkeys/monkey1.png',
+    collection: 'Kurio Apes',
+    network: 'polygon',
+    category: 'digital-art',
+    availableQuantity: 5,
+    version: 1,
+    createdAt: '2026-09-08T18:25:00.000Z',
+    trendingScore: 77,
+  },
+  {
+    id: 'scarlet-muse-239',
+    name: 'Scarlet Muse #239',
+    tokenId: '#0239',
+    priceEth: '2.31',
+    imageUrl: '/MenuMonkeys/monkey2.png',
+    collection: 'Kurio Visions',
+    network: 'ethereum',
+    category: 'digital-art',
+    availableQuantity: 7,
+    version: 1,
+    createdAt: '2026-09-07T20:10:00.000Z',
+    trendingScore: 90,
+  },
+  {
+    id: 'silver-ape-247',
+    name: 'Silver Ape #247',
+    tokenId: '#0247',
+    priceEth: '1.12',
+    imageUrl: '/MenuMonkeys/monkey3.png',
+    collection: 'Kurio Apes',
+    network: 'solana',
+    category: 'digital-art',
+    availableQuantity: 14,
+    version: 1,
+    createdAt: '2026-09-06T21:05:00.000Z',
+    trendingScore: 76,
+  },
+
+  /*
+   * PHOTOGRAPHY
+   * Total: 3
+   */
+  {
+    id: 'midnight-frame-258',
+    name: 'Midnight Frame #258',
+    tokenId: '#0258',
+    priceEth: '1.88',
+    imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
+    collection: 'Kurio Frames',
+    network: 'polygon',
+    category: 'photography',
+    availableQuantity: 8,
+    version: 1,
+    createdAt: '2026-09-08T12:00:00.000Z',
+    trendingScore: 73,
+  },
+  {
+    id: 'analog-memory-267',
+    name: 'Analog Memory #267',
+    tokenId: '#0267',
+    priceEth: '2.62',
+    previousPriceEth: '2.91',
+    imageUrl: '/MenuMonkeys/monkey1.png',
+    collection: 'Kurio Frames',
+    network: 'solana',
+    category: 'photography',
+    availableQuantity: 6,
+    version: 1,
+    createdAt: '2026-09-04T11:35:00.000Z',
+    trendingScore: 80,
+  },
+
+  /*
+   * MUSIC
+   * Total: 3
+   */
+  {
+    id: 'neon-frequency-278',
+    name: 'Neon Frequency #278',
+    tokenId: '#0278',
+    priceEth: '0.71',
+    imageUrl: '/MenuMonkeys/monkey2.png',
+    collection: 'Kurio Frequencies',
+    network: 'ethereum',
+    category: 'music',
+    availableQuantity: 18,
+    version: 1,
+    createdAt: '2026-09-08T08:40:00.000Z',
+    trendingScore: 88,
+  },
+
+  /*
+   * 3D ART
+   * Total: 3
+   */
+  {
+    id: 'horizon-drift-289',
+    name: 'Horizon Drift #289',
+    tokenId: '#0289',
+    priceEth: '1.56',
+    previousPriceEth: '1.75',
+    imageUrl: '/MenuMonkeys/monkey3.png',
+    collection: 'Kurio Motion',
+    network: 'solana',
+    category: '3d-art',
+    availableQuantity: 11,
+    version: 1,
+    createdAt: '2026-09-07T10:20:00.000Z',
+    trendingScore: 85,
+  },
+
+  /*
+   * COLLECTIBLES
+   * Total: 3
+   */
+  {
+    id: 'ancient-relic-301',
+    name: 'Ancient Relic #301',
+    tokenId: '#0301',
+    priceEth: '3.28',
+    previousPriceEth: '3.64',
+    imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
+    collection: 'Kurio Relics',
+    network: 'polygon',
+    category: 'collectibles',
+    availableQuantity: 4,
+    version: 1,
+    createdAt: '2026-09-06T13:10:00.000Z',
+    trendingScore: 92,
+  },
+
+  /*
+   * GENERATIVE
+   * Total: 3
+   */
+  {
+    id: 'recursive-oracle-317',
+    name: 'Recursive Oracle #317',
+    tokenId: '#0317',
+    priceEth: '1.03',
+    imageUrl: '/MenuMonkeys/monkey1.png',
+    collection: 'Kurio Visions',
+    network: 'ethereum',
+    category: 'generative',
+    availableQuantity: 13,
+    version: 1,
+    createdAt: '2026-09-05T21:45:00.000Z',
+    trendingScore: 91,
+  },
+
+  /*
+   * GAMES
+   * Total: 3
+   */
+  {
+    id: 'arcade-zero-329',
+    name: 'Arcade Zero #329',
+    tokenId: '#0329',
+    priceEth: '0.89',
+    imageUrl: '/MenuMonkeys/monkey2.png',
+    collection: 'Kurio Arcade',
+    network: 'solana',
+    category: 'games',
+    availableQuantity: 15,
+    version: 1,
+    createdAt: '2026-09-05T15:30:00.000Z',
+    trendingScore: 78,
+  },
+
+  /*
+   * MEMBERSHIPS
+   * Total: 3
+   */
+  {
+    id: 'silver-pass-341',
+    name: 'Silver Pass #341',
+    tokenId: '#0341',
+    priceEth: '2.90',
+    previousPriceEth: '3.20',
+    imageUrl: '/MenuMonkeys/monkey3.png',
+    collection: 'Kurio Access',
+    network: 'polygon',
+    category: 'memberships',
+    availableQuantity: 6,
+    version: 1,
+    createdAt: '2026-09-03T09:00:00.000Z',
+    trendingScore: 72,
+  },
+  {
+    id: 'founder-pass-356',
+    name: 'Founder Pass #356',
+    tokenId: '#0356',
+    priceEth: '5.80',
+    previousPriceEth: '6.10',
+    imageUrl: '/MenuMonkeys/heroSection/heroMonkey.png',
+    collection: 'Kurio Access',
+    network: 'solana',
+    category: 'memberships',
+    availableQuantity: 2,
+    version: 1,
+    createdAt: '2026-09-09T06:30:00.000Z',
+    trendingScore: 97,
+  },
+
+  /*
+   * UTILITY
+   * Total: 3
+   */
+  {
+    id: 'access-core-368',
+    name: 'Access Core #368',
+    tokenId: '#0368',
+    priceEth: '1.21',
+    imageUrl: '/MenuMonkeys/monkey1.png',
+    collection: 'Kurio Utility',
+    network: 'ethereum',
+    category: 'utility',
+    availableQuantity: 12,
+    version: 1,
+    createdAt: '2026-09-04T06:50:00.000Z',
+    trendingScore: 75,
+  },
+  {
+    id: 'protocol-core-379',
+    name: 'Protocol Core #379',
+    tokenId: '#0379',
+    priceEth: '0.78',
+    imageUrl: '/MenuMonkeys/monkey2.png',
+    collection: 'Kurio Utility',
+    network: 'polygon',
+    category: 'utility',
+    availableQuantity: 17,
+    version: 1,
+    createdAt: '2026-09-02T20:15:00.000Z',
+    trendingScore: 69,
   },
 ]

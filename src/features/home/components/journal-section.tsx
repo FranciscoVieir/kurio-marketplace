@@ -12,37 +12,53 @@ type JournalArticle = {
 const journalArticles: JournalArticle[] = [
   {
     id: 'ownership-guide',
-    imageUrl: '/images/ivory-baron.png',
-    imageAlt: 'Arte digital da Kurio',
-    meta: '12 de setembro | Leitura de 6 min',
-    title: 'Como funciona a propriedade de NFTs',
+    imageUrl:
+      '/MenuMonkeys/heroSection/heroMonkey.png',
+    imageAlt:
+      'Arte digital da coleção Kurio',
+    meta:
+      '12 de setembro | Leitura de 6 min',
+    title:
+      'Como funciona a propriedade de NFTs',
     description:
       'Aprenda a colecionar, negociar e verificar ativos digitais.',
   },
   {
     id: 'artists-to-follow',
-    imageUrl: '/images/emerald-ape.png',
-    imageAlt: 'Artista digital da Kurio',
-    meta: '13 de setembro | Leitura de 2 min',
-    title: '10 artistas digitais para acompanhar',
+    imageUrl:
+      '/MenuMonkeys/monkey1.png',
+    imageAlt:
+      'Arte NFT de um criador da Kurio',
+    meta:
+      '13 de setembro | Leitura de 2 min',
+    title:
+      '10 artistas digitais para acompanhar',
     description:
       'Conheça criadores que moldam a cultura digital.',
   },
   {
     id: 'rarity-and-provenance',
-    imageUrl: '/images/sage-nomad.png',
-    imageAlt: 'NFT de coleção da Kurio',
-    meta: '15 de setembro | Leitura de 3 min',
-    title: 'Raridade, atributos e procedência',
+    imageUrl:
+      '/MenuMonkeys/monkey2.png',
+    imageAlt:
+      'NFT da coleção Kurio',
+    meta:
+      '15 de setembro | Leitura de 3 min',
+    title:
+      'Raridade, atributos e procedência',
     description:
       'Entenda raridade, procedência, direitos autorais e utilidade.',
   },
   {
     id: 'protect-wallet',
-    imageUrl: '/images/crimson-oracle.png',
-    imageAlt: 'Carteira digital e NFT',
-    meta: '15 de setembro | Leitura de 2 min',
-    title: 'Como proteger sua carteira',
+    imageUrl:
+      '/MenuMonkeys/monkey3.png',
+    imageAlt:
+      'Arte digital NFT da Kurio',
+    meta:
+      '15 de setembro | Leitura de 2 min',
+    title:
+      'Como proteger sua carteira',
     description:
       'Proteja sua carteira, seus ativos e sua identidade.',
   },
@@ -56,30 +72,49 @@ function JournalCard({
   return (
     <article
       className="
-        h-[369px] w-[268px]
-        overflow-hidden rounded-[8px]
+        h-[369px]
+        w-[268px]
+        overflow-hidden
+        rounded-[8px]
         bg-[var(--color-surface-card)]
       "
     >
-      <div className="h-[195px] w-[268px] overflow-hidden bg-card">
+      <div
+        className="
+          h-[195px]
+          w-[268px]
+          overflow-hidden
+          bg-card
+        "
+      >
         <img
           src={article.imageUrl}
           alt={article.imageAlt}
-          className="h-full w-full object-cover"
+          className="
+            h-full
+            w-full
+            object-cover
+          "
         />
       </div>
 
       <div
         className="
-          flex h-[174px] w-full
-          flex-col gap-[8px]
-          px-[16px] pb-[16px] pt-[12px]
+          flex
+          h-[174px]
+          w-full
+          flex-col
+          gap-[8px]
+          px-[16px]
+          pb-[16px]
+          pt-[12px]
         "
       >
         <p
           className="
             min-h-[32px]
-            text-[12px] font-medium
+            text-[12px]
+            font-medium
             leading-[16px]
             text-[var(--color-text-secondary)]
           "
@@ -90,7 +125,8 @@ function JournalCard({
         <h3
           className="
             min-h-[42px]
-            text-[16px] font-bold
+            text-[16px]
+            font-bold
             leading-[16px]
             text-[var(--color-foreground-kurio)]
           "
@@ -101,7 +137,8 @@ function JournalCard({
         <p
           className="
             min-h-[32px]
-            text-[12px] font-medium
+            text-[12px]
+            font-medium
             leading-[16px]
             text-[var(--color-text-secondary)]
           "
@@ -111,11 +148,16 @@ function JournalCard({
 
         <button
           type="button"
+          aria-disabled="true"
           className="
-            mt-auto w-fit
-            text-[12px] font-bold
+            mt-auto
+            w-fit
+            cursor-default
+            text-[12px]
+            font-bold
             leading-[14px]
             text-[var(--color-text-accent)]
+            opacity-70
           "
         >
           Ler mais →
@@ -127,25 +169,38 @@ function JournalCard({
 
 export function JournalSection() {
   return (
-    <section className="bg-background">
+    <section
+      id="learn"
+      className="
+        scroll-mt-16
+        bg-background
+      "
+    >
       <PageContainer>
         <div
           className="
-            flex h-[476px] w-full
-            flex-col gap-[40px]
+            flex
+            h-[476px]
+            w-full
+            flex-col
+            gap-[40px]
           "
         >
           <header
             className="
-              flex h-[67px] w-full
-              flex-col gap-[12px]
+              flex
+              h-[67px]
+              w-full
+              flex-col
+              gap-[12px]
               text-center
             "
           >
             <h2
               className="
                 h-[37px]
-                text-[28px] font-bold
+                text-[28px]
+                font-bold
                 leading-[28px]
                 text-[var(--color-foreground-kurio)]
               "
@@ -156,7 +211,8 @@ export function JournalSection() {
             <p
               className="
                 h-[18px]
-                text-[14px] font-normal
+                text-[14px]
+                font-normal
                 leading-[14px]
                 text-[var(--color-text-secondary)]
               "
@@ -168,17 +224,26 @@ export function JournalSection() {
 
           <div
             className="
-              flex h-[369px] w-full
-              items-start justify-center
+              flex
+              h-[369px]
+              w-full
+              items-start
+              justify-center
               gap-[24px]
             "
           >
-            {journalArticles.map((article) => (
-              <JournalCard
-                key={article.id}
-                article={article}
-              />
-            ))}
+            {journalArticles.map(
+              (article) => (
+                <JournalCard
+                  key={
+                    article.id
+                  }
+                  article={
+                    article
+                  }
+                />
+              ),
+            )}
           </div>
         </div>
       </PageContainer>

@@ -1,3 +1,7 @@
+import {
+  useState,
+} from 'react'
+
 import { PageContainer } from '@/components/layout/page-container'
 
 type Benefit = {
@@ -39,23 +43,32 @@ function BenefitItem({
   return (
     <article
       className="
-        h-[202px] w-[264.67px]
+        h-[202px]
+        w-[264.67px]
         px-[16px]
       "
     >
       <div
         className="
-          flex h-full w-full
-          flex-col gap-[12px]
+          flex
+          h-full
+          w-full
+          flex-col
+          gap-[12px]
         "
       >
         <div
           className="
-            flex h-[74px] w-[74px]
-            shrink-0 items-center justify-center
+            flex
+            h-[74px]
+            w-[74px]
+            shrink-0
+            items-center
+            justify-center
             rounded-full
             bg-[var(--color-primary-kurio)]
-            text-[18px] font-bold
+            text-[18px]
+            font-bold
             text-[var(--color-ink)]
           "
           aria-hidden="true"
@@ -65,7 +78,8 @@ function BenefitItem({
 
         <h3
           className="
-            text-[17px] font-bold
+            text-[17px]
+            font-bold
             leading-[16px]
             text-[var(--color-foreground-kurio)]
           "
@@ -76,7 +90,8 @@ function BenefitItem({
         <p
           className="
             max-w-[204px]
-            text-[14px] font-normal
+            text-[14px]
+            font-normal
             leading-[22px]
             text-[var(--color-text-secondary)]
           "
@@ -89,26 +104,49 @@ function BenefitItem({
 }
 
 function Newsletter() {
+  const [
+    submitted,
+    setSubmitted,
+  ] = useState(false)
+
   function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
+
+    setSubmitted(true)
   }
 
   return (
     <section
       className="
-        h-[202px] w-[357px]
+        h-[202px]
+        w-[357px]
         px-[16px]
       "
       aria-labelledby="newsletter-title"
     >
-      <div className="flex h-full flex-col gap-[12px]">
-        <div className="flex w-[325px] flex-col gap-[16px]">
+      <div
+        className="
+          flex
+          h-full
+          flex-col
+          gap-[12px]
+        "
+      >
+        <div
+          className="
+            flex
+            w-[325px]
+            flex-col
+            gap-[16px]
+          "
+        >
           <h3
             id="newsletter-title"
             className="
-              text-[18px] font-bold
+              text-[18px]
+              font-bold
               leading-[16px]
               text-[var(--color-foreground-kurio)]
             "
@@ -119,8 +157,14 @@ function Newsletter() {
           </h3>
 
           <form
-            className="flex h-[40px] w-[325px]"
-            onSubmit={handleSubmit}
+            className="
+              flex
+              h-[40px]
+              w-[325px]
+            "
+            onSubmit={
+              handleSubmit
+            }
           >
             <label
               htmlFor="newsletter-email"
@@ -133,13 +177,18 @@ function Newsletter() {
               id="newsletter-email"
               name="email"
               type="email"
+              required
               placeholder="digite seu e-mail..."
               className="
-                min-w-0 flex-1
-                border border-r-0 border-border
+                min-w-0
+                flex-1
+                border
+                border-r-0
+                border-border
                 bg-[var(--color-surface-dark,#38220F)]
                 px-[12px]
-                text-[14px] font-normal
+                text-[14px]
+                font-normal
                 leading-[16px]
                 text-foreground
                 outline-none
@@ -151,12 +200,15 @@ function Newsletter() {
             <button
               type="submit"
               className="
-                h-[40px] w-[85px]
+                h-[40px]
+                w-[85px]
                 shrink-0
                 rounded-r-[6px]
                 bg-[var(--color-primary-kurio)]
-                px-[4px] py-[12px]
-                text-[18px] font-bold
+                px-[4px]
+                py-[12px]
+                text-[18px]
+                font-bold
                 leading-[16px]
                 text-[var(--color-ink)]
               "
@@ -166,17 +218,33 @@ function Newsletter() {
           </form>
         </div>
 
-        <p
-          className="
-            max-w-[325px]
-            text-[13px] font-normal
-            leading-[22px]
-            text-[var(--color-text-secondary)]
-          "
-        >
-          Receba lançamentos selecionados, histórias de criadores e novidades
-          do mercado.
-        </p>
+        {submitted ? (
+          <p
+            role="status"
+            className="
+              max-w-[325px]
+              text-[13px]
+              font-normal
+              leading-[22px]
+              text-[var(--color-text-accent)]
+            "
+          >
+            Inscrição enviada com sucesso.
+          </p>
+        ) : (
+          <p
+            className="
+              max-w-[325px]
+              text-[13px]
+              font-normal
+              leading-[22px]
+              text-[var(--color-text-secondary)]
+            "
+          >
+            Receba lançamentos selecionados, histórias de criadores e novidades
+            do mercado.
+          </p>
+        )}
       </div>
     </section>
   )
@@ -184,27 +252,43 @@ function Newsletter() {
 
 export function BenefitsSection() {
   return (
-    <section className="bg-background">
+    <section
+      id="creators"
+      className="
+        scroll-mt-16
+        bg-background
+      "
+    >
       <PageContainer>
         <div
           className="
-            h-[250px] w-full
+            h-[250px]
+            w-full
             bg-[var(--color-surface-card)]
             p-[32px]
           "
         >
           <div
             className="
-              flex h-[202px] w-full
-              items-start justify-between
+              flex
+              h-[202px]
+              w-full
+              items-start
+              justify-between
             "
           >
-            {benefits.map((benefit) => (
-              <BenefitItem
-                key={benefit.id}
-                benefit={benefit}
-              />
-            ))}
+            {benefits.map(
+              (benefit) => (
+                <BenefitItem
+                  key={
+                    benefit.id
+                  }
+                  benefit={
+                    benefit
+                  }
+                />
+              ),
+            )}
 
             <Newsletter />
           </div>

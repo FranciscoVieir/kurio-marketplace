@@ -17,7 +17,9 @@ export function HomePage() {
   const {
     data,
     isLoading,
+    isFetching,
     isError,
+    refetch,
   } = useNfts(searchParams)
 
   return (
@@ -27,26 +29,20 @@ export function HomePage() {
       <main>
         <HeroSection />
 
-        {isLoading && (
-          <div className="mx-auto max-w-[1200px] py-10 text-muted-foreground">
-            Carregando NFTs...
-          </div>
-        )}
-
-        {isError && (
-          <div className="mx-auto max-w-[1200px] py-10 text-destructive">
-            Erro ao carregar NFTs.
-          </div>
-        )}
-
-        {data && (
-          <CatalogSection
-            params={searchParams}
-            nfts={data.items}
-            total={data.total}
-            pageSize={data.pageSize}
-          />
-        )}
+        <CatalogSection
+          params={searchParams}
+          nfts={data?.items ?? []}
+          total={data?.total ?? 0}
+          pageSize={data?.pageSize ?? 9}
+          isLoading={
+            isLoading ||
+            isFetching
+          }
+          isError={isError}
+          onRetry={() => {
+            void refetch()
+          }}
+        />
 
         <div className="space-y-[72px] pb-[72px]">
           <EditorialSection />

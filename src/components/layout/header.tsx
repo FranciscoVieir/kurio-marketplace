@@ -4,11 +4,17 @@ import {
   ShoppingCart,
   UserRound,
 } from 'lucide-react'
+
 import {
   Link,
+  useNavigate,
   useRouterState,
 } from '@tanstack/react-router'
-import { useState } from 'react'
+
+import {
+  useEffect,
+  useState,
+} from 'react'
 
 import { AuthDialog } from '@/features/auth/components/auth-dialog'
 import { useAuth } from '@/features/auth/hooks/use-auth'
@@ -16,26 +22,33 @@ import { useCart } from '@/features/cart/hooks/use-cart'
 
 import { PageContainer } from './page-container'
 
+type HomeSection =
+  | 'home'
+  | 'catalog'
+  | 'creators'
+  | 'learn'
+
 type NavigationItem = {
   label: string
-  to?: '/'
-  market?: boolean
+  section: HomeSection
 }
 
 const navigation: NavigationItem[] = [
   {
     label: 'Início',
-    to: '/',
+    section: 'home',
   },
   {
     label: 'Mercado',
-    market: true,
+    section: 'catalog',
   },
   {
     label: 'Criadores',
+    section: 'creators',
   },
   {
     label: 'Aprenda',
+    section: 'learn',
   },
 ]
 
@@ -44,6 +57,16 @@ export function Header() {
     isAuthDialogOpen,
     setIsAuthDialogOpen,
   ] = useState(false)
+
+  const [
+    activeSection,
+    setActiveSection,
+  ] = useState<HomeSection>(
+    'home',
+  )
+
+  const navigate =
+    useNavigate()
 
   const pathname =
     useRouterState({
@@ -63,46 +86,180 @@ export function Header() {
   const isHome =
     pathname === '/'
 
-  const isMarket =
+  const isMarketRoute =
     pathname.startsWith(
       '/nft/',
     ) ||
     pathname === '/market' ||
     pathname === '/cart' ||
-    pathname === '/checkout'
+    pathname === '/checkout' ||
+    pathname.startsWith(
+      '/orders/',
+    )
 
   const isProfile =
     pathname === '/profile'
 
+  useEffect(() => {
+    if (!isHome) {
+      return
+    }
+
+    const hash =
+      window.location.hash.replace(
+        '#',
+        '',
+      )
+
+    if (
+      hash === 'home' ||
+      hash === 'catalog' ||
+      hash === 'creators' ||
+      hash === 'learn'
+    ) {
+      setActiveSection(
+        hash,
+      )
+    }
+  }, [isHome])
+
+  function updateHash(
+    section: HomeSection,
+  ) {
+    const url =
+      new URL(
+        window.location.href,
+      )
+
+    url.hash =
+      section
+
+    window.history.replaceState(
+      window.history.state,
+      '',
+      url,
+    )
+  }
+
+  function scrollToSection(
+    section: HomeSection,
+  ) {
+    const element =
+      document.getElementById(
+        section,
+      )
+
+    if (!element) {
+      return
+    }
+
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
+    setActiveSection(
+      section,
+    )
+
+    updateHash(
+      section,
+    )
+  }
+
+  async function goToSection(
+    section: HomeSection,
+  ) {
+    if (isHome) {
+      scrollToSection(
+        section,
+      )
+
+      return
+    }
+
+    await navigate({
+      to: '/',
+      resetScroll: false,
+    })
+
+    window.requestAnimationFrame(
+      () => {
+        window.requestAnimationFrame(
+          () => {
+            scrollToSection(
+              section,
+            )
+          },
+        )
+      },
+    )
+  }
+
+  function isSectionActive(
+    section: HomeSection,
+  ) {
+    if (
+      section ===
+        'catalog' &&
+      isMarketRoute
+    ) {
+      return true
+    }
+
+    if (!isHome) {
+      return false
+    }
+
+    return (
+      activeSection ===
+      section
+    )
+  }
+
   return (
     <>
-      <header className="bg-[var(--color-ink)]">
+      <header
+        className="
+          bg-[var(--color-ink)]
+        "
+      >
         <PageContainer>
           <div
             className="
-              flex h-[45px] items-center
+              flex
+              h-[45px]
+              items-center
               border-b
               border-[var(--color-border-kurio)]
             "
           >
-            <Link
-              to="/"
+            <button
+              type="button"
+              onClick={() =>
+                void goToSection(
+                  'home',
+                )
+              }
               className="
                 text-[14px]
                 font-bold
                 leading-[14px]
                 tracking-[0.1em]
                 text-[var(--color-foreground-kurio)]
+                transition-colors
+                hover:text-[var(--color-text-accent)]
               "
             >
               KURIO
-            </Link>
+            </button>
 
             <nav
               aria-label="Navegação principal"
               className="
                 ml-[180px]
-                flex h-full
+                flex
+                h-full
                 items-center
                 gap-6
               "
@@ -110,59 +267,9 @@ export function Header() {
               {navigation.map(
                 (item) => {
                   const active =
-                    item.label ===
-                    'Início'
-                      ? isHome
-                      : item.label ===
-                          'Mercado'
-                        ? isMarket
-                        : false
-
-                  if (
-                    item.to
-                  ) {
-                    return (
-                      <Link
-                        key={
-                          item.label
-                        }
-                        to={
-                          item.to
-                        }
-                        className={`
-                          relative
-                          flex h-full
-                          items-center
-                          text-[16px]
-                          font-normal
-                          leading-[16px]
-                          ${
-                            active
-                              ? 'text-[var(--color-text-accent)]'
-                              : 'text-[var(--color-foreground-kurio)]'
-                          }
-                        `}
-                      >
-                        {
-                          item.label
-                        }
-
-                        {active && (
-                          <span
-                            aria-hidden="true"
-                            className="
-                              absolute
-                              bottom-0
-                              left-0
-                              h-[3px]
-                              w-full
-                              bg-[var(--color-primary-kurio)]
-                            "
-                          />
-                        )}
-                      </Link>
+                    isSectionActive(
+                      item.section,
                     )
-                  }
 
                   return (
                     <button
@@ -170,15 +277,24 @@ export function Header() {
                         item.label
                       }
                       type="button"
+                      onClick={() =>
+                        void goToSection(
+                          item.section,
+                        )
+                      }
                       className={`
-                        relative h-full
+                        relative
+                        flex
+                        h-full
+                        items-center
                         text-[16px]
                         font-normal
                         leading-[16px]
+                        transition-colors
                         ${
                           active
                             ? 'text-[var(--color-text-accent)]'
-                            : 'text-[var(--color-foreground-kurio)]'
+                            : 'text-[var(--color-foreground-kurio)] hover:text-[var(--color-text-accent)]'
                         }
                       `}
                     >
@@ -205,11 +321,27 @@ export function Header() {
               )}
             </nav>
 
-            <div className="ml-auto flex items-center gap-5">
+            <div
+              className="
+                ml-auto
+                flex
+                items-center
+                gap-5
+              "
+            >
               <button
                 type="button"
-                aria-label="Pesquisar"
-                className="text-[var(--color-foreground-kurio)]"
+                aria-label="Ir para a busca de NFTs"
+                onClick={() =>
+                  void goToSection(
+                    'catalog',
+                  )
+                }
+                className="
+                  text-[var(--color-foreground-kurio)]
+                  transition-colors
+                  hover:text-[var(--color-text-accent)]
+                "
               >
                 <Search
                   size={20}
@@ -233,11 +365,15 @@ export function Header() {
                       }`
                 }
                 className="
-                  relative flex
-                  h-7 w-7
+                  relative
+                  flex
+                  h-7
+                  w-7
                   items-center
                   justify-center
                   text-[var(--color-foreground-kurio)]
+                  transition-colors
+                  hover:text-[var(--color-text-accent)]
                 "
               >
                 <ShoppingCart
@@ -254,7 +390,8 @@ export function Header() {
                       absolute
                       -right-1
                       -top-1
-                      flex h-4
+                      flex
+                      h-4
                       min-w-4
                       items-center
                       justify-center
@@ -292,7 +429,8 @@ export function Header() {
                 <Link
                   to="/profile"
                   className={`
-                    flex h-[35px]
+                    flex
+                    h-[35px]
                     min-w-[112px]
                     items-center
                     justify-center
@@ -302,6 +440,7 @@ export function Header() {
                     text-[16px]
                     font-medium
                     leading-[16px]
+                    transition-colors
                     ${
                       isProfile
                         ? `
@@ -333,7 +472,8 @@ export function Header() {
                     )
                   }
                   className="
-                    flex h-[35px]
+                    flex
+                    h-[35px]
                     w-[100px]
                     items-center
                     justify-center

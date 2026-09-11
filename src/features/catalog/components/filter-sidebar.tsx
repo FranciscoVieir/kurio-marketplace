@@ -23,15 +23,51 @@ const MAX_PRICE = 12.3
 const PRICE_STEP = 0.01
 
 const collections = [
-  ['Arte digital', 'digital-art', 33],
-  ['Fotografia', 'photography', 12],
-  ['Música', 'music', 65],
-  ['Arte 3D', '3d-art', 39],
-  ['Colecionáveis', 'collectibles', 23],
-  ['Generativa', 'generative', 17],
-  ['Jogos', 'games', 19],
-  ['Assinaturas', 'memberships', 13],
-  ['Utilidade', 'utility', 18],
+  [
+    'Arte digital',
+    'digital-art',
+    10,
+  ],
+  [
+    'Fotografia',
+    'photography',
+    3,
+  ],
+  [
+    'Música',
+    'music',
+    3,
+  ],
+  [
+    'Arte 3D',
+    '3d-art',
+    3,
+  ],
+  [
+    'Colecionáveis',
+    'collectibles',
+    3,
+  ],
+  [
+    'Generativa',
+    'generative',
+    3,
+  ],
+  [
+    'Jogos',
+    'games',
+    3,
+  ],
+  [
+    'Assinaturas',
+    'memberships',
+    3,
+  ],
+  [
+    'Utilidade',
+    'utility',
+    3,
+  ],
 ] as const
 
 const networks: Array<{
@@ -42,17 +78,17 @@ const networks: Array<{
   {
     label: 'Ethereum',
     value: 'ethereum',
-    count: 119,
+    count: 12,
   },
   {
     label: 'Polygon',
     value: 'polygon',
-    count: 78,
+    count: 11,
   },
   {
     label: 'Solana',
     value: 'solana',
-    count: 86,
+    count: 11,
   },
 ]
 
