@@ -9,16 +9,78 @@ import {
   getNfts,
 } from '@/mocks/database/nft-database'
 
+import {
+  isScenarioActive,
+  shouldFailCatalogRequest,
+} from '@/mocks/scenarios/scenario-state'
+
 const PAGE_SIZE = 9
-const CATALOG_DELAY_MS = 800
+
+const CATALOG_DELAY_MS =
+  800
+
+const CATALOG_SLOW_DELAY_MS =
+  2_000
 
 export const nftHandlers = [
   http.get(
     '/api/nfts',
     async ({ request }) => {
+      /*
+       * SLOW CATALOG
+       *
+       * Mantemos o delay normal da
+       * aplicação intacto e aumentamos
+       * apenas no cenário determinístico
+       * usado pelo E2E.
+       *
+       * Isso permite verificar que o
+       * skeleton permanece visível
+       * enquanto a consulta está pendente.
+       */
       await delay(
-        CATALOG_DELAY_MS,
+        isScenarioActive(
+          'catalog-slow',
+        )
+          ? CATALOG_SLOW_DELAY_MS
+          : CATALOG_DELAY_MS,
       )
+
+      /*
+       * TRANSIENT CATALOG FAILURE
+       *
+       * O QueryClient está configurado com:
+       *
+       * retry: 1
+       *
+       * shouldFailCatalogRequest()
+       * devolve true somente para as
+       * duas primeiras requisições após
+       * a ativação do cenário.
+       *
+       * Fluxo esperado:
+       *
+       * 1ª request -> 503
+       * retry automático -> 503
+       * UI -> estado de erro
+       * retry manual -> sucesso
+       */
+      if (
+        shouldFailCatalogRequest()
+      ) {
+        return HttpResponse.json(
+          {
+            code:
+              'CATALOG_TEMPORARILY_UNAVAILABLE',
+
+            message:
+              'O catálogo está temporariamente indisponível. Tente novamente.',
+          },
+          {
+            status: 503,
+          },
+        )
+      }
 
       const url =
         new URL(request.url)
@@ -296,6 +358,7 @@ export const nftHandlers = [
           {
             code:
               'NFT_NOT_FOUND',
+
             message:
               'NFT não encontrado.',
           },

@@ -26,12 +26,145 @@ const PROMOTIONAL_CODES: Record<
   KURIO10: '0.10',
 }
 
+function ShimmerBlock({
+  className,
+}: {
+  className: string
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`
+        relative
+        overflow-hidden
+        bg-[var(--color-surface-card)]
+        before:absolute
+        before:inset-0
+        before:-translate-x-full
+        before:animate-[shimmer_1.6s_infinite]
+        before:bg-gradient-to-r
+        before:from-transparent
+        before:via-white/8
+        before:to-transparent
+        motion-reduce:before:animate-none
+        ${className}
+      `}
+    />
+  )
+}
+
+function CartSummarySkeleton() {
+  return (
+    <aside
+      aria-label="Carregando resumo do carrinho"
+      aria-busy="true"
+      className="
+        min-w-0
+
+        max-md:w-full
+      "
+    >
+      {/* MOBILE */}
+      <div
+        className="
+          hidden
+
+          max-md:mx-auto
+          max-md:block
+          max-md:w-full
+          max-md:max-w-[366px]
+        "
+      >
+        <div className="mb-[10px] flex items-center justify-between gap-[10px] px-[4px]">
+          <div className="flex min-w-0 flex-1 items-center gap-[8px]">
+            <ShimmerBlock className="h-[26px] w-[26px] shrink-0 rounded-full" />
+            <ShimmerBlock className="h-[14px] w-[190px] max-w-full rounded-sm" />
+          </div>
+
+          <ShimmerBlock className="h-[16px] w-[34px] shrink-0 rounded-sm" />
+        </div>
+
+        <ShimmerBlock className="h-[44px] w-full rounded-[40px]" />
+
+        <div className="mt-[14px] flex w-full flex-col gap-[12px]">
+          {Array.from({
+            length: 4,
+          }).map(
+            (
+              _,
+              index,
+            ) => (
+              <div
+                key={index}
+                className="flex min-h-[20px] w-full items-center justify-between gap-5"
+              >
+                <ShimmerBlock className="h-[15px] w-[132px] rounded-sm" />
+                <ShimmerBlock className="h-[16px] w-[72px] rounded-sm" />
+              </div>
+            ),
+          )}
+        </div>
+
+        <ShimmerBlock className="mt-[24px] h-[52px] w-full rounded-[40px]" />
+      </div>
+
+      {/* DESKTOP */}
+      <div className="max-md:hidden">
+        <div className="border-b border-[var(--color-border-kurio)] pb-[10px]">
+          <ShimmerBlock className="h-[18px] w-[132px] rounded-sm" />
+        </div>
+
+        <div className="mt-[16px]">
+          <ShimmerBlock className="h-[65px] w-full rounded-[6px]" />
+
+          <ShimmerBlock className="mt-[14px] h-[38px] w-full rounded-[6px]" />
+        </div>
+
+        <div className="mt-[20px] space-y-[12px]">
+          {Array.from({
+            length: 3,
+          }).map(
+            (
+              _,
+              index,
+            ) => (
+              <div
+                key={index}
+                className="flex min-h-[18px] items-center justify-between gap-[20px]"
+              >
+                <ShimmerBlock className="h-[14px] w-[92px] rounded-sm" />
+                <ShimmerBlock className="h-[14px] w-[64px] rounded-sm" />
+              </div>
+            ),
+          )}
+
+          <div className="flex justify-end">
+            <ShimmerBlock className="h-[12px] w-[72px] rounded-sm" />
+          </div>
+        </div>
+
+        <div className="mt-[18px] flex items-center justify-between border-t border-[var(--color-border-kurio)] pt-[14px]">
+          <ShimmerBlock className="h-[16px] w-[42px] rounded-sm" />
+          <ShimmerBlock className="h-[16px] w-[82px] rounded-sm" />
+        </div>
+
+        <ShimmerBlock className="mt-[18px] h-[40px] w-full rounded-[6px]" />
+
+        <div className="mt-[12px] flex justify-center">
+          <ShimmerBlock className="h-[14px] w-[118px] rounded-sm" />
+        </div>
+      </div>
+    </aside>
+  )
+}
+
 export function CartSummary() {
   const {
     items,
     isEmpty,
     couponCode:
       appliedCoupon,
+    isHydrating,
     applyCoupon,
     removeCoupon,
   } = useCart()
@@ -210,6 +343,12 @@ export function CartSummary() {
         null,
       )
     }
+  }
+
+  if (isHydrating) {
+    return (
+      <CartSummarySkeleton />
+    )
   }
 
   return (

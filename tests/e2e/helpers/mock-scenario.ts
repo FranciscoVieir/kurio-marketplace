@@ -12,6 +12,8 @@ export type MockScenario =
   | 'favorite-mutation-error'
   | 'payment-refused'
   | 'payment-timeout'
+  | 'catalog-slow'
+  | 'catalog-error'
 
 async function waitForMockingReady(
   page: Page,

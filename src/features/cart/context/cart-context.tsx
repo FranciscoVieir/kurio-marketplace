@@ -35,6 +35,7 @@ type CartContextValue = {
   couponCode: string | null
   totalItems: number
   isEmpty: boolean
+  isHydrating: boolean
 
   addItem: (
     input: AddCartItemInput,
@@ -114,6 +115,24 @@ export function CartProvider({
    */
   const skipPersistenceRef =
     useRef(false)
+
+  /*
+   * Enquanto a autenticação ainda está
+   * sendo resolvida, ou quando o owner
+   * ativo mudou e o carrinho correto ainda
+   * não foi carregado/mesclado, os
+   * consumidores devem tratar o snapshot
+   * como em hidratação.
+   *
+   * Isso evita renderizar um resumo vazio
+   * por um frame antes de o carrinho
+   * persistido estar disponível.
+   */
+  const isHydrating =
+    isInitializing ||
+    !hasInitializedRef.current ||
+    activeOwnerRef.current !==
+      ownerId
 
   useEffect(() => {
     if (isInitializing) {
@@ -699,6 +718,8 @@ export function CartProvider({
           cart.items.length ===
           0,
 
+        isHydrating,
+
         addItem,
 
         removeItem,
@@ -721,6 +742,7 @@ export function CartProvider({
         cart.items,
         cart.couponCode,
         totalItems,
+        isHydrating,
         addItem,
         removeItem,
         updateQuantity,

@@ -38,7 +38,11 @@ function isMockScenario(
     value ===
       'payment-refused' ||
     value ===
-      'payment-timeout'
+      'payment-timeout' ||
+    value ===
+      'catalog-slow' ||
+    value ===
+      'catalog-error'
   )
 }
 
@@ -110,16 +114,18 @@ export const scenarioHandlers = [
               'O cenário informado não existe.',
 
             allowedScenarios: [
-              'default',
-              'quote-expired',
-              'insufficient-stock',
-              'nft-price-changed',
-              'nft-version-changed',
-              'session-expired',
-              'favorite-mutation-error',
-              'payment-refused',
-              'payment-timeout',
-            ],
+            'default',
+            'quote-expired',
+            'insufficient-stock',
+            'nft-price-changed',
+            'nft-version-changed',
+            'session-expired',
+            'favorite-mutation-error',
+            'payment-refused',
+            'payment-timeout',
+            'catalog-slow',
+            'catalog-error',
+          ],
           },
           {
             status: 400,
