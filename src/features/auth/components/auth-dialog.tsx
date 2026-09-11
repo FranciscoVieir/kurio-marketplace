@@ -36,6 +36,48 @@ function getApiErrorMessage(
   return 'Não foi possível concluir a autenticação.'
 }
 
+function GoogleIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-[16px] w-[16px] shrink-0"
+    >
+      <path
+        fill="#4285F4"
+        d="M21.6 12.227c0-.709-.064-1.391-.182-2.045H12v3.868h5.382a4.6 4.6 0 0 1-1.995 3.018v2.51h3.232c1.891-1.741 2.981-4.309 2.981-7.351Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 22c2.7 0 4.964-.895 6.619-2.423l-3.232-2.509c-.895.6-2.04.954-3.387.954-2.605 0-4.81-1.759-5.596-4.123H3.064v2.591A9.999 9.999 0 0 0 12 22Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M6.404 13.899A6.02 6.02 0 0 1 6.09 12c0-.659.114-1.3.314-1.899V7.51H3.064A9.999 9.999 0 0 0 2 12c0 1.614.386 3.141 1.064 4.49l3.34-2.591Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.977c1.468 0 2.786.505 3.823 1.495l2.868-2.868C16.959 2.991 14.695 2 12 2a9.999 9.999 0 0 0-8.936 5.51l3.34 2.591C7.19 7.737 9.395 5.977 12 5.977Z"
+      />
+    </svg>
+  )
+}
+
+function FacebookIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-[16px] w-[16px] shrink-0"
+    >
+      <path
+        fill="#1877F2"
+        d="M13.53 22v-8.2h2.75l.41-3.2h-3.16V8.56c0-.93.26-1.56 1.6-1.56h1.7V4.14c-.29-.04-1.3-.13-2.48-.13-2.46 0-4.15 1.5-4.15 4.27v2.32H7.42v3.2h2.78V22h3.33Z"
+      />
+    </svg>
+  )
+}
+
 export function AuthDialog({
   open,
   onClose,
@@ -163,6 +205,10 @@ export function AuthDialog({
         flex items-center justify-center
         bg-black/70
         px-5 py-8
+
+        max-md:block
+        max-md:bg-[var(--color-surface-card)]
+        max-md:p-0
       "
       role="presentation"
       onMouseDown={(
@@ -182,12 +228,24 @@ export function AuthDialog({
         aria-labelledby="auth-dialog-title"
         className="
           relative
-          w-full max-w-[430px]
-          rounded-[10px]
-          border border-[var(--color-border-kurio)]
+          min-h-[624px]
+          w-full max-w-[520px]
+          overflow-hidden
+          border-0
           bg-[var(--color-surface-card)]
-          px-8 pb-8 pt-7
+          px-[50px] pb-[72px] pt-[44px]
           shadow-2xl
+
+          max-md:h-[100dvh]
+          max-md:max-h-none
+          max-md:max-w-none
+          max-md:overflow-y-auto
+          max-md:rounded-none
+          max-md:border-0
+          max-md:px-[16px]
+          max-md:pb-[28px]
+          max-md:pt-0
+          max-md:shadow-none
         "
       >
         <button
@@ -195,10 +253,12 @@ export function AuthDialog({
           aria-label="Fechar"
           onClick={onClose}
           className="
-            absolute right-4 top-4
-            text-[var(--color-text-secondary)]
+            absolute right-[16px] top-[14px]
+            text-[var(--color-text-accent)]
             transition-colors
             hover:text-[var(--color-foreground-kurio)]
+
+            max-md:hidden
           "
         >
           <X
@@ -209,9 +269,13 @@ export function AuthDialog({
 
         <div
           className="
-            mb-7 flex
-            border-b
-            border-[var(--color-border-kurio)]
+            mb-[36px]
+            flex
+            items-center
+            justify-center
+            gap-[10px]
+
+            max-md:hidden
           "
         >
           <button
@@ -222,32 +286,31 @@ export function AuthDialog({
               )
             }
             className={`
-              relative flex-1
-              pb-3
-              text-[15px]
-              font-medium
+              text-[20px]
+              font-semibold
+              leading-[24px]
+              transition-colors
               ${
                 mode ===
                 'login'
                   ? 'text-[var(--color-text-accent)]'
-                  : 'text-[var(--color-text-secondary)]'
+                  : 'text-[var(--color-foreground-kurio)]'
               }
             `}
           >
             Entrar
-
-            {mode ===
-              'login' && (
-              <span
-                className="
-                  absolute
-                  bottom-0 left-0
-                  h-[2px] w-full
-                  bg-[var(--color-primary-kurio)]
-                "
-              />
-            )}
           </button>
+
+          <span
+            aria-hidden="true"
+            className="
+              text-[18px]
+              leading-[24px]
+              text-[var(--color-text-secondary)]
+            "
+          >
+            |
+          </span>
 
           <button
             type="button"
@@ -257,67 +320,107 @@ export function AuthDialog({
               )
             }
             className={`
-              relative flex-1
-              pb-3
-              text-[15px]
-              font-medium
+              text-[20px]
+              font-semibold
+              leading-[24px]
+              transition-colors
               ${
                 mode ===
                 'register'
                   ? 'text-[var(--color-text-accent)]'
-                  : 'text-[var(--color-text-secondary)]'
+                  : 'text-[var(--color-foreground-kurio)]'
               }
             `}
           >
             Criar conta
-
-            {mode ===
-              'register' && (
-              <span
-                className="
-                  absolute
-                  bottom-0 left-0
-                  h-[2px] w-full
-                  bg-[var(--color-primary-kurio)]
-                "
-              />
-            )}
           </button>
+        </div>
+
+        <div
+          className="
+            hidden
+
+            max-md:mx-auto
+            max-md:flex
+            max-md:h-[160px]
+            max-md:w-full
+            max-md:max-w-[358px]
+            max-md:items-center
+            max-md:justify-center
+          "
+        >
+          <span
+            className="
+              text-center
+              text-[32px]
+              font-bold
+              leading-none
+              tracking-[0.1em]
+              text-[var(--color-foreground-kurio)]
+            "
+          >
+            KURIO
+          </span>
         </div>
 
         <form
           onSubmit={
             handleSubmit
           }
-          className="space-y-4"
+          className="
+            mx-auto
+            w-full
+            max-w-[352px]
+            space-y-[14px]
+
+            max-md:max-w-[358px]
+            max-md:space-y-[10px]
+          "
         >
           <div>
             <h2
               id="auth-dialog-title"
               className="
-                text-[22px]
-                font-semibold
-                text-[var(--color-foreground-kurio)]
+                sr-only
+
+                max-md:not-sr-only
+                max-md:mb-[10px]
+                max-md:text-center
+                max-md:text-[18px]
+                max-md:font-bold
+                max-md:leading-[18px]
+                max-md:text-[var(--color-foreground-kurio)]
               "
             >
-              {mode ===
-              'login'
-                ? 'Bem-vindo de volta'
-                : 'Crie sua conta'}
+              <span className="max-md:hidden">
+                {mode ===
+                'login'
+                  ? 'Bem-vindo de volta'
+                  : 'Crie sua conta'}
+              </span>
+
+              <span className="hidden max-md:inline">
+                {mode ===
+                'login'
+                  ? 'Entrar'
+                  : 'Criar perfil de colecionador'}
+              </span>
             </h2>
 
             <p
               className="
-                mt-2
+                mb-[10px]
+                text-center
                 text-[13px]
-                leading-5
-                text-[var(--color-text-secondary)]
+                leading-[17px]
+                text-[var(--color-foreground-kurio)]
+
+                max-md:hidden
               "
             >
-              {mode ===
-              'login'
-                ? 'Entre para acessar seu perfil, carteira, favoritos e atividades.'
-                : 'Cadastre-se para salvar sua coleção, acompanhar compras e acessar seu perfil.'}
+              {mode === 'login'
+                ? 'Entre para gerenciar sua carteira, coleção e perfil de criador.'
+                : 'Crie sua conta para gerenciar sua carteira, coleção e perfil de criador.'}
             </p>
           </div>
 
@@ -325,29 +428,98 @@ export function AuthDialog({
             'register' && (
             <label className="block">
               <span
-                className="
-                  mb-2 block
-                  text-[13px]
-                  text-[var(--color-foreground-kurio)]
-                "
+                className="sr-only"
               >
                 Nome de usuário
               </span>
 
+              <div className="relative">
+                <input
+                  type="text"
+                  value={
+                    username
+                  }
+                  onChange={(
+                    event,
+                  ) =>
+                    setUsername(
+                      event.target
+                        .value,
+                    )
+                  }
+                  autoComplete="username"
+                  required
+                  disabled={
+                    isSubmitting
+                  }
+                  className="
+                    h-[44px] w-full
+                    rounded-[6px]
+                    border
+                    border-[var(--color-border-kurio)]
+                    bg-[var(--color-ink)]
+                    px-3
+                    text-[14px]
+                    text-[var(--color-foreground-kurio)]
+                    outline-none
+                    transition-colors
+                    placeholder:text-[var(--color-text-secondary)]
+                    focus:border-[var(--color-primary-kurio)]
+
+                    max-md:h-[50px]
+                    max-md:rounded-[10px]
+                    max-md:px-[16px]
+                    max-md:text-[14px]
+                    max-md:leading-[16px]
+                    max-md:placeholder:text-transparent
+                  "
+                  placeholder="Nome de usuário"
+                />
+
+                {!username && (
+                  <span
+                    aria-hidden="true"
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-[16px]
+                      top-1/2
+                      hidden
+                      -translate-y-1/2
+                      text-[14px]
+                      leading-[16px]
+                      text-[var(--color-text-secondary)]
+
+                      max-md:block
+                    "
+                  >
+                    Nome de usuário
+                  </span>
+                )}
+              </div>
+            </label>
+          )}
+
+          <label className="block">
+            <span
+              className="sr-only"
+            >
+              E-mail
+            </span>
+
+            <div className="relative">
               <input
-                type="text"
-                value={
-                  username
-                }
+                type="email"
+                value={email}
                 onChange={(
                   event,
                 ) =>
-                  setUsername(
+                  setEmail(
                     event.target
                       .value,
                   )
                 }
-                autoComplete="username"
+                autoComplete="email"
                 required
                 disabled={
                   isSubmitting
@@ -365,64 +537,49 @@ export function AuthDialog({
                   transition-colors
                   placeholder:text-[var(--color-text-secondary)]
                   focus:border-[var(--color-primary-kurio)]
+
+                  max-md:h-[50px]
+                  max-md:rounded-[10px]
+                  max-md:px-[16px]
+                  max-md:text-[14px]
+                  max-md:leading-[16px]
+                  max-md:placeholder:text-transparent
                 "
-                placeholder="Seu nome de usuário"
+                placeholder={
+                  mode === 'login'
+                    ? 'contato@email.com'
+                    : 'Digite seu e-mail'
+                }
               />
-            </label>
-          )}
 
-          <label className="block">
-            <span
-              className="
-                mb-2 block
-                text-[13px]
-                text-[var(--color-foreground-kurio)]
-              "
-            >
-              E-mail
-            </span>
+              {!email && (
+                <span
+                  aria-hidden="true"
+                  className="
+                    pointer-events-none
+                    absolute
+                    left-[16px]
+                    top-1/2
+                    hidden
+                    -translate-y-1/2
+                    text-[14px]
+                    leading-[16px]
+                    text-[var(--color-text-secondary)]
 
-            <input
-              type="email"
-              value={email}
-              onChange={(
-                event,
-              ) =>
-                setEmail(
-                  event.target
-                    .value,
-                )
-              }
-              autoComplete="email"
-              required
-              disabled={
-                isSubmitting
-              }
-              className="
-                h-[44px] w-full
-                rounded-[6px]
-                border
-                border-[var(--color-border-kurio)]
-                bg-[var(--color-ink)]
-                px-3
-                text-[14px]
-                text-[var(--color-foreground-kurio)]
-                outline-none
-                transition-colors
-                placeholder:text-[var(--color-text-secondary)]
-                focus:border-[var(--color-primary-kurio)]
-              "
-              placeholder="voce@email.com"
-            />
+                    max-md:block
+                  "
+                >
+                  {mode === 'login'
+                    ? 'contato@email.com'
+                    : 'Digite seu e-mail'}
+                </span>
+              )}
+            </div>
           </label>
 
           <label className="block">
             <span
-              className="
-                mb-2 block
-                text-[13px]
-                text-[var(--color-foreground-kurio)]
-              "
+              className="sr-only"
             >
               Senha
             </span>
@@ -468,9 +625,38 @@ export function AuthDialog({
                   transition-colors
                   placeholder:text-[var(--color-text-secondary)]
                   focus:border-[var(--color-primary-kurio)]
+
+                  max-md:h-[50px]
+                  max-md:rounded-[10px]
+                  max-md:pl-[16px]
+                  max-md:pr-[48px]
+                  max-md:text-[14px]
+                  max-md:leading-[16px]
+                  max-md:placeholder:text-transparent
                 "
-                placeholder="Sua senha"
+                placeholder="Senha"
               />
+
+              {!password && (
+                <span
+                  aria-hidden="true"
+                  className="
+                    pointer-events-none
+                    absolute
+                    left-[16px]
+                    top-1/2
+                    hidden
+                    -translate-y-1/2
+                    text-[14px]
+                    leading-[16px]
+                    text-[var(--color-text-secondary)]
+
+                    max-md:block
+                  "
+                >
+                  Senha
+                </span>
+              )}
 
               <button
                 type="button"
@@ -492,6 +678,8 @@ export function AuthDialog({
                   right-3 top-1/2
                   -translate-y-1/2
                   text-[var(--color-text-secondary)]
+
+                  max-md:right-[14px]
                 "
               >
                 {showPassword ? (
@@ -511,11 +699,7 @@ export function AuthDialog({
             'register' && (
             <label className="block">
               <span
-                className="
-                  mb-2 block
-                  text-[13px]
-                  text-[var(--color-foreground-kurio)]
-                "
+                className="sr-only"
               >
                 Confirmar senha
               </span>
@@ -556,9 +740,38 @@ export function AuthDialog({
                     transition-colors
                     placeholder:text-[var(--color-text-secondary)]
                     focus:border-[var(--color-primary-kurio)]
+
+                    max-md:h-[50px]
+                    max-md:rounded-[10px]
+                    max-md:pl-[16px]
+                    max-md:pr-[48px]
+                    max-md:text-[14px]
+                    max-md:leading-[16px]
+                    max-md:placeholder:text-transparent
                   "
-                  placeholder="Repita sua senha"
+                  placeholder="Confirmar senha"
                 />
+
+                {!confirmPassword && (
+                  <span
+                    aria-hidden="true"
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-[16px]
+                      top-1/2
+                      hidden
+                      -translate-y-1/2
+                      text-[14px]
+                      leading-[16px]
+                      text-[var(--color-text-secondary)]
+
+                      max-md:block
+                    "
+                  >
+                    Confirmar senha
+                  </span>
+                )}
 
                 <button
                   type="button"
@@ -580,6 +793,8 @@ export function AuthDialog({
                     right-3 top-1/2
                     -translate-y-1/2
                     text-[var(--color-text-secondary)]
+
+                    max-md:right-[14px]
                   "
                 >
                   {showConfirmPassword ? (
@@ -598,12 +813,21 @@ export function AuthDialog({
 
           {mode ===
             'login' && (
-            <div className="text-right">
+            <div
+              className="
+                text-right
+
+                max-md:h-[16px]
+              "
+            >
               <button
                 type="button"
                 className="
                   text-[12px]
                   text-[var(--color-text-accent)]
+
+                  max-md:text-[12px]
+                  max-md:leading-[16px]
                 "
               >
                 Esqueceu a senha?
@@ -623,6 +847,12 @@ export function AuthDialog({
                 text-[12px]
                 leading-5
                 text-red-300
+
+                max-md:rounded-[10px]
+                max-md:px-[14px]
+                max-md:py-[10px]
+                max-md:text-[12px]
+                max-md:leading-[18px]
               "
             >
               {errorMessage}
@@ -635,17 +865,23 @@ export function AuthDialog({
               isSubmitting
             }
             className="
-              flex h-[44px]
+              flex h-[48px]
               w-full
               items-center
               justify-center
               rounded-[6px]
               bg-[var(--color-primary-kurio)]
-              text-[15px]
-              font-semibold
+              text-[16px]
+              font-bold
               text-[var(--color-ink)]
               disabled:cursor-not-allowed
               disabled:opacity-60
+
+              max-md:h-[52px]
+              max-md:rounded-[10px]
+              max-md:text-[15px]
+              max-md:font-bold
+              max-md:leading-[16px]
             "
           >
             {isSubmitting
@@ -653,13 +889,26 @@ export function AuthDialog({
               : mode ===
                   'login'
                 ? 'Entrar'
-                : 'Criar conta'}
+                : (
+                    <>
+                      <span className="max-md:hidden">
+                        Criar conta
+                      </span>
+
+                      <span className="hidden max-md:inline">
+                        Criar perfil
+                      </span>
+                    </>
+                  )}
           </button>
 
           <div
             className="
               flex items-center gap-3
               py-1
+
+              max-md:h-[16px]
+              max-md:py-0
             "
           >
             <span
@@ -671,12 +920,16 @@ export function AuthDialog({
 
             <span
               className="
-                text-[11px]
-                uppercase
-                text-[var(--color-text-secondary)]
+                text-[13px]
+                font-normal
+                leading-[16px]
+                text-[var(--color-foreground-kurio)]
+
+                max-md:text-[12px]
+                max-md:text-[var(--color-text-secondary)]
               "
             >
-              ou
+              Ou continue com
             </span>
 
             <span
@@ -687,38 +940,128 @@ export function AuthDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div
+            className="
+              grid
+              grid-cols-1
+              gap-[12px]
+            "
+          >
             <button
               type="button"
               className="
+                flex
                 h-[42px]
+                w-full
+                items-center
+                justify-center
+                gap-[12px]
                 rounded-[6px]
                 border
                 border-[var(--color-border-kurio)]
                 bg-[var(--color-ink)]
                 text-[13px]
-                text-[var(--color-foreground-kurio)]
+                font-medium
+                leading-[16px]
+                text-[var(--color-text-secondary)]
+
+                max-md:h-[40px]
+                max-md:gap-[10px]
+                max-md:text-[12px]
               "
             >
-              Google
+              <GoogleIcon />
+              Continuar com Google
             </button>
 
             <button
               type="button"
               className="
+                flex
                 h-[42px]
+                w-full
+                items-center
+                justify-center
+                gap-[12px]
                 rounded-[6px]
                 border
                 border-[var(--color-border-kurio)]
                 bg-[var(--color-ink)]
                 text-[13px]
-                text-[var(--color-foreground-kurio)]
+                font-medium
+                leading-[16px]
+                text-[var(--color-text-secondary)]
+
+                max-md:h-[40px]
+                max-md:gap-[10px]
+                max-md:text-[12px]
               "
             >
-              Facebook
+              <FacebookIcon />
+              Continuar com Facebook
+            </button>
+          </div>
+
+          <div
+            className="
+              hidden
+
+              max-md:flex
+              max-md:h-[20px]
+              max-md:items-center
+              max-md:justify-center
+              max-md:pt-[8px]
+            "
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setMode(
+                  mode === 'login'
+                    ? 'register'
+                    : 'login',
+                )
+              }}
+              className="
+                text-center
+                text-[14px]
+                font-normal
+                leading-[16px]
+                text-[var(--color-text-secondary)]
+              "
+            >
+              {mode === 'login' ? (
+                <>
+                  Novo na Kurio?{' '}
+                  <span className="text-[var(--color-text-accent)]">
+                    Crie uma conta
+                  </span>
+                </>
+              ) : (
+                <>
+                  Já tem uma conta?{' '}
+                  <span className="text-[var(--color-text-accent)]">
+                    Entre
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </form>
+
+        <div
+          aria-hidden="true"
+          className="
+            absolute
+            bottom-0
+            left-0
+            h-[10px]
+            w-full
+            bg-[var(--color-primary-kurio)]
+
+            max-md:hidden
+          "
+        />
       </section>
     </div>
   )
