@@ -36,7 +36,14 @@ import { CollectorProfileForm } from '@/features/checkout/components/collector-p
 import { useCheckoutQuote } from '@/features/checkout/hooks/use-checkout-quote'
 import { useCreateOrder } from '@/features/checkout/hooks/use-create-order'
 import { BenefitsSection } from '@/features/home/components/benefits-section'
-import { useWallets } from '@/features/wallets/hooks/use-wallets'
+import {
+  useSaveWallet,
+  useWallets,
+} from '@/features/wallets/hooks/use-wallets'
+
+import type {
+  SaveWalletRequest,
+} from '@/features/wallets/types/wallet'
 
 import type {
   CheckoutWalletProvider,
@@ -251,6 +258,25 @@ function getOrderErrorMessage(
   }
 }
 
+
+function getWalletErrorMessage(
+  error: unknown,
+) {
+  if (
+    axios.isAxiosError<{
+      message?: string
+    }>(error)
+  ) {
+    return (
+      error.response?.data
+        ?.message ??
+      'Não foi possível salvar a carteira.'
+    )
+  }
+
+  return 'Não foi possível salvar a carteira.'
+}
+
 function CheckoutSkeleton() {
   return (
     <div
@@ -431,6 +457,9 @@ export function CheckoutPage() {
       isWalletsPending,
   } = useWallets()
 
+  const saveWallet =
+    useSaveWallet()
+
   const [
     profile,
     setProfile,
@@ -559,6 +588,34 @@ export function CheckoutPage() {
       (wallet) =>
         wallet.id ===
         selectedWalletId,
+    )
+
+  const hasPrimaryWallet =
+    wallets.some(
+      (wallet) =>
+        wallet.role ===
+        'primary',
+    )
+
+  const hasSecondaryWallet =
+    wallets.some(
+      (wallet) =>
+        wallet.role ===
+        'secondary',
+    )
+
+  const canCreateWallet =
+    Boolean(
+      quote &&
+        isProfileValid(
+          profile,
+        ) &&
+        profile.network ===
+          quote.network &&
+        !(
+          hasPrimaryWallet &&
+          hasSecondaryWallet
+        ),
     )
 
   const mobileWallets =
@@ -850,24 +907,168 @@ export function CheckoutPage() {
       null
   }
 
-  function handleConnectWallet() {
+  async function handleConnectWallet() {
     if (
-      !selectedWallet
+      selectedWallet
     ) {
+      if (
+        quote &&
+        selectedWallet.network !==
+          quote.network
+      ) {
+        setSubmitError(
+          `A carteira selecionada utiliza ${formatNetwork(
+            selectedWallet.network,
+          )}. Para esta compra, conecte uma carteira da rede ${formatNetwork(
+            quote.network,
+          )}.`,
+        )
+
+        return
+      }
+
+      setWalletConnectionStatus(
+        'connected',
+      )
+
       setSubmitError(
-        'Selecione uma carteira cadastrada antes de conectar.',
+        null,
       )
 
       return
     }
 
-    setWalletConnectionStatus(
-      'connected',
-    )
+    if (!quote) {
+      return
+    }
 
-    setSubmitError(
-      null,
-    )
+    if (
+      !isProfileValid(
+        profile,
+      )
+    ) {
+      setSubmitError(
+        'Preencha todos os campos obrigatórios antes de conectar a carteira.',
+      )
+
+      return
+    }
+
+    if (
+      profile.network !==
+      quote.network
+    ) {
+      setSubmitError(
+        `A rede selecionada deve ser ${formatNetwork(
+          quote.network,
+        )}.`,
+      )
+
+      return
+    }
+
+    if (
+      hasPrimaryWallet &&
+      hasSecondaryWallet
+    ) {
+      setSubmitError(
+        'Você já possui uma carteira principal e uma secundária. Selecione uma carteira cadastrada para continuar.',
+      )
+
+      return
+    }
+
+    const input: SaveWalletRequest = {
+      role:
+        hasPrimaryWallet
+          ? 'secondary'
+          : 'primary',
+
+      displayName:
+        profile.displayName.trim(),
+
+      nickname:
+        profile.username.trim(),
+
+      network:
+        quote.network,
+
+      profileName:
+        profile.profileName.trim(),
+
+      address:
+        profile.walletAddress.trim(),
+
+      secondaryAddress:
+        profile.secondaryWallet?.trim() ||
+        undefined,
+
+      provider:
+        profile.walletType as SaveWalletRequest['provider'],
+
+      referralCode:
+        profile.referralCode?.trim() ||
+        undefined,
+
+      email:
+        profile.email.trim(),
+
+      ensName:
+        profile.ensName?.trim() ||
+        undefined,
+    }
+
+    try {
+      const createdWallet =
+        await saveWallet.mutateAsync({
+          input,
+        })
+
+      hasInitializedWallet.current =
+        true
+
+      setSelectedWalletId(
+        createdWallet.id,
+      )
+
+      setProfile(
+        (
+          currentProfile,
+        ) => ({
+          ...currentProfile,
+
+          network:
+            createdWallet.network,
+
+          walletType:
+            createdWallet.provider,
+        }),
+      )
+
+      if (
+        isCheckoutWalletProvider(
+          createdWallet.provider,
+        )
+      ) {
+        setWalletProvider(
+          createdWallet.provider,
+        )
+      }
+
+      setWalletConnectionStatus(
+        'connected',
+      )
+
+      setSubmitError(
+        null,
+      )
+    } catch (error) {
+      setSubmitError(
+        getWalletErrorMessage(
+          error,
+        ),
+      )
+    }
   }
 
   function handleRefuseWalletConnection() {
@@ -918,12 +1119,44 @@ export function CheckoutPage() {
   function handleMobileWalletSelection(
     walletId: string,
   ) {
+    const wallet =
+      wallets.find(
+        (candidate) =>
+          candidate.id ===
+          walletId,
+      )
+
     handleWalletSelection(
       walletId,
     )
 
+    if (
+      wallet &&
+      quote &&
+      wallet.network !==
+        quote.network
+    ) {
+      setWalletConnectionStatus(
+        'disconnected',
+      )
+
+      setSubmitError(
+        `A carteira selecionada utiliza ${formatNetwork(
+          wallet.network,
+        )}. Para esta compra, conecte uma carteira da rede ${formatNetwork(
+          quote.network,
+        )}.`,
+      )
+
+      return
+    }
+
     setWalletConnectionStatus(
       'connected',
+    )
+
+    setSubmitError(
+      null,
     )
   }
 
@@ -2766,7 +2999,9 @@ export function CheckoutPage() {
                         "
                       >
                         Selecione uma carteira
-                        cadastrada compatível com{' '}
+                        cadastrada. Para concluir a
+                        compra, ela precisa ser
+                        compatível com{' '}
                         {formatNetwork(
                           quote.network,
                         )}
@@ -2809,10 +3044,10 @@ export function CheckoutPage() {
                               placeholder={
                                 isWalletsPending
                                   ? 'Carregando carteiras...'
-                                  : compatibleWallets.length >
+                                  : wallets.length >
                                       0
                                     ? 'Selecione uma carteira'
-                                    : 'Nenhuma carteira compatível'
+                                    : 'Nenhuma carteira cadastrada'
                               }
                             />
                           </SelectTrigger>
@@ -2824,7 +3059,7 @@ export function CheckoutPage() {
                               text-[var(--color-foreground-kurio)]
                             "
                           >
-                            {compatibleWallets.map(
+                            {wallets.map(
                               (
                                 wallet,
                               ) => (
@@ -3116,21 +3351,104 @@ export function CheckoutPage() {
                                 text-[var(--color-text-secondary)]
                               "
                             >
-                              Nenhuma carteira
-                              cadastrada é compatível
-                              com a rede{' '}
-                              <strong
+                              {wallets.length ===
+                              0
+                                ? 'Você ainda não possui uma carteira cadastrada. Preencha os dados obrigatórios ao lado para criar e conectar sua primeira carteira.'
+                                : `Selecione uma carteira cadastrada ou crie uma nova carteira compatível com ${formatNetwork(
+                                    quote.network,
+                                  )}.`}
+                            </p>
+
+                            {!(
+                              hasPrimaryWallet &&
+                              hasSecondaryWallet
+                            ) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  void handleConnectWallet()
+                                }}
+                                disabled={
+                                  !canCreateWallet ||
+                                  isOrderPending ||
+                                  saveWallet.isPending
+                                }
                                 className="
+                                  mt-2.5
+                                  flex
+                                  h-8.5
+                                  w-full
+                                  items-center
+                                  justify-center
+                                  gap-1.5
+                                  rounded-[5px]
+                                  bg-[var(--color-primary-kurio)]
+                                  px-2.5
+                                  text-[10px]
                                   font-bold
-                                  text-[var(--color-foreground-kurio)]
+                                  text-[var(--color-ink)]
+                                  transition-opacity
+                                  hover:opacity-90
+                                  disabled:cursor-not-allowed
+                                  disabled:opacity-50
                                 "
                               >
-                                {formatNetwork(
-                                  quote.network,
+                                {saveWallet.isPending ? (
+                                  <>
+                                    <LoaderCircle
+                                      size={13}
+                                      className="
+                                        animate-spin
+                                      "
+                                    />
+
+                                    Criando carteira...
+                                  </>
+                                ) : wallets.length ===
+                                  0 ? (
+                                  'Criar e conectar carteira'
+                                ) : (
+                                  'Criar nova carteira'
                                 )}
-                              </strong>
-                              .
-                            </p>
+                              </button>
+                            )}
+
+                            {!canCreateWallet &&
+                              !(
+                                hasPrimaryWallet &&
+                                hasSecondaryWallet
+                              ) && (
+                                <p
+                                  className="
+                                    mt-1.5
+                                    text-[9px]
+                                    leading-[14px]
+                                    text-[var(--color-text-secondary)]
+                                  "
+                                >
+                                  Preencha todos os campos
+                                  obrigatórios do perfil do
+                                  colecionador para habilitar
+                                  esta ação.
+                                </p>
+                              )}
+
+                            {hasPrimaryWallet &&
+                              hasSecondaryWallet && (
+                                <p
+                                  className="
+                                    mt-1.5
+                                    text-[9px]
+                                    leading-[14px]
+                                    text-[var(--color-text-secondary)]
+                                  "
+                                >
+                                  Você já possui uma carteira
+                                  principal e uma secundária.
+                                  Selecione uma delas para
+                                  continuar.
+                                </p>
+                              )}
                           </div>
                         )
                       )}
