@@ -15,6 +15,38 @@ type PreparedCheckout = {
   nftName: string
 }
 
+type TestNft = {
+  id: string
+  name: string
+}
+
+type TestNftByViewport = {
+  desktop: TestNft
+  mobile: TestNft
+}
+
+const PAYMENT_REFUSED_NFTS: TestNftByViewport = {
+  desktop: {
+    id: 'sage-nomad-009',
+    name: 'Sage Nomad #009',
+  },
+  mobile: {
+    id: 'neon-relic-031',
+    name: 'Neon Relic #031',
+  },
+}
+
+const PAYMENT_TIMEOUT_NFTS: TestNftByViewport = {
+  desktop: {
+    id: 'echo-frame-077',
+    name: 'Echo Frame #077',
+  },
+  mobile: {
+    id: 'arcade-prime-188',
+    name: 'Arcade Prime #188',
+  },
+}
+
 type OrderResponseBody = {
   id?: string
   status?: string
@@ -220,7 +252,7 @@ async function registerAndCreateWallet(
 
 async function prepareCheckout(
   page: Page,
-  baseNftIndex: number,
+  nfts: TestNftByViewport,
 ): Promise<PreparedCheckout> {
   const {
     isMobile,
@@ -229,56 +261,52 @@ async function prepareCheckout(
       page,
     )
 
-  await page.goto('/')
-
   /*
-   * Cada combinação cenário/projeto usa
-   * um NFT diferente. Isso evita que um
-   * teste que efetivamente faz commit de
-   * estoque altere a versão do NFT usado
-   * por outro worker em paralelo.
+   * Cada cenário/projeto usa um NFT
+   * Ethereum próprio.
    *
-   * base 0:
-   *   desktop -> NFT 0
-   *   mobile  -> NFT 1
+   * Isso garante duas coisas:
+   * 1. a carteira Ethereum criada pelo teste
+   *    sempre é compatível com a quote;
+   * 2. workers paralelos não alteram o mesmo
+   *    estoque/versão entre si.
    *
-   * base 2:
-   *   desktop -> NFT 2
-   *   mobile  -> NFT 3
+   * Também usamos IDs explícitos em vez da
+   * posição no catálogo para o teste não
+   * depender de ordenação ou paginação.
    */
-  const nftIndex =
-    baseNftIndex +
-    (isMobile ? 1 : 0)
+  const nft =
+    isMobile
+      ? nfts.mobile
+      : nfts.desktop
 
-  const nftLink =
-    page
-      .locator(
-        '#catalog article a[href^="/nft/"]',
-      )
-      .nth(
-        nftIndex,
-      )
-
-  await expect(
-    nftLink,
-  ).toBeVisible({
-    timeout: 10_000,
-  })
-
-  const nftName =
-    (
-      await nftLink
-        .locator('h3')
-        .innerText()
-    ).trim()
-
-  await nftLink.click()
+  await page.goto(
+    `/nft/${nft.id}`,
+  )
 
   await expect(
     page,
   ).toHaveURL(
-    /\/nft\/.+/,
+    `/nft/${nft.id}`,
   )
+
+  const nftName =
+    nft.name
+
+  const nftTitle =
+    page.locator(
+      'h1:visible',
+      {
+        hasText:
+          nftName,
+      },
+    )
+
+  await expect(
+    nftTitle.first(),
+  ).toBeVisible({
+    timeout: 10_000,
+  })
 
   await page
     .getByRole(
@@ -513,7 +541,7 @@ test.describe(
         } =
           await prepareCheckout(
             page,
-            0,
+            PAYMENT_REFUSED_NFTS,
           )
 
         await setMockScenario(
@@ -553,8 +581,8 @@ test.describe(
         )
 
         await expect(
-          page.locator(
-            '[role="alert"]:visible',
+          page.getByRole(
+            'alert',
           ),
         ).toContainText(
           'O pagamento foi recusado pela carteira.',
@@ -627,8 +655,9 @@ test.describe(
         page,
       }) => {
         /*
-         * Este fluxo espera o timeout real
-         * de 10s configurado no Axios.
+         * O cenário usa um timeout real do Axios.
+         * O mock segura a primeira resposta por 11s,
+         * enquanto o cliente aborta após 10s.
          */
         test.setTimeout(
           45_000,
@@ -645,7 +674,7 @@ test.describe(
         } =
           await prepareCheckout(
             page,
-            0,
+            PAYMENT_TIMEOUT_NFTS,
           )
 
         await setMockScenario(
@@ -679,9 +708,10 @@ test.describe(
         )
 
         /*
-         * Usamos o botão visível do layout
-         * atual. Desktop e mobile possuem
-         * versões responsivas diferentes.
+         * Esperamos a REQUISIÇÃO, não uma resposta HTTP.
+         * A primeira tentativa é abortada pelo timeout
+         * do Axios antes de a resposta atrasada do MSW
+         * chegar ao cliente.
          */
         const firstConfirmButton =
           page
@@ -720,11 +750,6 @@ test.describe(
           firstIdempotencyKey,
         ).toBeTruthy()
 
-        /*
-         * Enquanto a mutation está pendente,
-         * a UI precisa bloquear uma segunda
-         * submissão.
-         */
         const pendingButton =
           page
             .locator(
@@ -742,25 +767,21 @@ test.describe(
         })
 
         /*
-         * Mesmo durante a espera do backend,
-         * apenas uma criação de pedido deve
-         * ter sido disparada.
+         * Enquanto a primeira mutation está pendente,
+         * apenas uma criação de pedido pode existir.
          */
         expect(
           orderRequests,
         ).toHaveLength(1)
 
         /*
-         * O handler do cenário segura a
-         * resposta por mais de 10s.
-         *
-         * Portanto quem encerra a primeira
-         * tentativa é o timeout real do Axios,
-         * e não uma resposta HTTP 504.
+         * Depois de ~10s o Axios encerra a tentativa.
+         * Não esperamos HTTP 504 porque o mock não envia
+         * um 504: ele apenas atrasa a resposta por 11s.
          */
         await expect(
-          page.getByRole(
-            'alert',
+          page.locator(
+            '[role="alert"]:visible',
           ),
         ).toContainText(
           'Não foi possível concluir a compra. Tente novamente.',
@@ -776,12 +797,9 @@ test.describe(
         )
 
         /*
-         * Apesar do timeout no cliente, o
-         * backend já persistiu o pedido antes
-         * de atrasar a resposta.
-         *
-         * Consultamos a API para descobrir o
-         * ID criado na primeira tentativa.
+         * O backend já persistiu o pedido ANTES de
+         * atrasar a resposta, portanto o pedido deve
+         * existir mesmo após o timeout percebido pela UI.
          */
         const ordersAfterTimeout =
           await page.evaluate(
@@ -810,11 +828,19 @@ test.describe(
         ).toBeTruthy()
 
         /*
-         * O onError não chama clearCart().
-         * Se tivesse limpado o carrinho, o
-         * checkout não voltaria a oferecer
-         * "Confirmar compra".
+         * O carrinho deve continuar disponível e a UI
+         * precisa permitir uma tentativa manual de recuperação.
          */
+        await expect(
+          page.getByRole(
+            'heading',
+            {
+              name:
+                'Seu carrinho está vazio',
+            },
+          ),
+        ).toHaveCount(0)
+
         const retryButton =
           page
             .locator(
@@ -831,6 +857,11 @@ test.describe(
           timeout: 5_000,
         })
 
+        /*
+         * O retry reutiliza a mesma chave de idempotência.
+         * Como o pedido já existe, o handler devolve o
+         * mesmo recurso imediatamente com HTTP 200.
+         */
         const secondResponsePromise =
           page.waitForResponse(
             (response) =>
@@ -858,10 +889,6 @@ test.describe(
           originalOrderId,
         )
 
-        /*
-         * As duas tentativas precisam usar
-         * exatamente a mesma chave.
-         */
         await expect
           .poll(
             () =>
@@ -883,12 +910,6 @@ test.describe(
           firstIdempotencyKey,
         )
 
-        /*
-         * A segunda tentativa recupera o
-         * mesmo recurso já criado antes do
-         * timeout. Nenhum segundo pedido pode
-         * existir.
-         */
         await expect(
           page,
         ).toHaveURL(
@@ -924,16 +945,6 @@ test.describe(
           originalOrderId,
         )
 
-        /*
-         * O pedido criado antes do timeout
-         * continua seguindo o mesmo fluxo de
-         * confirmação por realtime.
-         *
-         * Como o timeout do Axios é maior que
-         * o delay de confirmação do mock, ele
-         * normalmente já estará confirmado
-         * quando a recuperação acontecer.
-         */
         await expect(
           page
             .getByText(
