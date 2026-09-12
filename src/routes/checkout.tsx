@@ -434,7 +434,6 @@ export function CheckoutPage() {
   const {
     items,
     isEmpty,
-    clearCart,
     couponCode,
   } = useCart()
 
@@ -1372,8 +1371,6 @@ export function CheckoutPage() {
           setSubmitError(
             null,
           )
-
-          clearCart()
 
           void navigate({
             to: '/orders/$orderId',

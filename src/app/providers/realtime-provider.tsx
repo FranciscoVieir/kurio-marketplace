@@ -10,28 +10,22 @@ import {
 import {
   useAuth,
 } from '@/features/auth/hooks/use-auth'
-
 import {
   catalogQueryKeys,
 } from '@/features/catalog/api/catalog-query-keys'
-
 import {
   useCart,
 } from '@/features/cart/hooks/use-cart'
-
 import type {
   Order,
 } from '@/features/checkout/types/checkout'
-
 import type {
   Nft,
 } from '@/features/nft/types/nft'
-
 import type {
   NftUpdatedEvent,
   OrderUpdatedEvent,
 } from '@/services/realtime/events'
-
 import {
   connectRealtime,
   disconnectRealtime,
@@ -111,6 +105,8 @@ export function RealtimeProvider({
             query.queryKey[0]
 
           return (
+            rootKey ===
+              'cart' ||
             rootKey ===
               'favorite-nfts' ||
             rootKey ===

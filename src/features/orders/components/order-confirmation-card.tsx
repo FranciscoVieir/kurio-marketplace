@@ -1,7 +1,12 @@
 import {
+  useEffect,
+} from 'react'
+import {
   useNavigate,
 } from '@tanstack/react-router'
 import { ChevronLeft } from 'lucide-react'
+
+import { useCart } from '@/features/cart/hooks/use-cart'
 
 import type {
   CheckoutWalletProvider,
@@ -81,11 +86,48 @@ export function OrderConfirmationCard({
   const navigate =
     useNavigate()
 
+  const {
+    consumeConfirmedOrder,
+    isHydrating:
+      isCartHydrating,
+  } = useCart()
+
   const networkLabel =
     getNetworkLabel(order.network)
 
   const isConfirmed =
     order.status === 'confirmed'
+
+  const isFailed =
+    order.status === 'failed'
+
+  useEffect(() => {
+    if (
+      !isConfirmed ||
+      isCartHydrating
+    ) {
+      return
+    }
+
+    consumeConfirmedOrder(
+      order.id,
+      order.items.map(
+        (item) => ({
+          nftId:
+            item.nftId,
+
+          quantity:
+            item.quantity,
+        }),
+      ),
+    )
+  }, [
+    consumeConfirmedOrder,
+    isCartHydrating,
+    isConfirmed,
+    order.id,
+    order.items,
+  ])
 
   function handleClose() {
     void navigate({
@@ -229,7 +271,11 @@ export function OrderConfirmationCard({
               max-md:leading-[24px]
             "
           >
-            Pedido realizado com sucesso
+            {isConfirmed
+              ? 'Pedido realizado com sucesso'
+              : isFailed
+                ? 'Pagamento recusado'
+                : 'Pedido recebido'}
           </p>
 
           <p
@@ -247,8 +293,11 @@ export function OrderConfirmationCard({
               max-md:leading-[20px]
             "
           >
-            Acompanhe abaixo o processamento
-            da sua transação.
+            {isConfirmed
+              ? 'Sua transação foi confirmada.'
+              : isFailed
+                ? 'A transação não foi concluída. Os itens permanecem no carrinho.'
+                : 'Acompanhe abaixo o processamento da sua transação.'}
           </p>
         </div>
       </header>
@@ -378,7 +427,9 @@ export function OrderConfirmationCard({
             >
               {isConfirmed
                 ? '✓'
-                : '•'}
+                : isFailed
+                  ? '!'
+                  : '•'}
             </span>
 
             <div>
@@ -391,7 +442,9 @@ export function OrderConfirmationCard({
                   max-md:leading-[18px]
                 "
               >
-                Processando transação
+                {isFailed
+                  ? 'Transação recusada'
+                  : 'Processando transação'}
               </p>
 
               <p
@@ -407,7 +460,9 @@ export function OrderConfirmationCard({
               >
                 {isConfirmed
                   ? 'Processamento concluído.'
-                  : `Aguardando confirmação na ${networkLabel}.`}
+                  : isFailed
+                    ? 'O pagamento não foi confirmado.'
+                    : `Aguardando confirmação na ${networkLabel}.`}
               </p>
             </div>
           </div>
@@ -447,7 +502,9 @@ export function OrderConfirmationCard({
             >
               {isConfirmed
                 ? '✓'
-                : '3'}
+                : isFailed
+                  ? '!'
+                  : '3'}
             </span>
 
             <div>
@@ -460,7 +517,9 @@ export function OrderConfirmationCard({
                   max-md:leading-[18px]
                 "
               >
-                Confirmado
+                {isFailed
+                  ? 'Não confirmado'
+                  : 'Confirmado'}
               </p>
 
               <p
@@ -476,7 +535,9 @@ export function OrderConfirmationCard({
               >
                 {isConfirmed
                   ? 'Os NFTs foram associados à sua carteira.'
-                  : 'Aguardando conclusão da transação.'}
+                  : isFailed
+                    ? 'Nenhum item foi removido do carrinho.'
+                    : 'Aguardando conclusão da transação.'}
               </p>
             </div>
           </div>
@@ -911,14 +972,22 @@ export function OrderConfirmationCard({
                   na rede.
                 </>
               )
-              : (
-                <>
-                  A transação está sendo processada
-                  na {networkLabel}. O comprovante
-                  será atualizado automaticamente
-                  assim que houver confirmação.
-                </>
-              )}
+              : isFailed
+                ? (
+                  <>
+                    A transação não foi confirmada.
+                    Os itens e quantidades
+                    permanecem no carrinho.
+                  </>
+                )
+                : (
+                  <>
+                    A transação está sendo processada
+                    na {networkLabel}. O comprovante
+                    será atualizado automaticamente
+                    assim que houver confirmação.
+                  </>
+                )}
           </p>
 
           <div
@@ -936,7 +1005,9 @@ export function OrderConfirmationCard({
               title={
                 isConfirmed
                   ? 'Transação simulada pelo ambiente de testes'
-                  : 'Aguardando confirmação da transação'
+                  : isFailed
+                    ? 'A transação foi recusada'
+                    : 'Aguardando confirmação da transação'
               }
               className="
                 flex
@@ -962,7 +1033,9 @@ export function OrderConfirmationCard({
                 ? getExplorerLabel(
                     order.network,
                   )
-                : 'Aguardando confirmação'}
+                : isFailed
+                  ? 'Transação recusada'
+                  : 'Aguardando confirmação'}
             </button>
           </div>
         </div>

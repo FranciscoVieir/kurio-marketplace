@@ -8,14 +8,30 @@ import {
   type PropsWithChildren,
 } from 'react'
 
-import { useAuth } from '@/features/auth/hooks/use-auth'
-import type { Nft } from '@/features/nft/types/nft'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import {
-  loadCart,
-  mergeCarts,
-  saveCart,
-} from '../lib/cart-storage'
+  useAuth,
+} from '@/features/auth/hooks/use-auth'
+import type {
+  Nft,
+} from '@/features/nft/types/nft'
+
+import {
+  addCartItem,
+  clearCartRequest,
+  getCart,
+  removeCartItem,
+  updateCartCoupon,
+  updateCartItem,
+} from '../api/cart-api'
+import {
+  cartQueryKeys,
+} from '../api/cart-query-keys'
 
 import type {
   CartItem,
@@ -24,6 +40,22 @@ import type {
 
 const GUEST_OWNER_ID =
   'guest'
+
+const PROCESSED_ORDERS_STORAGE_PREFIX =
+  'kurio:cart:processed-orders:'
+
+const EMPTY_CART: CartState = {
+  items: [],
+  couponCode: null,
+}
+
+const CART_ERROR_MESSAGE =
+  'Não foi possível atualizar o carrinho. Tente novamente.'
+
+type PurchasedCartItemInput = {
+  nftId: string
+  quantity: number
+}
 
 type AddCartItemInput = {
   nft: Nft
@@ -62,6 +94,11 @@ type CartContextValue = {
 
   clearCart: () => void
 
+  consumeConfirmedOrder: (
+    orderId: string,
+    items: PurchasedCartItemInput[],
+  ) => void
+
   getItemQuantity: (
     nftId: string,
   ) => number
@@ -69,6 +106,306 @@ type CartContextValue = {
   hasItem: (
     nftId: string,
   ) => boolean
+}
+
+type OwnerMutationVariables = {
+  ownerId: string
+}
+
+type AddMutationVariables =
+  OwnerMutationVariables & {
+    nft: Nft
+    quantity: number
+  }
+
+type UpdateMutationVariables =
+  OwnerMutationVariables & {
+    nftId: string
+    quantity: number
+  }
+
+type RemoveMutationVariables =
+  OwnerMutationVariables & {
+    nftId: string
+  }
+
+type CouponMutationVariables =
+  OwnerMutationVariables & {
+    couponCode: string | null
+  }
+
+type CartMutationContext = {
+  previousCart:
+    | CartState
+    | undefined
+}
+
+type ConsumeOperation =
+  | {
+      type: 'update'
+      nftId: string
+      quantity: number
+    }
+  | {
+      type: 'remove'
+      nftId: string
+    }
+
+type ConsumeMutationVariables =
+  OwnerMutationVariables & {
+    orderId: string
+    operations: ConsumeOperation[]
+    optimisticCart: CartState
+  }
+
+function getProcessedOrdersStorageKey(
+  ownerId: string,
+) {
+  return `${PROCESSED_ORDERS_STORAGE_PREFIX}${ownerId}`
+}
+
+function loadProcessedOrderIds(
+  ownerId: string,
+) {
+  if (
+    typeof window ===
+    'undefined'
+  ) {
+    return new Set<string>()
+  }
+
+  try {
+    const rawValue =
+      window.localStorage.getItem(
+        getProcessedOrdersStorageKey(
+          ownerId,
+        ),
+      )
+
+    if (!rawValue) {
+      return new Set<string>()
+    }
+
+    const parsedValue: unknown =
+      JSON.parse(
+        rawValue,
+      )
+
+    if (
+      !Array.isArray(
+        parsedValue,
+      )
+    ) {
+      return new Set<string>()
+    }
+
+    return new Set(
+      parsedValue.filter(
+        (
+          value,
+        ): value is string =>
+          typeof value ===
+          'string',
+      ),
+    )
+  } catch {
+    return new Set<string>()
+  }
+}
+
+function saveProcessedOrderIds(
+  ownerId: string,
+  orderIds: Set<string>,
+) {
+  if (
+    typeof window ===
+    'undefined'
+  ) {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(
+      getProcessedOrdersStorageKey(
+        ownerId,
+      ),
+      JSON.stringify(
+        Array.from(
+          orderIds,
+        ),
+      ),
+    )
+  } catch {
+    /*
+     * A confirmação da compra não
+     * depende do storage estar
+     * disponível. O registro serve
+     * apenas como proteção adicional
+     * contra reaplicação após refresh.
+     */
+  }
+}
+
+function optimisticAddItem(
+  currentCart: CartState,
+  nft: Nft,
+  quantity: number,
+): CartState {
+  if (
+    quantity <= 0 ||
+    nft.availableQuantity <=
+      0
+  ) {
+    return currentCart
+  }
+
+  const existingItem =
+    currentCart.items.find(
+      (
+        item,
+      ) =>
+        item.nftId ===
+        nft.id,
+    )
+
+  const nextQuantity =
+    Math.min(
+      (
+        existingItem?.quantity ??
+        0
+      ) +
+        quantity,
+
+      nft.availableQuantity,
+    )
+
+  const nextItem: CartItem = {
+    nftId:
+      nft.id,
+
+    name:
+      nft.name,
+
+    imageUrl:
+      nft.imageUrl,
+
+    collection:
+      nft.collection,
+
+    network:
+      nft.network,
+
+    priceEth:
+      nft.priceEth,
+
+    quantity:
+      nextQuantity,
+
+    availableQuantity:
+      nft.availableQuantity,
+
+    version:
+      nft.version,
+  }
+
+  return {
+    ...currentCart,
+
+    items:
+      existingItem
+        ? currentCart.items.map(
+            (
+              item,
+            ) =>
+              item.nftId ===
+              nft.id
+                ? nextItem
+                : item,
+          )
+        : [
+            ...currentCart.items,
+            nextItem,
+          ],
+  }
+}
+
+function optimisticUpdateQuantity(
+  currentCart: CartState,
+  nftId: string,
+  quantity: number,
+): CartState {
+  return {
+    ...currentCart,
+
+    items:
+      currentCart.items.map(
+        (
+          item,
+        ) => {
+          if (
+            item.nftId !==
+            nftId
+          ) {
+            return item
+          }
+
+          if (
+            item.availableQuantity <=
+            0
+          ) {
+            return item
+          }
+
+          return {
+            ...item,
+
+            quantity:
+              Math.max(
+                1,
+                Math.min(
+                  quantity,
+                  item.availableQuantity,
+                ),
+              ),
+          }
+        },
+      ),
+  }
+}
+
+function optimisticRemoveItem(
+  currentCart: CartState,
+  nftId: string,
+): CartState {
+  return {
+    ...currentCart,
+
+    items:
+      currentCart.items.filter(
+        (
+          item,
+        ) =>
+          item.nftId !==
+          nftId,
+      ),
+  }
+}
+
+function optimisticCoupon(
+  currentCart: CartState,
+  couponCode:
+    | string
+    | null,
+): CartState {
+  return {
+    ...currentCart,
+
+    couponCode:
+      couponCode
+        ?.trim()
+        .toUpperCase() ||
+      null,
+  }
 }
 
 export const CartContext =
@@ -85,200 +422,685 @@ export function CartProvider({
     isInitializing,
   } = useAuth()
 
-  const ownerId =
-    isAuthenticated && user
-      ? user.id
-      : GUEST_OWNER_ID
+  const queryClient =
+    useQueryClient()
 
   const [
-    cart,
-    setCart,
+    cartError,
+    setCartError,
   ] =
-    useState<CartState>({
-      items: [],
-      couponCode: null,
-    })
+    useState<string | null>(
+      null,
+    )
 
-  const activeOwnerRef =
+  const processingOrderIdsRef =
+    useRef(
+      new Set<string>(),
+    )
+
+  const previousOwnerRef =
     useRef<string | null>(
       null,
     )
 
-  const hasInitializedRef =
-    useRef(false)
+  const ownerId =
+    isAuthenticated &&
+    user
+      ? user.id
+      : GUEST_OWNER_ID
+
+  const ownerQueryKey =
+    cartQueryKeys.owner(
+      ownerId,
+    )
+
+  const cartQuery =
+    useQuery({
+      queryKey:
+        ownerQueryKey,
+
+      queryFn:
+        getCart,
+
+      enabled:
+        !isInitializing,
+
+      staleTime: 0,
+    })
 
   /*
-   * Impede que o efeito de
-   * persistência grave o estado
-   * do owner anterior no novo
-   * owner durante login/logout.
+   * O cache do carrinho é isolado por
+   * owner. Ao sair de uma conta,
+   * descartamos o snapshot privado
+   * daquele usuário desta instância
+   * do QueryClient.
    */
-  const skipPersistenceRef =
-    useRef(false)
+  useEffect(() => {
+    const previousOwnerId =
+      previousOwnerRef.current
 
-  /*
-   * Enquanto a autenticação ainda está
-   * sendo resolvida, ou quando o owner
-   * ativo mudou e o carrinho correto ainda
-   * não foi carregado/mesclado, os
-   * consumidores devem tratar o snapshot
-   * como em hidratação.
-   *
-   * Isso evita renderizar um resumo vazio
-   * por um frame antes de o carrinho
-   * persistido estar disponível.
-   */
+    previousOwnerRef.current =
+      ownerId
+
+    if (
+      !previousOwnerId ||
+      previousOwnerId ===
+        ownerId ||
+      previousOwnerId ===
+        GUEST_OWNER_ID
+    ) {
+      return
+    }
+
+    queryClient.removeQueries({
+      queryKey:
+        cartQueryKeys.owner(
+          previousOwnerId,
+        ),
+
+      exact: true,
+    })
+  }, [
+    ownerId,
+    queryClient,
+  ])
+
+  const addMutation =
+    useMutation({
+      mutationFn:
+        async (
+          variables:
+            AddMutationVariables,
+        ) =>
+          addCartItem({
+            nftId:
+              variables.nft.id,
+
+            quantity:
+              variables.quantity,
+          }),
+
+      onMutate:
+        async (
+          variables,
+        ): Promise<CartMutationContext> => {
+          setCartError(
+            null,
+          )
+
+          const queryKey =
+            cartQueryKeys.owner(
+              variables.ownerId,
+            )
+
+          await queryClient.cancelQueries({
+            queryKey,
+          })
+
+          const previousCart =
+            queryClient.getQueryData<CartState>(
+              queryKey,
+            )
+
+          queryClient.setQueryData<CartState>(
+            queryKey,
+            optimisticAddItem(
+              previousCart ??
+                EMPTY_CART,
+              variables.nft,
+              variables.quantity,
+            ),
+          )
+
+          return {
+            previousCart,
+          }
+        },
+
+      onError:
+        (
+          _error,
+          variables,
+          context,
+        ) => {
+          if (
+            context?.previousCart
+          ) {
+            queryClient.setQueryData(
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+              context.previousCart,
+            )
+          }
+
+          setCartError(
+            CART_ERROR_MESSAGE,
+          )
+        },
+
+      onSuccess:
+        (
+          nextCart,
+          variables,
+        ) => {
+          queryClient.setQueryData(
+            cartQueryKeys.owner(
+              variables.ownerId,
+            ),
+            nextCart,
+          )
+        },
+
+      onSettled:
+        (
+          _data,
+          _error,
+          variables,
+        ) => {
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+    })
+
+  const updateMutation =
+    useMutation({
+      mutationFn:
+        async (
+          variables:
+            UpdateMutationVariables,
+        ) =>
+          updateCartItem(
+            variables.nftId,
+            {
+              quantity:
+                variables.quantity,
+            },
+          ),
+
+      onMutate:
+        async (
+          variables,
+        ): Promise<CartMutationContext> => {
+          setCartError(
+            null,
+          )
+
+          const queryKey =
+            cartQueryKeys.owner(
+              variables.ownerId,
+            )
+
+          await queryClient.cancelQueries({
+            queryKey,
+          })
+
+          const previousCart =
+            queryClient.getQueryData<CartState>(
+              queryKey,
+            )
+
+          queryClient.setQueryData<CartState>(
+            queryKey,
+            optimisticUpdateQuantity(
+              previousCart ??
+                EMPTY_CART,
+              variables.nftId,
+              variables.quantity,
+            ),
+          )
+
+          return {
+            previousCart,
+          }
+        },
+
+      onError:
+        (
+          _error,
+          variables,
+          context,
+        ) => {
+          if (
+            context?.previousCart
+          ) {
+            queryClient.setQueryData(
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+              context.previousCart,
+            )
+          }
+
+          setCartError(
+            CART_ERROR_MESSAGE,
+          )
+        },
+
+      onSuccess:
+        (
+          nextCart,
+          variables,
+        ) => {
+          queryClient.setQueryData(
+            cartQueryKeys.owner(
+              variables.ownerId,
+            ),
+            nextCart,
+          )
+        },
+
+      onSettled:
+        (
+          _data,
+          _error,
+          variables,
+        ) => {
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+    })
+
+  const removeMutation =
+    useMutation({
+      mutationFn:
+        async (
+          variables:
+            RemoveMutationVariables,
+        ) =>
+          removeCartItem(
+            variables.nftId,
+          ),
+
+      onMutate:
+        async (
+          variables,
+        ): Promise<CartMutationContext> => {
+          setCartError(
+            null,
+          )
+
+          const queryKey =
+            cartQueryKeys.owner(
+              variables.ownerId,
+            )
+
+          await queryClient.cancelQueries({
+            queryKey,
+          })
+
+          const previousCart =
+            queryClient.getQueryData<CartState>(
+              queryKey,
+            )
+
+          queryClient.setQueryData<CartState>(
+            queryKey,
+            optimisticRemoveItem(
+              previousCart ??
+                EMPTY_CART,
+              variables.nftId,
+            ),
+          )
+
+          return {
+            previousCart,
+          }
+        },
+
+      onError:
+        (
+          _error,
+          variables,
+          context,
+        ) => {
+          if (
+            context?.previousCart
+          ) {
+            queryClient.setQueryData(
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+              context.previousCart,
+            )
+          }
+
+          setCartError(
+            CART_ERROR_MESSAGE,
+          )
+        },
+
+      onSuccess:
+        (
+          nextCart,
+          variables,
+        ) => {
+          queryClient.setQueryData(
+            cartQueryKeys.owner(
+              variables.ownerId,
+            ),
+            nextCart,
+          )
+        },
+
+      onSettled:
+        (
+          _data,
+          _error,
+          variables,
+        ) => {
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+    })
+
+  const couponMutation =
+    useMutation({
+      mutationFn:
+        async (
+          variables:
+            CouponMutationVariables,
+        ) =>
+          updateCartCoupon({
+            couponCode:
+              variables.couponCode,
+          }),
+
+      onMutate:
+        async (
+          variables,
+        ): Promise<CartMutationContext> => {
+          setCartError(
+            null,
+          )
+
+          const queryKey =
+            cartQueryKeys.owner(
+              variables.ownerId,
+            )
+
+          await queryClient.cancelQueries({
+            queryKey,
+          })
+
+          const previousCart =
+            queryClient.getQueryData<CartState>(
+              queryKey,
+            )
+
+          queryClient.setQueryData<CartState>(
+            queryKey,
+            optimisticCoupon(
+              previousCart ??
+                EMPTY_CART,
+              variables.couponCode,
+            ),
+          )
+
+          return {
+            previousCart,
+          }
+        },
+
+      onError:
+        (
+          _error,
+          variables,
+          context,
+        ) => {
+          if (
+            context?.previousCart
+          ) {
+            queryClient.setQueryData(
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+              context.previousCart,
+            )
+          }
+
+          setCartError(
+            CART_ERROR_MESSAGE,
+          )
+        },
+
+      onSuccess:
+        (
+          nextCart,
+          variables,
+        ) => {
+          queryClient.setQueryData(
+            cartQueryKeys.owner(
+              variables.ownerId,
+            ),
+            nextCart,
+          )
+        },
+
+      onSettled:
+        (
+          _data,
+          _error,
+          variables,
+        ) => {
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+    })
+
+  const clearMutation =
+    useMutation({
+      mutationFn:
+        async (
+          _variables:
+            OwnerMutationVariables,
+        ) =>
+          clearCartRequest(),
+
+      onMutate:
+        async (
+          variables,
+        ): Promise<CartMutationContext> => {
+          setCartError(
+            null,
+          )
+
+          const queryKey =
+            cartQueryKeys.owner(
+              variables.ownerId,
+            )
+
+          await queryClient.cancelQueries({
+            queryKey,
+          })
+
+          const previousCart =
+            queryClient.getQueryData<CartState>(
+              queryKey,
+            )
+
+          queryClient.setQueryData<CartState>(
+            queryKey,
+            EMPTY_CART,
+          )
+
+          return {
+            previousCart,
+          }
+        },
+
+      onError:
+        (
+          _error,
+          variables,
+          context,
+        ) => {
+          if (
+            context?.previousCart
+          ) {
+            queryClient.setQueryData(
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+              context.previousCart,
+            )
+          }
+
+          setCartError(
+            CART_ERROR_MESSAGE,
+          )
+        },
+
+      onSuccess:
+        (
+          nextCart,
+          variables,
+        ) => {
+          queryClient.setQueryData(
+            cartQueryKeys.owner(
+              variables.ownerId,
+            ),
+            nextCart,
+          )
+        },
+
+      onSettled:
+        (
+          _data,
+          _error,
+          variables,
+        ) => {
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+    })
+
+  const consumeMutation =
+    useMutation({
+      mutationFn:
+        async (
+          variables:
+            ConsumeMutationVariables,
+        ) => {
+          let nextCart =
+            variables.optimisticCart
+
+          for (
+            const operation of
+            variables.operations
+          ) {
+            nextCart =
+              operation.type ===
+              'remove'
+                ? await removeCartItem(
+                    operation.nftId,
+                  )
+                : await updateCartItem(
+                    operation.nftId,
+                    {
+                      quantity:
+                        operation.quantity,
+                    },
+                  )
+          }
+
+          return nextCart
+        },
+
+      onError:
+        (
+          _error,
+          variables,
+        ) => {
+          processingOrderIdsRef.current.delete(
+            variables.orderId,
+          )
+
+          setCartError(
+            CART_ERROR_MESSAGE,
+          )
+
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+
+      onSuccess:
+        (
+          nextCart,
+          variables,
+        ) => {
+          const processedOrderIds =
+            loadProcessedOrderIds(
+              variables.ownerId,
+            )
+
+          processedOrderIds.add(
+            variables.orderId,
+          )
+
+          saveProcessedOrderIds(
+            variables.ownerId,
+            processedOrderIds,
+          )
+
+          processingOrderIdsRef.current.delete(
+            variables.orderId,
+          )
+
+          queryClient.setQueryData(
+            cartQueryKeys.owner(
+              variables.ownerId,
+            ),
+            nextCart,
+          )
+        },
+
+      onSettled:
+        (
+          _data,
+          _error,
+          variables,
+        ) => {
+          void queryClient.invalidateQueries({
+            queryKey:
+              cartQueryKeys.owner(
+                variables.ownerId,
+              ),
+          })
+        },
+    })
+
+  const cart =
+    cartQuery.data ??
+    EMPTY_CART
+
   const isHydrating =
     isInitializing ||
-    !hasInitializedRef.current ||
-    activeOwnerRef.current !==
-      ownerId
-
-  useEffect(() => {
-    if (isInitializing) {
-      return
-    }
-
-    const previousOwnerId =
-      activeOwnerRef.current
-
-    /*
-     * Primeira resolução da
-     * autenticação.
-     */
-    if (
-      !hasInitializedRef.current
-    ) {
-      const nextCart =
-        isAuthenticated &&
-        user
-          ? mergeCarts(
-              GUEST_OWNER_ID,
-              user.id,
-            )
-          : loadCart(
-              GUEST_OWNER_ID,
-            )
-
-      skipPersistenceRef.current =
-        true
-
-      activeOwnerRef.current =
-        ownerId
-
-      hasInitializedRef.current =
-        true
-
-      setCart(
-        nextCart,
-      )
-
-      return
-    }
-
-    if (
-      previousOwnerId ===
-      ownerId
-    ) {
-      return
-    }
-
-    /*
-     * guest → usuário
-     *
-     * Login ou cadastro.
-     */
-    if (
-      previousOwnerId ===
-        GUEST_OWNER_ID &&
-      isAuthenticated &&
-      user
-    ) {
-      /*
-       * O estado React pode ter
-       * alterações ainda mais
-       * recentes que o storage.
-       */
-      saveCart(
-        GUEST_OWNER_ID,
-        cart,
-      )
-
-      const mergedCart =
-        mergeCarts(
-          GUEST_OWNER_ID,
-          user.id,
-        )
-
-      skipPersistenceRef.current =
-        true
-
-      activeOwnerRef.current =
-        user.id
-
-      setCart(
-        mergedCart,
-      )
-
-      return
-    }
-
-    /*
-     * usuário → guest
-     *
-     * Logout ou expiração.
-     *
-     * Não transferimos o
-     * carrinho privado da conta
-     * para o guest.
-     */
-    skipPersistenceRef.current =
-      true
-
-    activeOwnerRef.current =
-      ownerId
-
-    setCart(
-      loadCart(
-        ownerId,
-      ),
-    )
-  }, [
-    cart,
-    isAuthenticated,
-    isInitializing,
-    ownerId,
-    user,
-  ])
-
-  useEffect(() => {
-    if (
-      isInitializing ||
-      !hasInitializedRef.current ||
-      activeOwnerRef.current !==
-        ownerId
-    ) {
-      return
-    }
-
-    if (
-      skipPersistenceRef.current
-    ) {
-      skipPersistenceRef.current =
-        false
-
-      return
-    }
-
-    saveCart(
-      ownerId,
-      cart,
-    )
-  }, [
-    cart,
-    isInitializing,
-    ownerId,
-  ])
+    cartQuery.isPending
 
   const addItem =
     useCallback(
@@ -294,125 +1116,16 @@ export function CartProvider({
           return
         }
 
-        setCart(
-          (
-            currentCart,
-          ) => {
-            const existingItem =
-              currentCart.items.find(
-                (item) =>
-                  item.nftId ===
-                  nft.id,
-              )
-
-            if (
-              existingItem
-            ) {
-              const nextQuantity =
-                Math.min(
-                  existingItem.quantity +
-                    quantity,
-
-                  nft.availableQuantity,
-                )
-
-              return {
-                ...currentCart,
-
-                items:
-                  currentCart.items.map(
-                    (
-                      item,
-                    ) =>
-                      item.nftId ===
-                      nft.id
-                        ? {
-                            ...item,
-
-                            quantity:
-                              nextQuantity,
-
-                            name:
-                              nft.name,
-
-                            imageUrl:
-                              nft.imageUrl,
-
-                            collection:
-                              nft.collection,
-
-                            network:
-                              nft.network,
-
-                            priceEth:
-                              nft.priceEth,
-
-                            availableQuantity:
-                              nft.availableQuantity,
-
-                            version:
-                              nft.version,
-                          }
-                        : item,
-                  ),
-              }
-            }
-
-            const normalizedQuantity =
-              Math.min(
-                quantity,
-                nft.availableQuantity,
-              )
-
-            if (
-              normalizedQuantity <=
-              0
-            ) {
-              return currentCart
-            }
-
-            const newItem: CartItem =
-              {
-                nftId:
-                  nft.id,
-
-                name:
-                  nft.name,
-
-                imageUrl:
-                  nft.imageUrl,
-
-                collection:
-                  nft.collection,
-
-                network:
-                  nft.network,
-
-                priceEth:
-                  nft.priceEth,
-
-                quantity:
-                  normalizedQuantity,
-
-                availableQuantity:
-                  nft.availableQuantity,
-
-                version:
-                  nft.version,
-              }
-
-            return {
-              ...currentCart,
-
-              items: [
-                ...currentCart.items,
-                newItem,
-              ],
-            }
-          },
-        )
+        addMutation.mutate({
+          ownerId,
+          nft,
+          quantity,
+        })
       },
-      [],
+      [
+        addMutation,
+        ownerId,
+      ],
     )
 
   const removeItem =
@@ -420,24 +1133,15 @@ export function CartProvider({
       (
         nftId: string,
       ) => {
-        setCart(
-          (
-            currentCart,
-          ) => ({
-            ...currentCart,
-
-            items:
-              currentCart.items.filter(
-                (
-                  item,
-                ) =>
-                  item.nftId !==
-                  nftId,
-              ),
-          }),
-        )
+        removeMutation.mutate({
+          ownerId,
+          nftId,
+        })
       },
-      [],
+      [
+        ownerId,
+        removeMutation,
+      ],
     )
 
   const updateQuantity =
@@ -446,80 +1150,69 @@ export function CartProvider({
         nftId: string,
         quantity: number,
       ) => {
-        setCart(
-          (
-            currentCart,
-          ) => ({
-            ...currentCart,
+        const item =
+          cart.items.find(
+            (
+              currentItem,
+            ) =>
+              currentItem.nftId ===
+              nftId,
+          )
 
-            items:
-              currentCart.items.map(
-                (
-                  item,
-                ) => {
-                  if (
-                    item.nftId !==
-                    nftId
-                  ) {
-                    return item
-                  }
+        if (
+          !item ||
+          item.availableQuantity <=
+            0
+        ) {
+          return
+        }
 
-                  if (
-                    item.availableQuantity <=
-                    0
-                  ) {
-                    return item
-                  }
+        const normalizedQuantity =
+          Math.max(
+            1,
+            Math.min(
+              quantity,
+              item.availableQuantity,
+            ),
+          )
 
-                  const normalizedQuantity =
-                    Math.max(
-                      1,
-
-                      Math.min(
-                        quantity,
-                        item.availableQuantity,
-                      ),
-                    )
-
-                  return {
-                    ...item,
-
-                    quantity:
-                      normalizedQuantity,
-                  }
-                },
-              ),
-          }),
-        )
+        updateMutation.mutate({
+          ownerId,
+          nftId,
+          quantity:
+            normalizedQuantity,
+        })
       },
-      [],
+      [
+        cart.items,
+        ownerId,
+        updateMutation,
+      ],
     )
 
   /*
-   * Sincroniza o snapshot do NFT
-   * armazenado no carrinho quando
-   * chega um evento realtime.
-   *
-   * Não removemos o item nem
-   * alteramos a quantidade
-   * automaticamente. Dessa forma,
-   * mudanças de estoque/preço
-   * permanecem visíveis para o
-   * usuário e podem ser
-   * revalidadas no checkout.
-   *
-   * Eventos antigos ou duplicados
-   * não devem regredir o estado.
+   * O evento realtime atualiza o cache
+   * remoto imediatamente. Em reconnect,
+   * o RealtimeProvider invalida também
+   * a query do carrinho para reconciliar
+   * novamente pela API REST.
    */
   const syncNft =
     useCallback(
       (
         nft: Nft,
       ) => {
-        setCart(
+        queryClient.setQueryData<CartState>(
+          cartQueryKeys.owner(
+            ownerId,
+          ),
           (
             currentCart,
           ) => {
+            if (!currentCart) {
+              return currentCart
+            }
+
             let hasChanges =
               false
 
@@ -572,21 +1265,21 @@ export function CartProvider({
                 },
               )
 
-            if (
-              !hasChanges
-            ) {
+            if (!hasChanges) {
               return currentCart
             }
 
             return {
               ...currentCart,
-
               items,
             }
           },
         )
       },
-      [],
+      [
+        ownerId,
+        queryClient,
+      ],
     )
 
   const applyCoupon =
@@ -605,46 +1298,262 @@ export function CartProvider({
           return
         }
 
-        setCart(
-          (
-            currentCart,
-          ) => ({
-            ...currentCart,
+        couponMutation.mutate({
+          ownerId,
 
-            couponCode:
-              normalizedCouponCode,
-          }),
-        )
+          couponCode:
+            normalizedCouponCode,
+        })
       },
-      [],
+      [
+        couponMutation,
+        ownerId,
+      ],
     )
 
   const removeCoupon =
     useCallback(
       () => {
-        setCart(
-          (
-            currentCart,
-          ) => ({
-            ...currentCart,
-
-            couponCode:
-              null,
-          }),
-        )
+        couponMutation.mutate({
+          ownerId,
+          couponCode: null,
+        })
       },
-      [],
+      [
+        couponMutation,
+        ownerId,
+      ],
     )
 
   const clearCart =
     useCallback(
       () => {
-        setCart({
-          items: [],
-          couponCode: null,
+        clearMutation.mutate({
+          ownerId,
         })
       },
-      [],
+      [
+        clearMutation,
+        ownerId,
+      ],
+    )
+
+  const consumeConfirmedOrder =
+    useCallback(
+      (
+        orderId: string,
+        purchasedItems:
+          PurchasedCartItemInput[],
+      ) => {
+        const normalizedOrderId =
+          orderId.trim()
+
+        if (
+          !normalizedOrderId ||
+          purchasedItems.length ===
+            0 ||
+          isHydrating
+        ) {
+          return
+        }
+
+        const processedOrderIds =
+          loadProcessedOrderIds(
+            ownerId,
+          )
+
+        if (
+          processedOrderIds.has(
+            normalizedOrderId,
+          ) ||
+          processingOrderIdsRef.current.has(
+            normalizedOrderId,
+          )
+        ) {
+          return
+        }
+
+        const purchasedQuantities =
+          new Map<string, number>()
+
+        for (
+          const purchasedItem of
+          purchasedItems
+        ) {
+          if (
+            !Number.isInteger(
+              purchasedItem.quantity,
+            ) ||
+            purchasedItem.quantity <=
+              0
+          ) {
+            continue
+          }
+
+          purchasedQuantities.set(
+            purchasedItem.nftId,
+            (
+              purchasedQuantities.get(
+                purchasedItem.nftId,
+              ) ??
+              0
+            ) +
+              purchasedItem.quantity,
+          )
+        }
+
+        if (
+          purchasedQuantities.size ===
+          0
+        ) {
+          return
+        }
+
+        const currentCart =
+          queryClient.getQueryData<CartState>(
+            cartQueryKeys.owner(
+              ownerId,
+            ),
+          ) ??
+          cart
+
+        const operations:
+          ConsumeOperation[] =
+          []
+
+        let optimisticCart =
+          currentCart
+
+        for (
+          const [
+            nftId,
+            purchasedQuantity,
+          ] of
+          purchasedQuantities
+        ) {
+          const item =
+            optimisticCart.items.find(
+              (
+                currentItem,
+              ) =>
+                currentItem.nftId ===
+                nftId,
+            )
+
+          if (!item) {
+            continue
+          }
+
+          const remainingQuantity =
+            item.quantity -
+            purchasedQuantity
+
+          if (
+            remainingQuantity <=
+            0
+          ) {
+            operations.push({
+              type:
+                'remove',
+
+              nftId,
+            })
+
+            optimisticCart =
+              optimisticRemoveItem(
+                optimisticCart,
+                nftId,
+              )
+
+            continue
+          }
+
+          operations.push({
+            type:
+              'update',
+
+            nftId,
+
+            quantity:
+              remainingQuantity,
+          })
+
+          optimisticCart =
+            optimisticUpdateQuantity(
+              optimisticCart,
+              nftId,
+              remainingQuantity,
+            )
+        }
+
+        /*
+         * Se os itens já não estão mais
+         * no carrinho, consideramos o
+         * efeito aplicado e apenas
+         * registramos o orderId.
+         */
+        if (
+          operations.length ===
+          0
+        ) {
+          processedOrderIds.add(
+            normalizedOrderId,
+          )
+
+          saveProcessedOrderIds(
+            ownerId,
+            processedOrderIds,
+          )
+
+          return
+        }
+
+        processingOrderIdsRef.current.add(
+          normalizedOrderId,
+        )
+
+        const queryKey =
+          cartQueryKeys.owner(
+            ownerId,
+          )
+
+        const previousCart =
+          currentCart
+
+        queryClient.setQueryData(
+          queryKey,
+          optimisticCart,
+        )
+
+        consumeMutation.mutate(
+          {
+            ownerId,
+
+            orderId:
+              normalizedOrderId,
+
+            operations,
+
+            optimisticCart,
+          },
+          {
+            onError:
+              () => {
+                queryClient.setQueryData(
+                  queryKey,
+                  previousCart,
+                )
+              },
+          },
+        )
+      },
+      [
+        cart,
+        consumeMutation,
+        isHydrating,
+        ownerId,
+        queryClient,
+      ],
     )
 
   const getItemQuantity =
@@ -659,7 +1568,8 @@ export function CartProvider({
             ) =>
               item.nftId ===
               nftId,
-          )?.quantity ?? 0
+          )?.quantity ??
+          0
         )
       },
       [
@@ -695,7 +1605,6 @@ export function CartProvider({
           ) =>
             total +
             item.quantity,
-
           0,
         ),
       [
@@ -734,6 +1643,8 @@ export function CartProvider({
 
         clearCart,
 
+        consumeConfirmedOrder,
+
         getItemQuantity,
 
         hasItem,
@@ -750,9 +1661,18 @@ export function CartProvider({
         applyCoupon,
         removeCoupon,
         clearCart,
+        consumeConfirmedOrder,
         getItemQuantity,
         hasItem,
       ],
+    )
+
+  const visibleError =
+    cartError ??
+    (
+      cartQuery.isError
+        ? 'Não foi possível carregar o carrinho.'
+        : null
     )
 
   return (
@@ -760,6 +1680,15 @@ export function CartProvider({
       value={value}
     >
       {children}
+
+      {visibleError && (
+        <p
+          role="alert"
+          className="sr-only"
+        >
+          {visibleError}
+        </p>
+      )}
     </CartContext.Provider>
   )
 }
