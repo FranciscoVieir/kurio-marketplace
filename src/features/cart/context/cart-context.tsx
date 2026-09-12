@@ -71,7 +71,7 @@ type CartContextValue = {
 
   addItem: (
     input: AddCartItemInput,
-  ) => void
+  ) => Promise<boolean>
 
   removeItem: (
     nftId: string,
@@ -1104,7 +1104,7 @@ export function CartProvider({
 
   const addItem =
     useCallback(
-      ({
+      async ({
         nft,
         quantity,
       }: AddCartItemInput) => {
@@ -1113,14 +1113,20 @@ export function CartProvider({
           nft.availableQuantity <=
             0
         ) {
-          return
+          return false
         }
 
-        addMutation.mutate({
-          ownerId,
-          nft,
-          quantity,
-        })
+        try {
+          await addMutation.mutateAsync({
+            ownerId,
+            nft,
+            quantity,
+          })
+
+          return true
+        } catch {
+          return false
+        }
       },
       [
         addMutation,

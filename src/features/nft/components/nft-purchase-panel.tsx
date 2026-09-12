@@ -167,7 +167,7 @@ export function NftPurchasePanel({
     )
   }
 
-  function handleAddToCart() {
+  async function handleAddToCart() {
     if (
       isSoldOut ||
       cannotAddMore ||
@@ -176,10 +176,19 @@ export function NftPurchasePanel({
       return
     }
 
-    addItem({
-      nft,
-      quantity,
-    })
+    setWasAddedToCart(
+      false,
+    )
+
+    const wasAdded =
+      await addItem({
+        nft,
+        quantity,
+      })
+
+    if (!wasAdded) {
+      return
+    }
 
     setWasAddedToCart(
       true,

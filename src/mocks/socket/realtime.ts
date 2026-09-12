@@ -1,77 +1,54 @@
 import {
-  io,
-  type Socket,
-} from 'socket.io-client'
+  getRealtimeSocket,
+  type RealtimeSocket,
+} from '@/services/realtime/socket'
 
 import type {
   NftUpdatedEvent,
   OrderUpdatedEvent,
 } from '@/services/realtime/events'
 
-type MockPublisherEvents = {
-  '__mock.nft.updated': (
-    payload: NftUpdatedEvent,
-  ) => void
-
-  '__mock.order.updated': (
-    payload: {
-      userId: string
-      order: OrderUpdatedEvent['order']
-    },
-  ) => void
-}
-
-type MockPublisherSocket =
-  Socket<
-    Record<string, never>,
-    MockPublisherEvents
-  >
-
-let publisherSocket:
-  | MockPublisherSocket
-  | null = null
-
-function getPublisherSocket() {
-  if (
-    publisherSocket
-  ) {
-    return publisherSocket
-  }
-
-  publisherSocket = io(
-    window.location.origin,
-    {
-      path: '/socket.io/',
-      transports: [
-        'websocket',
-      ],
-      autoConnect: true,
-      reconnection: true,
-    },
-  )
-
-  return publisherSocket
-}
-
 function emitWhenConnected(
   emit: (
-    socket: MockPublisherSocket,
+    socket: RealtimeSocket,
   ) => void,
 ) {
+  /*
+   * O publisher usa o MESMO cliente
+   * Socket.IO da aplicação.
+   *
+   * Isso continua atravessando o
+   * protocolo real:
+   *
+   * browser socket.io-client
+   * -> servidor Socket.IO
+   * -> evento público
+   * -> RealtimeProvider
+   *
+   * No deploy isso também evita
+   * depender de afinidade entre duas
+   * conexões WebSocket separadas em
+   * instâncias diferentes da Function.
+   */
   const socket =
-    getPublisherSocket()
+    getRealtimeSocket()
 
   if (
     socket.connected
   ) {
-    emit(socket)
+    emit(
+      socket,
+    )
+
     return
   }
 
   socket.once(
     'connect',
     () => {
-      emit(socket)
+      emit(
+        socket,
+      )
     },
   )
 
@@ -86,7 +63,9 @@ export function emitNftUpdated(
   event: NftUpdatedEvent,
 ) {
   emitWhenConnected(
-    (socket) => {
+    (
+      socket,
+    ) => {
       socket.emit(
         '__mock.nft.updated',
         event,
@@ -99,7 +78,9 @@ export function emitOrderUpdated(
   event: OrderUpdatedEvent,
 ) {
   emitWhenConnected(
-    (socket) => {
+    (
+      socket,
+    ) => {
       socket.emit(
         '__mock.order.updated',
         {
@@ -115,12 +96,13 @@ export function emitOrderUpdated(
 }
 
 export function disconnectRealtimePublisher() {
-  if (
-    !publisherSocket
-  ) {
-    return
-  }
-
-  publisherSocket.disconnect()
-  publisherSocket = null
+  /*
+   * O publisher não possui mais uma
+   * conexão própria.
+   *
+   * O ciclo de vida do socket
+   * compartilhado pertence ao
+   * RealtimeProvider, por meio de
+   * disconnectRealtime().
+   */
 }
