@@ -12,8 +12,6 @@ https://github.com/FranciscoVieir/kurio-marketplace
 
 ## Deploy
 
-A URL pública será adicionada após a publicação da versão final.
-
 https://kurio-marketplace-a47t.vercel.app/
 
 ---
