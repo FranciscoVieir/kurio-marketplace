@@ -14,7 +14,7 @@ https://github.com/FranciscoVieir/kurio-marketplace
 
 A URL pública será adicionada após a publicação da versão final.
 
-> O ambiente de deploy precisa manter os mocks disponíveis e suportar o servidor Socket.IO utilizado pelos fluxos em tempo real.
+https://kurio-marketplace-a47t.vercel.app/
 
 ---
 
